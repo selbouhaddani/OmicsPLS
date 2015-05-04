@@ -125,6 +125,17 @@ mse <- function(x,y)
 #'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #'    This is a `slower' implementation of O2PLS, using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 #'    
+#'    @examples
+#'      test.data=matrix(rnorm(100))
+#'      hist(replicate(1000,
+#'                    o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
+#'                  ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+#'      hist(replicate(1000,
+#'                    o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
+#'                  ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
+#'      hist(replicate(1000,
+#'                    o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
+#'                  ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
 #'    @seealso \code{\link{ssq}}, \code{\link{summary_o2m}}, \code{\link{o2m_stripped}}
 #' @export
 o2m<-function(X,Y,n,nx,ny)
