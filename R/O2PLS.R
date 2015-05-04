@@ -3,9 +3,12 @@
 #' This is based on work of (Trygg, Wold, 2003). 
 #' Includes the O2PLS fit, some misc functions and some cross-validation tools.
 #' @author 
-#' Said el Bouhaddani \email{s.el_bouhaddani@@lumc.nl}
+#' Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}), 
+#' Jeanine Houwing-Duistermaat (\email{J.J.Houwing@@lumc.nl}), 
+#' Geurt Jongbloed (\email{G.Jongbloed@@tudelft.nl}), 
+#' Hae-Won Uh (\email{H.Uh@@lumc.nl}).
 #' 
-#' Maintainer: Said el Bouhaddani \email{s.el_bouhaddani@@lumc.nl}
+#' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
 #' 
 #' @section Functions:
 #' The O2PLS fit is done with \code{\link{o2m}}. Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}} which may depend on the \code{parallel} package.
