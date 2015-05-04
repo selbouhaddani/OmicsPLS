@@ -21,6 +21,6 @@ An alternative, not implemented, way is to orthonormalize the second columns of 
 }
 \examples{
 orth(c(3,4))
-orth(matrix(rnorm(500),100,5))
+round(crossprod(orth(matrix(rnorm(500),100,5))),4)
 }
 

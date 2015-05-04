@@ -42,7 +42,7 @@ NULL
 #' An alternative, not implemented, way is to orthonormalize the second columns of \code{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
 #' @examples
 #' orth(c(3,4))
-#' orth(matrix(rnorm(500),100,5))
+#' round(crossprod(orth(matrix(rnorm(500),100,5))),4)
 #' @export
 orth<-function(X)
 {
@@ -398,6 +398,9 @@ adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
 #' 
 #' @param x Numeric vector or matrix.
 #' @return (columnwise) Euclidian norm of \eqn{x}
+#' @examples 
+#' vnorm(orth(1:5))
+#' vnorm(matrix(1:9,3,3))^2 - colSums(matrix(1:9,3)^2)
 #' @export
 vnorm <- function(x)
   #Input: matrix x

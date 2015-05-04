@@ -15,4 +15,8 @@ vnorm(x)
 \description{
 Norm of a vector or columns of a matrix
 }
+\examples{
+vnorm(orth(1:5))
+vnorm(matrix(1:9,3,3))^2 - colSums(matrix(1:9,3)^2)
+}
 
