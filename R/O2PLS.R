@@ -11,8 +11,8 @@
 #' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
 #' 
 #' @section Functions:
-#' The O2PLS fit is done with \code{\link{o2m}}. A typical usage is \code{o2m(X,Y,a,nx,ny)}.
-#' Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, they may depend on the \code{parallel} package.
+#' The O2PLS fit is done with \code{\link{o2m}}.
+#' Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
 #' 
 #' List of all functions:\itemize{
 #' \item{\code{\link{adjR2}}}
@@ -38,9 +38,11 @@ NULL
 #' Orthogonalize a matrix
 #' 
 #' @param X Numeric vector or matrix.
-#' @return An orthogonalized representation of \code{X}
-#' @details The definition of orthogonalizing a matrix is not ambiguous. Here \code{X} is represented by all eigenvectors. The eigenvalues are set to 1.
-#' An alternative, not implemented, way is to orthonormalize the second columns of \code{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
+#' @return An orthogonalized representation of \eqn{X}
+#' @details The definition of orthogonalizing a matrix is ambiguous. Here \code{orth(X)} relies on \code{link{svd}} to rotate \code{X} such that the first column is the unit norm first principal component etc. 
+#' If we write \eqn{X = UDV^T}, then \code{orth(X)} is equivalent to \eqn{UV^T}
+#' An alternative, not implemented, way would be to orthonormalize the second column of \eqn{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
+#' The way we typically use it is to make a vector \eqn{X} unit norm.
 #' @examples
 #' orth(c(3,4))
 #' round(crossprod(orth(matrix(rnorm(500),100,5))),4)
@@ -54,7 +56,7 @@ orth<-function(X)
 #' Calculate Sum of Squares
 #' 
 #' @param X Numeric vector or matrix.
-#' @return The sum of squared elements of \code{X}
+#' @return The sum of squared elements of \eqn{X}
 #' @details This is the Frobenius norm of \eqn{X}.
 #' @examples
 #' ssq(1:5)
@@ -70,7 +72,7 @@ ssq<-function(X)
 #' @param x Numeric vector or matrix.
 #' @param y Numeric vector or matrix.
 #' @return The mean of the squared differences elementwise.
-#' @details Is equal to ssq(x-y)/length(c(x)). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it (with a probability on a warning). 
+#' @details Is equal to ssq(x-y)/length(c(x)). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that). 
 #' In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}.
 #' @examples 
 #' mse(2,0)
@@ -124,7 +126,7 @@ mse <- function(x,y)
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    
 #'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#'    This is a `slower' implementation of O2PLS, using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#'    This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 #'    
 #'    @examples
 #'      test.data=matrix(rnorm(100))
@@ -248,7 +250,7 @@ summary_o2m<-function(fit)
 
 #' Root MSE of Prediction
 #' 
-#' Calculates the Root MSE of prediction on test data. *Expected* to work in combination with \code{\link{loocv}}.
+#' Calculates the Root MSE of prediction on test data. Only tested to work inside \code{\link{loocv}}.
 #' 
 #' @param Xtst Numeric vector or matrix.
 #' @param Ytst Numeric vector or matrix.
@@ -274,9 +276,9 @@ rmsep <- function(Xtst,Ytst,fit)
 #' 
 #' @param X Numeric matrix.
 #' @param Y Numeric matrix.
-#' @param a Vector or integers. Contains the #joint components.
-#' @param a2 Vector or integers. Contains the number of orthogonal components in \eqn{X}.
-#' @param b2 Vector or integers. Contains the number of orthogonal components in \eqn{Y}.
+#' @param a Vector of integers. Contains the numbers of joint components.
+#' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
+#' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
 #' @param fitted_model List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
 #' @param app_err Logical. Should the apparent error also be computed?
@@ -285,9 +287,16 @@ rmsep <- function(Xtst,Ytst,fit)
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
-#' 
+#' @details The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations. 
+#' The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
+#' The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
+#' Typing \code{example(loocv)} (hopefully) clarifies this function.
 #' @examples
-#' loocv(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m,kcv=5)
+#' result=loocv(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped,kcv=2)
+#' names_for_a=sapply(1:3,function(i){paste("a",i,sep="=")})
+#' names_for_a2=sapply(0:1,function(i){paste("a2",i,sep="=")})
+#' names_for_b2=sapply(0:1,function(i){paste("b2",i,sep="=")})
+#' array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
 loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_err=F,kcv)
   #Input: Data X,Y; model to fit; loop through nr of components; 
@@ -345,22 +354,26 @@ loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_er
 #' 
 #' @param X Numeric matrix.
 #' @param Y Numeric matrix.
-#' @param a Vector or integers. Contains the #joint components.
-#' @param a2 Vector or integers. Contains the number of orthogonal components in \eqn{X}.
-#' @param b2 Vector or integers. Contains the number of orthogonal components in \eqn{Y}.
+#' @param a Vector of integers. Contains the numbers of joint components.
+#' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
+#' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
 #' @param parall Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.
 #' @param cl Object of class "\code{cluster}". If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.
 #' @details The use of this function is to calculate the R2 of the joint part, while varying the number of orthogonal components. Adding more joint components will increase the R2!
 #' 
-#' A parallelized version is built in, use package \code{parallel} and set \code{parall=TRUE} to activate this. There should not be already a cluster object with the name \code{cl}.
+#' A parallelized version is built in -tested on windows-, use package \code{parallel} and set \code{parall=TRUE} to activate this. There should not be already a cluster object with the name \code{cl}.
 #' In case of some error, don't forget to invoke \code{stopCluster(cl)} to end the cluster. See Task Manager (Windows) to verify that the workers are spanned/ended.
 #' @return Matrix with two rows:
 #' \item{adjR2X}{Contains the joint R2 in X}
 #' \item{adjR2Y}{Contains the joint R2 in Y}
-#' 
+#' @details See \code{\link{loocv}} for more intuition.
 #' @examples
-#' adjR2(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m)
+#' result=adjR2(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped)
+#' names_for_a=sapply(1:3,function(i){paste("a",i,sep="=")})
+#' names_for_a2=sapply(0:1,function(i){paste("a2",i,sep="=")})
+#' names_for_b2=sapply(0:1,function(i){paste("b2",i,sep="=")})
+#' array(unlist(result[1,]),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
 adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
   #Input: Data X,Y; model to fit; loop through nr of components; 
@@ -389,7 +402,7 @@ adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
     RY = 1-ssq(fit$H_TU)/ssq(fit$Tt)
     adjRX = RX#1 - (1 - RX)*(N - 1)/(N - p$a - 1)
     adjRY = RY#1 - (1 - RY)*(N - 1)/(N - p$a - 1)
-    return(list(adjR2X = adjRX, adjR2Y = adjRY))
+    return(c(adjR2X = adjRX, adjR2Y = adjRY))
   })
   if(parall&cl_was_null==TRUE){stopCluster(cl)}
   return(outp)

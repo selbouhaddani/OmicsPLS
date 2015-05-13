@@ -18,7 +18,7 @@ The mean of the squared differences elementwise.
 Calculate mean squared difference
 }
 \details{
-Is equal to ssq(x-y)/length(c(x)). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it (with a probability on a warning).
+Is equal to ssq(x-y)/length(c(x)). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that).
 In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}.
 }
 \examples{

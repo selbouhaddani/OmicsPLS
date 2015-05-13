@@ -10,14 +10,16 @@ orth(X)
 \item{X}{Numeric vector or matrix.}
 }
 \value{
-An orthogonalized representation of \code{X}
+An orthogonalized representation of \eqn{X}
 }
 \description{
 Orthogonalize a matrix
 }
 \details{
-The definition of orthogonalizing a matrix is not ambiguous. Here \code{X} is represented by all eigenvectors. The eigenvalues are set to 1.
-An alternative, not implemented, way is to orthonormalize the second columns of \code{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
+The definition of orthogonalizing a matrix is ambiguous. Here \code{orth(X)} relies on \code{link{svd}} to rotate \code{X} such that the first column is the unit norm first principal component etc.
+If we write \eqn{X = UDV^T}, then \code{orth(X)} is equivalent to \eqn{UV^T}
+An alternative, not implemented, way would be to orthonormalize the second column of \eqn{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
+The way we typically use it is to make a vector \eqn{X} unit norm.
 }
 \examples{
 orth(c(3,4))

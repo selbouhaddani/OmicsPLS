@@ -12,11 +12,11 @@ loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
 
 \item{Y}{Numeric matrix.}
 
-\item{a}{Vector or integers. Contains the #joint components.}
+\item{a}{Vector of integers. Contains the numbers of joint components.}
 
-\item{a2}{Vector or integers. Contains the number of orthogonal components in \eqn{X}.}
+\item{a2}{Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.}
 
-\item{b2}{Vector or integers. Contains the number of orthogonal components in \eqn{Y}.}
+\item{b2}{Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.}
 
 \item{fitted_model}{List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.}
 
@@ -38,6 +38,10 @@ For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} estim
 Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 }
 \examples{
-loocv(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m,kcv=5)
+result=loocv(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped,kcv=2)
+names_for_a=sapply(1:3,function(i){paste("a",i,sep="=")})
+names_for_a2=sapply(0:1,function(i){paste("a2",i,sep="=")})
+names_for_b2=sapply(0:1,function(i){paste("b2",i,sep="=")})
+array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 }
 

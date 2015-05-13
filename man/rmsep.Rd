@@ -17,7 +17,7 @@ rmsep(Xtst, Ytst, fit)
 Mean squares difference between predicted Y and true Y
 }
 \description{
-Calculates the Root MSE of prediction on test data. *Expected* to work in combination with \code{\link{loocv}}.
+Calculates the Root MSE of prediction on test data. Only tested to work inside \code{\link{loocv}}.
 }
 \details{
 This function is the building block for \code{\link{loocv}}, as it produced the prediction error for test (left out) data.

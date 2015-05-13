@@ -10,7 +10,7 @@ ssq(X)
 \item{X}{Numeric vector or matrix.}
 }
 \value{
-The sum of squared elements of \code{X}
+The sum of squared elements of \eqn{X}
 }
 \description{
 Calculate Sum of Squares

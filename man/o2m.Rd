@@ -51,7 +51,7 @@ NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalizati
 }
 \details{
 If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-   This is a `slower' implementation of O2PLS, using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+   This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 }
 \examples{
 test.data=matrix(rnorm(100))
