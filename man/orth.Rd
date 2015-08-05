@@ -4,10 +4,14 @@
 \alias{orth}
 \title{Orthogonalize a matrix}
 \usage{
-orth(X)
+orth(X, X_true = NULL, type = c("QR", "SVD"))
 }
 \arguments{
 \item{X}{Numeric vector or matrix.}
+
+\item{X_true}{(optional) A "true" matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.}
+
+\item{type}{A character or numeric. type="QR" and type=1 are equivalent.}
 }
 \value{
 An orthogonalized representation of \eqn{X}
@@ -16,13 +20,11 @@ An orthogonalized representation of \eqn{X}
 Orthogonalize a matrix
 }
 \details{
-The definition of orthogonalizing a matrix is ambiguous. Here \code{orth(X)} relies on \code{link{svd}} to rotate \code{X} such that the first column is the unit norm first principal component etc.
-If we write \eqn{X = UDV^T}, then \code{orth(X)} is equivalent to \eqn{UV^T}
-An alternative, not implemented, way would be to orthonormalize the second column of \eqn{X} w.r.t. the first column, and the third column w.r.t. the first two columns etc.
-The way we typically use it is to make a vector \eqn{X} unit norm.
+Choosing type="QR" (or type=1) uses a QR decomposition of X to produce orthonormal columns. For type=="SVD" (or type not 1) it uses an SVD decomposition.
 }
 \examples{
 orth(c(3,4))
 round(crossprod(orth(matrix(rnorm(500),100,5))),4)
+orth(matrix(1:9,3,3),type="QR")[,1] - orth(1:3); orth(matrix(1:9,3,3),type="SVD")[,1] - orth(1:3);
 }
 
