@@ -80,19 +80,21 @@ ssq<-function(X)
 #' @param x Numeric vector or matrix.
 #' @param y Numeric vector or matrix.
 #' @return The mean of the squared differences elementwise.
-#' @details Is equal to ssq(x-y)/length(c(x)). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that). 
-#' In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}.
+#' @details Is equal to ssq(\code{x-y})/length(c(\code{x})). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that). 
+#' In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}, and if \code{y=0} (default) you get the mean of vec(\code{x^2})
 #' @examples 
-#' mse(2,0)
+#' mse(2)
 #' mse(1:10,2:11) == 1
 #' mse(matrix(rnorm(500),100,5),matrix(rnorm(500),100,5))
 #' @export
-mse <- function(x,y)
+mse <- function(x,y,na.rm=TRUE)
   #Input: 2 matrices x,y
   #Output: mean squared distance between 2 matrices (number)
 {
-  if(length(x)!=length(y)){warning("unequal length:result may not be sensible")}
-  mean((x-y)^2)
+  if (length(x) != length(y) && length(y)!=1) {
+    warning("unequal length:result may not be sensible")
+  }
+  mean((x - y)^2,na.rm=na.rm)
 }
 
 #' Perform O2-PLS with two-way orthogonal corrections
@@ -248,7 +250,7 @@ o2m<-function(X,Y,n,nx,ny)
 #' @examples
 #' summary_o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
 #' @export
-summary_o2m<-function(fit)
+summary.o2m<-function(fit)
 {
   a=length(fit$W.[1,])
   Mname=list(c(""),c("Comp","R2X","R2Y","R2Xcorr",'R2Ycorr','R2Xhat',"R2Yhat","XRatio","YRatio"))
