@@ -25,7 +25,7 @@
 #' \item{\code{\link{rmsep}}}
 #' \item{\code{\link{rmsep_combi}}}
 #' \item{\code{\link{ssq}}}
-#' \item{\code{\link{summary_o2m}}}
+#' \item{\code{\link{summary.o2m}}}
 #' \item{\code{\link{vnorm}}}
 #' }
 #' 
@@ -78,7 +78,8 @@ ssq<-function(X)
 #' Calculate mean squared difference
 #' 
 #' @param x Numeric vector or matrix.
-#' @param y Numeric vector or matrix.
+#' @param y Numeric vector or matrix. Defaults to 0.
+#' @param na.rm Remove NA's?
 #' @return The mean of the squared differences elementwise.
 #' @details Is equal to ssq(\code{x-y})/length(c(\code{x})). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that). 
 #' In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}, and if \code{y=0} (default) you get the mean of vec(\code{x^2})
@@ -87,7 +88,7 @@ ssq<-function(X)
 #' mse(1:10,2:11) == 1
 #' mse(matrix(rnorm(500),100,5),matrix(rnorm(500),100,5))
 #' @export
-mse <- function(x,y,na.rm=TRUE)
+mse <- function(x,y=0,na.rm=TRUE)
   #Input: 2 matrices x,y
   #Output: mean squared distance between 2 matrices (number)
 {
@@ -149,7 +150,7 @@ mse <- function(x,y,na.rm=TRUE)
 #'      hist(replicate(1000,
 #'                    o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
 #'                  ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'    @seealso \code{\link{ssq}}, \code{\link{summary_o2m}}, \code{\link{o2m_stripped}}
+#'    @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
 #' @export
 o2m<-function(X,Y,n,nx,ny)
 {
@@ -248,7 +249,7 @@ o2m<-function(X,Y,n,nx,ny)
 #' @param fit List. Contains the R2's as produced by \code{\link{o2m}}.
 #' @return Matrix with R2 values given in percentage in two decimals.
 #' @examples
-#' summary_o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
+#' summary.o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
 #' @export
 summary.o2m<-function(fit)
 {

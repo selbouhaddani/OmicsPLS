@@ -16,6 +16,6 @@ Matrix with R2 values given in percentage in two decimals.
 Until now only variational summary given by the R2's is outputted
 }
 \examples{
-summary_o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
+summary.o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
 }
 

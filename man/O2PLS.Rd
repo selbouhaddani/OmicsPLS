@@ -25,7 +25,7 @@ List of all functions:\itemize{
 \item{\code{\link{rmsep}}}
 \item{\code{\link{rmsep_combi}}}
 \item{\code{\link{ssq}}}
-\item{\code{\link{summary_o2m}}}
+\item{\code{\link{summary.o2m}}}
 \item{\code{\link{vnorm}}}
 }
 }

@@ -66,6 +66,6 @@ test.data=matrix(rnorm(100))
                  ),main="B_T=1; 90\% joint variation",xlab="B_T",xlim=c(0,1.5));
 }
 \seealso{
-\code{\link{ssq}}, \code{\link{summary_o2m}}, \code{\link{o2m_stripped}}
+\code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
 }
 

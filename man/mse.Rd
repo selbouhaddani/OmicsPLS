@@ -4,12 +4,14 @@
 \alias{mse}
 \title{Calculate mean squared difference}
 \usage{
-mse(x, y, na.rm = TRUE)
+mse(x, y = 0, na.rm = TRUE)
 }
 \arguments{
 \item{x}{Numeric vector or matrix.}
 
-\item{y}{Numeric vector or matrix.}
+\item{y}{Numeric vector or matrix. Defaults to 0.}
+
+\item{na.rm}{Remove NA's?}
 }
 \value{
 The mean of the squared differences elementwise.
