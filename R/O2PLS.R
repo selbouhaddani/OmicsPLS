@@ -156,16 +156,21 @@ o2m<-function(X,Y,n,nx,ny)
 {
   X = as.matrix(X)
   Y = as.matrix(Y)
+  stopifnot(nrow(X) == nrow(Y),ncol(X)>=n+max(nx,ny),ncol(Y)>=n+max(nx,ny))
   if(n<=0){stop("#joint components must be >0")}
+  if(nrow(X) < ncol(X) & nrow(X) < ncol(Y)){
+    return(o2m2(X,Y,n,nx,ny))
+  }
+  
   X_true = X
   Y_true = Y
   
-  T_Yosc = U_Xosc = matrix(0,length(X[,1]),1)
-  P_Yosc = W_Yosc = matrix(0,length(X[1,]),1)
-  P_Xosc = C_Xosc = matrix(0,length(Y[1,]),1)
+  N=nrow(X)
+  p=ncol(X); q=ncol(Y)
   
-  N=dim(X)[1]
-  p=dim(X)[2]; q=dim(Y)[2]
+  T_Yosc = U_Xosc = matrix(0,N,n)
+  W_Yosc = P_Yosc = matrix(0,p,n)
+  C_Xosc = P_Xosc = matrix(0,q,n)
   
   if(nx*ny>0){
     # larger principal subspace
@@ -242,6 +247,190 @@ o2m<-function(X,Y,n,nx,ny)
   return(model)
 }
 
+#' @export
+pow_o2m <- function(X,Y,n){
+  cat('High dimensional problem: switching to power method.\n')
+  cat('initialize Power Method. Stopping crit: MSE<1e-10 or 100 iter.\n')
+  Tt = NULL
+  U = NULL
+  W = NULL
+  C = NULL
+  for(indx in 1:n){
+    W0 = X[1,]
+    C0 = Y[1,]
+    for(indx2 in 1:1e2){
+      tmpp=c(W0,C0);
+      W0  = orth(t(X)%*%(Y%*%t(Y))%*%(X%*%W0));
+      C0  = orth(t(Y)%*%(X%*%t(X))%*%(Y%*%C0));
+      if(mse(tmpp,c(W0,C0))<1e-10){break;}
+    }
+    cat('Power Method (comp ',indx,') stopped after ',indx2,' iterations.\n');
+    Tt = cbind(Tt,X%*%W0)
+    U = cbind(U,Y%*%C0)
+    X = X - (X%*%W0)%*%t(W0)
+    Y = Y - (Y%*%C0)%*%t(C0)
+    W = cbind(W,W0)
+    C = cbind(C,C0)
+  }
+  return(list(W=W,C=C,Tt=Tt,U=U))
+}
+
+#' Perform O2-PLS with two-way orthogonal corrections
+#' 
+#' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+#' 
+#' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param n Integer. Number of joint PLS components. Must be positive!
+#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
+#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
+#' 
+#' @return A list containing
+#'    \item{Tt}{Joint \eqn{X} scores}
+#'    \item{W.}{Joint \eqn{X} loadings}
+#'    \item{U}{Joint \eqn{Y} scores}
+#'    \item{C.}{Joint \eqn{Y} loadings}
+#'    \item{E}{Residuals in \eqn{X}}
+#'    \item{Ff}{Residuals in \eqn{Y}}
+#'    \item{T_Yosc}{Orthogonal \eqn{X} scores}
+#'    \item{P_Yosc.}{Orthogonal \eqn{X} loadings}
+#'    \item{W_Yosc}{Orthogonal \eqn{X} weights}
+#'    \item{U_Xosc}{Orthogonal \eqn{Y} scores}
+#'    \item{P_Xosc.}{Orthogonal \eqn{Y} loadings}
+#'    \item{C_Xosc}{Orthogonal \eqn{Y} weights}
+#'    \item{B_U}{Regression coefficient in \code{Tt} ~ \code{U}}
+#'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
+#'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
+#'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
+#'    \item{X_hat}{Prediction of \eqn{X} with \eqn{Y}}
+#'    \item{Y_hat}{Prediction of \eqn{Y} with \eqn{X}}
+#'    \item{R2X}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{X} (defined by joint + orthogonal variation) as proportion of variation in \eqn{X}}
+#'    \item{R2Y}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{Y} (defined by joint + orthogonal variation) as proportion of variation in \eqn{Y}}
+#'    \item{R2Xcorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Ycorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    \item{R2X_YO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    
+#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#'    This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#'    
+#'    @examples
+#'      test.data=matrix(rnorm(100))
+#'      hist(replicate(1000,
+#'                    o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
+#'                  ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+#'      hist(replicate(1000,
+#'                    o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
+#'                  ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
+#'      hist(replicate(1000,
+#'                    o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
+#'                  ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
+#'    @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' @export
+o2m2<-function(X,Y,n,nx,ny)
+{
+  X = as.matrix(X)
+  Y = as.matrix(Y)
+  stopifnot(nrow(X) == nrow(Y),ncol(X)>=n+max(nx,ny),ncol(Y)>=n+max(nx,ny))
+  if(n<=0){stop("#joint components must be >0")}
+  if(nrow(X) >= ncol(X) | nrow(X) >= ncol(Y)){
+    return(o2m(X,Y,n,nx,ny))
+  }
+  
+  X_true = X
+  Y_true = Y
+  
+  N=nrow(X)
+  p=ncol(X); q=ncol(Y)
+  
+  T_Yosc = U_Xosc = matrix(0,N,n)
+  W_Yosc = P_Yosc = matrix(0,p,n)
+  C_Xosc = P_Xosc = matrix(0,q,n)
+  
+  if(nx*ny>0){
+    # larger principal subspace
+    n2=n+max(nx,ny)
+    
+    if(N<p&N<q){ # When N is smaller than p and q
+      W_C = pow_o2m(X,Y,n2)
+      W = W_C$W
+      C = W_C$C
+      Tt = W_C$Tt
+      U = W_C$U
+    }
+    #cdw = svd(t(Y)%*%X,nu=n2,nv=n2); 
+    #C=cdw$u;W=cdw$v
+    
+    #Tt = X%*%W;                    
+    
+    if(nx > 0){
+      # Orthogonal components in Y
+      E_XY = X - Tt%*%t(W);
+      
+      udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
+      W_Yosc = udv$u ; s = udv$d 
+      T_Yosc = X%*%W_Yosc;
+      P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
+      X = X - T_Yosc%*%t(P_Yosc);
+      
+      # Update T again
+      #Tt = X%*%W;
+    }
+    
+    #U = Y%*%C;                   # 3.2.1. 4
+    
+    if(ny > 0){
+      # Orthogonal components in Y
+      F_XY = Y - U%*%t(C);
+      
+      udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
+      C_Xosc = udv$u ; s = udv$d 
+      U_Xosc = Y%*%C_Xosc;
+      P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
+      Y = Y - U_Xosc%*%t(P_Xosc);
+      
+      # Update U again
+      #U = Y%*%C;
+    }
+  }
+  # Re-estimate joint part in n-dimensional subspace
+  if(N<p&N<q){ # When N is smaller than p and q
+    W_C = pow_o2m(X,Y,n)
+    W = W_C$W
+    C = W_C$C
+    Tt = W_C$Tt
+    U = W_C$U
+  }
+  #cdw = svd(t(Y)%*%X,nu=n,nv=n);    # 3.2.1. 1
+  #C=cdw$u;W=cdw$v
+  #Tt = X%*%W;                    # 3.2.1. 2
+  #U = Y%*%C;                    # 3.2.1. 4
+  
+  # Inner relation parameters
+  B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
+  B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
+  
+  # R2
+  R2Xcorr = (ssq(Tt%*%t(W))/ssq(X_true))
+  R2Ycorr = (ssq(U%*%t(C))/ssq(Y_true))
+  R2X_YO = (ssq(T_Yosc%*%t(P_Yosc))/ssq(X_true))
+  R2Y_XO = (ssq(U_Xosc%*%t(P_Xosc))/ssq(Y_true))
+  R2Xhat = 1 - (ssq(U%*%B_U%*%t(W) - X_true)/ssq(X_true))
+  R2Yhat = 1 - (ssq(Tt%*%B_T%*%t(C) - Y_true)/ssq(Y_true))
+  R2X = R2Xcorr + R2X_YO
+  R2Y = R2Ycorr + R2Y_XO
+  
+  model=list(
+    Tt=Tt,W.=W,U=U,C.=C,E=0,Ff=0,T_Yosc=T_Yosc,P_Yosc.=P_Yosc,W_Yosc=W_Yosc,U_Xosc=U_Xosc,P_Xosc.=P_Xosc,
+    C_Xosc=C_Xosc,B_U=B_U,B_T.=B_T,H_TU=0,H_UT=0,X_hat=0,Y_hat=0,R2X=R2X,R2Y=R2Y,
+    R2Xcorr=R2Xcorr,R2Ycorr=R2Ycorr,R2X_YO=R2X_YO,R2Y_XO=R2Y_XO,R2Xhat=R2Xhat,R2Yhat=R2Yhat
+  )
+  class(model)='o2m'
+  return(model)
+}
+
 #' Summary of an O2PLS fit
 #' 
 #' Until now only variational summary given by the R2's is outputted
@@ -249,7 +438,7 @@ o2m<-function(X,Y,n,nx,ny)
 #' @param fit List. Contains the R2's as produced by \code{\link{o2m}}.
 #' @return Matrix with R2 values given in percentage in two decimals.
 #' @examples
-#' summary.o2m(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
+#' summary(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
 #' @export
 summary.o2m<-function(fit)
 {
@@ -434,6 +623,7 @@ vnorm <- function(x)
   x = as.matrix(x)
   return(sqrt(apply(x^2,2,sum)))
 }
+
 #' Perform O2-PLS with two-way orthogonal corrections
 #' 
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
@@ -467,6 +657,9 @@ o2m_stripped<-function(X,Y,n,nx,ny)
   X = as.matrix(X)
   Y = as.matrix(Y)
   if(n<=0){stop("#joint components must be >0")}
+  if(nrow(X) < ncol(X) & nrow(X) < ncol(Y)){
+    return(o2m_stripped2(X,Y,n,nx,ny))
+  }
   
   X_true = X
   Y_true = Y
@@ -526,6 +719,120 @@ o2m_stripped<-function(X,Y,n,nx,ny)
   C=cdw$u;W=cdw$v
   Tt = X%*%W;                    # 3.2.1. 2
   U = Y%*%C;                    # 3.2.1. 4
+  
+  # 3.2.1. 6
+  B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
+  B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
+  H_TU = Tt - U%*%B_U;
+  H_UT = U - Tt%*%B_T;
+  
+  model=list(Tt=Tt,U=U,W.=W,C.=C,P_Yosc.=P_Yosc,P_Xosc.=P_Xosc,B_T.=B_T,B_U=B_U,H_TU=H_TU,H_UT=H_UT)
+  class(model)='o2m'
+  return(model)
+}
+
+
+#' Perform O2-PLS with two-way orthogonal corrections
+#' 
+#' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+#' A stripped version of O2PLS
+#' 
+#' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param n Integer. Number of joint PLS components. Must be positive!
+#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
+#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
+#' 
+#' @return A list containing
+#'    \item{Tt}{Joint \eqn{X} scores}
+#'    \item{W.}{Joint \eqn{X} loadings}
+#'    \item{U}{Joint \eqn{Y} scores}
+#'    \item{C.}{Joint \eqn{Y} loadings}
+#'    \item{P_Yosc.}{Orthogonal \eqn{X} loadings}
+#'    \item{P_Xosc.}{Orthogonal \eqn{Y} loadings}
+#'    \item{B_U}{Regression coefficient in \code{Tt} ~ \code{U}}
+#'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
+#'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
+#'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
+#'    
+#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#'    This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
+#'    
+#'    @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @export
+o2m_stripped2<-function(X,Y,n,nx,ny)
+{
+  X = as.matrix(X)
+  Y = as.matrix(Y)
+  if(n<=0){stop("#joint components must be >0")}
+  if(nrow(X) >= ncol(X) | nrow(X) >= ncol(Y)){return(o2m_stripped(X,Y,n,nx,ny))}
+  
+  X_true = X
+  Y_true = Y
+  
+  N=dim(X)[1]
+  p=dim(X)[2]; q=dim(Y)[2]
+  
+  T_Yosc = U_Xosc = matrix(NA,N,1)
+  P_Yosc = W_Yosc = matrix(NA,p,1)
+  P_Xosc = C_Xosc = matrix(NA,q,1)
+  
+  if(nx+ny>0){
+    n2=n+max(nx,ny)
+    
+    if(N<p&N<q){ # When N is smaller than p and q
+      W_C = pow_o2m(X,Y,n)
+      W = W_C$W
+      C = W_C$C
+      Tt = W_C$Tt
+      U = W_C$U
+      rm(W_C);gc()
+    }
+    # 3.2.1. 2
+    
+    if(nx > 0){
+      # 3.2.1. 3
+      E_XY = X - Tt%*%t(W);
+      
+      udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
+      rm(E_XY)
+      W_Yosc = udv$u 
+      T_Yosc = X%*%W_Yosc;
+      P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
+      X = X - T_Yosc%*%t(P_Yosc);
+      
+      # Update T again (since X has changed)
+      #Tt = X%*%W;
+    }
+    
+    #U = Y%*%C;                   # 3.2.1. 4
+    
+    if(ny > 0){
+      # 3.2.1. 5
+      F_XY = Y 
+      F_XY = F_XY - U%*%t(C);
+      
+      udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
+      rm(F_XY)
+      C_Xosc = udv$u ; s = udv$d 
+      U_Xosc = Y%*%C_Xosc;
+      P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
+      Y = Y - U_Xosc%*%t(P_Xosc);
+      
+      # Update U again (since Y has changed) 
+      #U = Y%*%C;
+    }
+  }
+  
+  # repeat steps 1, 2, and 4 before step 6
+  if(N<p&N<q){ # When N is smaller than p and q
+    W_C = pow_o2m(X,Y,n)
+    W = W_C$W
+    C = W_C$C
+    Tt = W_C$Tt
+    U = W_C$U
+    rm(W_C);gc()
+  }
   
   # 3.2.1. 6
   B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
