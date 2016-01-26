@@ -1,0 +1,16 @@
+citHeader("To cite O2PLS in publications, please use:")
+
+citEntry(entry = "article",
+  author="Said el Bouhaddani and Jeanine Houwing-Duistermaat and Perttu Salo and Markus Perola and Geurt Jongbloed and {Hae-Won} Uh",
+title="Evaluation of O2PLS in Omics data integration",
+journal="BMC Bioinformatics",
+year="2016",
+volume="17",
+number="2",
+pages="117--132",
+abstract="Rapid computational and technological developments made large amounts of omics data available in different biological levels. It is becoming clear that simultaneous data analysis methods are needed for better interpretation and understanding of the underlying systems biology. Different methods have been proposed for this task, among them Partial Least Squares (PLS) related methods. To also deal with orthogonal variation, systematic variation in the data unrelated to one another, we consider the Two-way Orthogonal PLS (O2PLS): an integrative data analysis method which is capable of modeling systematic variation, while providing more parsimonious models aiding interpretation.",
+issn="1471-2105",
+doi="10.1186/s12859-015-0854-z",
+url="http://dx.doi.org/10.1186/s12859-015-0854-z",
+  textVersion = "Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W. (2016). Evaluation of O2PLS in Omics data integration. BMC Bioinformatics BMTL Supplement."
+)

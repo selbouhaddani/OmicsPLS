@@ -45,24 +45,29 @@ A list containing
    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
-   
-   @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-   This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
-   
-   @examples
-     test.data=matrix(rnorm(100))
-     hist(replicate(1000,
-                   o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-                 ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
-     hist(replicate(1000,
-                   o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-                 ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
-     hist(replicate(1000,
-                   o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-                 ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-   @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
 }
 \description{
 NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+}
+\details{
+If both \code{nx} and \code{ny} are zero, \code{o2m2} is equivalent to PLS2 with orthonormal loadings.
+This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
+}
+\examples{
+test.data=matrix(rnorm(100))
+hist(replicate(1000,
+         o2m2(test.data,matrix(rnorm(100)),1,0,0)$B_T.
+     ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+hist(replicate(1000,
+         o2m2(test.data,test.data+rnorm(100),1,0,0)$B_T.
+    ),main="B_T=1; 25\% joint variation",xlab="B_T",xlim=c(0,1.5));
+hist(replicate(1000,
+         o2m2(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
+    ),main="B_T=1; 90\% joint variation",xlab="B_T",xlim=c(0,1.5));
+                 
+}
+\seealso{
+\code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
 }
 

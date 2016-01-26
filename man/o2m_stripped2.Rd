@@ -29,14 +29,16 @@ A list containing
    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-   
-   @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-   This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
-   
-   @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 }
 \description{
 NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 A stripped version of O2PLS
+}
+\details{
+If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
+}
+\seealso{
+\code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 }
 

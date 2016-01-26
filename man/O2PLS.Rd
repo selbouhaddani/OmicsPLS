@@ -14,16 +14,14 @@ Includes the O2PLS fit, some misc functions and some cross-validation tools.
 The O2PLS fit is done with \code{\link{o2m}}.
 Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
 
-List of all functions:\itemize{
+List of main functions:\itemize{
+\item{\code{\link{o2m}}}
+
 \item{\code{\link{adjR2}}}
 \item{\code{\link{loocv}}}
-\item{\code{\link{loocv_combi}}}
 \item{\code{\link{mse}}}
 \item{\code{\link{orth}}}
-\item{\code{\link{o2m}}}
-\item{\code{\link{o2m_stripped}}}
 \item{\code{\link{rmsep}}}
-\item{\code{\link{rmsep_combi}}}
 \item{\code{\link{ssq}}}
 \item{\code{\link{summary.o2m}}}
 \item{\code{\link{vnorm}}}

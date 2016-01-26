@@ -14,16 +14,14 @@
 #' The O2PLS fit is done with \code{\link{o2m}}.
 #' Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
 #' 
-#' List of all functions:\itemize{
+#' List of main functions:\itemize{
+#' \item{\code{\link{o2m}}}
+#' 
 #' \item{\code{\link{adjR2}}}
 #' \item{\code{\link{loocv}}}
-#' \item{\code{\link{loocv_combi}}}
 #' \item{\code{\link{mse}}}
 #' \item{\code{\link{orth}}}
-#' \item{\code{\link{o2m}}}
-#' \item{\code{\link{o2m_stripped}}}
 #' \item{\code{\link{rmsep}}}
-#' \item{\code{\link{rmsep_combi}}}
 #' \item{\code{\link{ssq}}}
 #' \item{\code{\link{summary.o2m}}}
 #' \item{\code{\link{vnorm}}}
@@ -136,21 +134,23 @@ mse <- function(x,y=0,na.rm=TRUE)
 #'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    
-#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#'    This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 #'    
-#'    @examples
-#'      test.data=matrix(rnorm(100))
-#'      hist(replicate(1000,
-#'                    o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-#'                  ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
-#'      hist(replicate(1000,
-#'                    o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-#'                  ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'      hist(replicate(1000,
-#'                    o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-#'                  ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'    @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' @examples 
+#' test.data=matrix(rnorm(100))
+#' hist(replicate(1000,
+#'          o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
+#'      ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+#' hist(replicate(1000,
+#'          o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
+#'     ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
+#' hist(replicate(1000,
+#'          o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
+#'     ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
+#'                  
+#' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' 
 #' @export
 o2m<-function(X,Y,n,nx,ny)
 {
@@ -313,21 +313,24 @@ pow_o2m <- function(X,Y,n){
 #'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    
-#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#'    This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#' @details If both \code{nx} and \code{ny} are zero, \code{o2m2} is equivalent to PLS2 with orthonormal loadings.
+#' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#' Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
 #'    
-#'    @examples
-#'      test.data=matrix(rnorm(100))
-#'      hist(replicate(1000,
-#'                    o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-#'                  ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
-#'      hist(replicate(1000,
-#'                    o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-#'                  ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'      hist(replicate(1000,
-#'                    o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-#'                  ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'    @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' @examples 
+#' test.data=matrix(rnorm(100))
+#' hist(replicate(1000,
+#'          o2m2(test.data,matrix(rnorm(100)),1,0,0)$B_T.
+#'      ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+#' hist(replicate(1000,
+#'          o2m2(test.data,test.data+rnorm(100),1,0,0)$B_T.
+#'     ),main="B_T=1; 25% joint variation",xlab="B_T",xlim=c(0,1.5));
+#' hist(replicate(1000,
+#'          o2m2(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
+#'     ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
+#'                  
+#' @seealso \code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' 
 #' @export
 o2m2<-function(X,Y,n,nx,ny)
 {
@@ -647,10 +650,10 @@ vnorm <- function(x)
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
 #'    
-#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#'    This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
+#' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'    
-#'    @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 #' @export
 o2m_stripped<-function(X,Y,n,nx,ny)
 {
@@ -755,10 +758,10 @@ o2m_stripped<-function(X,Y,n,nx,ny)
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
 #'    
-#'    @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#'    This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
+#' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'    
-#'    @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 #' @export
 o2m_stripped2<-function(X,Y,n,nx,ny)
 {
