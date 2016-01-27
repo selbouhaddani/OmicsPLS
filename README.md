@@ -13,10 +13,10 @@ If that doesn't work, try the source .tar.gz or the Windows binaries .zip
 
 For questions, complaints, bugs, etc, you can mail me or file an issue.
 
-When using O2PLS in your research, please cite the corresponding article by running command 
+When using the O2PLS R-package in your research, please cite the corresponding article by running command 
 
     citation("O2PLS")
 
-or via:
+or copy-paste:
 Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W. (2016). Evaluation of O2PLS in Omics data integration. BMC Bioinformatics BMTL Supplement.
 
