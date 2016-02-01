@@ -9,7 +9,7 @@ Install the package with:
     devtools::install_github("selbouhaddani/O2PLS")
     library(O2PLS)
 
-If that doesn't work, try the source .tar.gz or the Windows binaries .zip
+If that doesn't work, try the source .tar.gz or the Windows binaries .zip.
 
 For questions, complaints, bugs, etc, you can mail me or file an issue.
 

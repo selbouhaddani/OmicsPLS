@@ -1,22 +1,22 @@
 #' O2PLS: Two-Way Orthogonal Partial Least Squares
-#' 
-#' This is based on work of (Trygg, Wold, 2003). 
+#'
+#' This is based on work of (Trygg, Wold, 2003).
 #' Includes the O2PLS fit, some misc functions and some cross-validation tools.
-#' @author 
-#' Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}), 
-#' Jeanine Houwing-Duistermaat (\email{J.J.Houwing@@lumc.nl}), 
-#' Geurt Jongbloed (\email{G.Jongbloed@@tudelft.nl}), 
+#' @author
+#' Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}),
+#' Jeanine Houwing-Duistermaat (\email{J.J.Houwing@@lumc.nl}),
+#' Geurt Jongbloed (\email{G.Jongbloed@@tudelft.nl}),
 #' Hae-Won Uh (\email{H.Uh@@lumc.nl}).
-#' 
+#'
 #' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
-#' 
+#'
 #' @section Functions:
 #' The O2PLS fit is done with \code{\link{o2m}}.
 #' Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
-#' 
+#'
 #' List of main functions:\itemize{
 #' \item{\code{\link{o2m}}}
-#' 
+#'
 #' \item{\code{\link{adjR2}}}
 #' \item{\code{\link{loocv}}}
 #' \item{\code{\link{mse}}}
@@ -26,7 +26,7 @@
 #' \item{\code{\link{summary.o2m}}}
 #' \item{\code{\link{vnorm}}}
 #' }
-#' 
+#'
 #' @docType package
 #' @name O2PLS
 #' @keywords O2PLS
@@ -34,7 +34,7 @@
 NULL
 
 #' Orthogonalize a matrix
-#' 
+#'
 #' @param X Numeric vector or matrix.
 #' @param X_true (optional) A "true" matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.
 #' @param type A character or numeric. type="QR" and type=1 are equivalent.
@@ -51,7 +51,7 @@ orth<-function(X,X_true=NULL,type=c("QR","SVD"))
   #output is a matrix with orthonormal columns (via SVD(X))
   if(is.character(type)) {type = match.arg(type)} else {type=type[1]}
   if(type!="QR" && type!=1){
-    e=svd(X); 
+    e=svd(X);
     return(tcrossprod(e$u,e$v))
   }
   e = qr.Q(qr(X))
@@ -60,7 +60,7 @@ orth<-function(X,X_true=NULL,type=c("QR","SVD"))
 }
 
 #' Calculate Sum of Squares
-#' 
+#'
 #' @param X Numeric vector or matrix.
 #' @return The sum of squared elements of \eqn{X}
 #' @details This is the Frobenius norm of \eqn{X}.
@@ -74,14 +74,14 @@ ssq<-function(X)
 }
 
 #' Calculate mean squared difference
-#' 
+#'
 #' @param x Numeric vector or matrix.
 #' @param y Numeric vector or matrix. Defaults to 0.
 #' @param na.rm Remove NA's?
 #' @return The mean of the squared differences elementwise.
-#' @details Is equal to ssq(\code{x-y})/length(c(\code{x})). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that). 
+#' @details Is equal to ssq(\code{x-y})/length(c(\code{x})). If \code{x} and \code{y} are of unequal length, the invoked minus-operator will try to make the best out of it by recycling elements of the shorter object (usually you don't want that).
 #' In particular if \code{x} is an N x p matrix and \code{y} an N x 1 vector, y is subtracted from each column of \code{x}, and if \code{y=0} (default) you get the mean of vec(\code{x^2})
-#' @examples 
+#' @examples
 #' mse(2)
 #' mse(1:10,2:11) == 1
 #' mse(matrix(rnorm(500),100,5),matrix(rnorm(500),100,5))
@@ -97,15 +97,15 @@ mse <- function(x,y=0,na.rm=TRUE)
 }
 
 #' Perform O2-PLS with two-way orthogonal corrections
-#' 
+#'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
-#' 
+#'
 #' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' 
+#'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -133,11 +133,11 @@ mse <- function(x,y=0,na.rm=TRUE)
 #'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
-#'    
+#'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
-#'    
-#' @examples 
+#'
+#' @examples
 #' test.data=matrix(rnorm(100))
 #' hist(replicate(1000,
 #'          o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
@@ -148,9 +148,9 @@ mse <- function(x,y=0,na.rm=TRUE)
 #' hist(replicate(1000,
 #'          o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
 #'     ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'                  
+#'
 #' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
-#' 
+#'
 #' @export
 o2m<-function(X,Y,n,nx,ny)
 {
@@ -161,52 +161,52 @@ o2m<-function(X,Y,n,nx,ny)
   if(nrow(X) < ncol(X) & nrow(X) < ncol(Y)){
     return(o2m2(X,Y,n,nx,ny))
   }
-  
+
   X_true = X
   Y_true = Y
-  
+
   N=nrow(X)
   p=ncol(X); q=ncol(Y)
-  
+
   T_Yosc = U_Xosc = matrix(0,N,n)
   W_Yosc = P_Yosc = matrix(0,p,n)
   C_Xosc = P_Xosc = matrix(0,q,n)
-  
+
   if(nx*ny>0){
     # larger principal subspace
     n2=n+max(nx,ny)
-    
-    cdw = svd(t(Y)%*%X,nu=n2,nv=n2); 
+
+    cdw = svd(t(Y)%*%X,nu=n2,nv=n2);
     C=cdw$u;W=cdw$v
-    
-    Tt = X%*%W;                    
-    
+
+    Tt = X%*%W;
+
     if(nx > 0){
       # Orthogonal components in Y
       E_XY = X - Tt%*%t(W);
-      
+
       udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
-      W_Yosc = udv$u ; s = udv$d 
+      W_Yosc = udv$u ; s = udv$d
       T_Yosc = X%*%W_Yosc;
       P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
       X = X - T_Yosc%*%t(P_Yosc);
-      
+
       # Update T again
       Tt = X%*%W;
     }
-    
+
     U = Y%*%C;                   # 3.2.1. 4
-    
+
     if(ny > 0){
       # Orthogonal components in Y
       F_XY = Y - U%*%t(C);
-      
+
       udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
-      C_Xosc = udv$u ; s = udv$d 
+      C_Xosc = udv$u ; s = udv$d
       U_Xosc = Y%*%C_Xosc;
       P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
       Y = Y - U_Xosc%*%t(P_Xosc);
-      
+
       # Update U again
       U = Y%*%C;
     }
@@ -216,11 +216,11 @@ o2m<-function(X,Y,n,nx,ny)
   C=cdw$u;W=cdw$v
   Tt = X%*%W;                    # 3.2.1. 2
   U = Y%*%C;                    # 3.2.1. 4
-  
+
   # Inner relation parameters
   B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
   B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
-  
+
   #Residuals and R2's
   E = X_true - Tt%*%t(W) - T_Yosc%*%t(P_Yosc);
   Ff = Y_true - U%*%t(C) - U_Xosc%*%t(P_Xosc);
@@ -228,7 +228,7 @@ o2m<-function(X,Y,n,nx,ny)
   H_UT = U - Tt%*%B_T;
   Y_hat = Tt%*%B_T%*%t(C);
   X_hat = U%*%B_U%*%t(W);
-  
+
   R2Xcorr = (ssq(Tt%*%t(W))/ssq(X_true))
   R2Ycorr = (ssq(U%*%t(C))/ssq(Y_true))
   R2X_YO = (ssq(T_Yosc%*%t(P_Yosc))/ssq(X_true))
@@ -237,7 +237,7 @@ o2m<-function(X,Y,n,nx,ny)
   R2Yhat = 1 - (ssq(Tt%*%B_T%*%t(C) - Y_true)/ssq(Y_true))
   R2X = R2Xcorr + R2X_YO
   R2Y = R2Ycorr + R2Y_XO
-  
+
   model=list(
     Tt=Tt,W.=W,U=U,C.=C,E=E,Ff=Ff,T_Yosc=T_Yosc,P_Yosc.=P_Yosc,W_Yosc=W_Yosc,U_Xosc=U_Xosc,P_Xosc.=P_Xosc,
     C_Xosc=C_Xosc,B_U=B_U,B_T.=B_T,H_TU=H_TU,H_UT=H_UT,X_hat=X_hat,Y_hat=Y_hat,R2X=R2X,R2Y=R2Y,
@@ -276,15 +276,15 @@ pow_o2m <- function(X,Y,n){
 }
 
 #' Perform O2-PLS with two-way orthogonal corrections
-#' 
+#'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
-#' 
+#'
 #' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' 
+#'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -312,12 +312,12 @@ pow_o2m <- function(X,Y,n){
 #'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
-#'    
+#'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m2} is equivalent to PLS2 with orthonormal loadings.
 #' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 #' Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
-#'    
-#' @examples 
+#'
+#' @examples
 #' test.data=matrix(rnorm(100))
 #' hist(replicate(1000,
 #'          o2m2(test.data,matrix(rnorm(100)),1,0,0)$B_T.
@@ -328,9 +328,9 @@ pow_o2m <- function(X,Y,n){
 #' hist(replicate(1000,
 #'          o2m2(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
 #'     ),main="B_T=1; 90% joint variation",xlab="B_T",xlim=c(0,1.5));
-#'                  
+#'
 #' @seealso \code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
-#' 
+#'
 #' @export
 o2m2<-function(X,Y,n,nx,ny)
 {
@@ -341,21 +341,21 @@ o2m2<-function(X,Y,n,nx,ny)
   if(nrow(X) >= ncol(X) | nrow(X) >= ncol(Y)){
     return(o2m(X,Y,n,nx,ny))
   }
-  
+
   X_true = X
   Y_true = Y
-  
+
   N=nrow(X)
   p=ncol(X); q=ncol(Y)
-  
+
   T_Yosc = U_Xosc = matrix(0,N,n)
   W_Yosc = P_Yosc = matrix(0,p,n)
   C_Xosc = P_Xosc = matrix(0,q,n)
-  
+
   if(nx*ny>0){
     # larger principal subspace
     n2=n+max(nx,ny)
-    
+
     if(N<p&N<q){ # When N is smaller than p and q
       W_C = pow_o2m(X,Y,n2)
       W = W_C$W
@@ -363,37 +363,37 @@ o2m2<-function(X,Y,n,nx,ny)
       Tt = W_C$Tt
       U = W_C$U
     }
-    #cdw = svd(t(Y)%*%X,nu=n2,nv=n2); 
+    #cdw = svd(t(Y)%*%X,nu=n2,nv=n2);
     #C=cdw$u;W=cdw$v
-    
-    #Tt = X%*%W;                    
-    
+
+    #Tt = X%*%W;
+
     if(nx > 0){
       # Orthogonal components in Y
       E_XY = X - Tt%*%t(W);
-      
+
       udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
-      W_Yosc = udv$u ; s = udv$d 
+      W_Yosc = udv$u ; s = udv$d
       T_Yosc = X%*%W_Yosc;
       P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
       X = X - T_Yosc%*%t(P_Yosc);
-      
+
       # Update T again
       #Tt = X%*%W;
     }
-    
+
     #U = Y%*%C;                   # 3.2.1. 4
-    
+
     if(ny > 0){
       # Orthogonal components in Y
       F_XY = Y - U%*%t(C);
-      
+
       udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
-      C_Xosc = udv$u ; s = udv$d 
+      C_Xosc = udv$u ; s = udv$d
       U_Xosc = Y%*%C_Xosc;
       P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
       Y = Y - U_Xosc%*%t(P_Xosc);
-      
+
       # Update U again
       #U = Y%*%C;
     }
@@ -410,11 +410,11 @@ o2m2<-function(X,Y,n,nx,ny)
   #C=cdw$u;W=cdw$v
   #Tt = X%*%W;                    # 3.2.1. 2
   #U = Y%*%C;                    # 3.2.1. 4
-  
+
   # Inner relation parameters
   B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
   B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
-  
+
   # R2
   R2Xcorr = (ssq(Tt%*%t(W))/ssq(X_true))
   R2Ycorr = (ssq(U%*%t(C))/ssq(Y_true))
@@ -424,7 +424,7 @@ o2m2<-function(X,Y,n,nx,ny)
   R2Yhat = 1 - (ssq(Tt%*%B_T%*%t(C) - Y_true)/ssq(Y_true))
   R2X = R2Xcorr + R2X_YO
   R2Y = R2Ycorr + R2Y_XO
-  
+
   model=list(
     Tt=Tt,W.=W,U=U,C.=C,E=0,Ff=0,T_Yosc=T_Yosc,P_Yosc.=P_Yosc,W_Yosc=W_Yosc,U_Xosc=U_Xosc,P_Xosc.=P_Xosc,
     C_Xosc=C_Xosc,B_U=B_U,B_T.=B_T,H_TU=0,H_UT=0,X_hat=0,Y_hat=0,R2X=R2X,R2Y=R2Y,
@@ -435,9 +435,9 @@ o2m2<-function(X,Y,n,nx,ny)
 }
 
 #' Summary of an O2PLS fit
-#' 
+#'
 #' Until now only variational summary given by the R2's is outputted
-#' 
+#'
 #' @param fit List. Contains the R2's as produced by \code{\link{o2m}}.
 #' @return Matrix with R2 values given in percentage in two decimals.
 #' @examples
@@ -452,9 +452,9 @@ summary.o2m<-function(fit)
 }
 
 #' Root MSE of Prediction
-#' 
+#'
 #' Calculates the Root MSE of prediction on test data. Only tested to work inside \code{\link{loocv}}.
-#' 
+#'
 #' @param Xtst Numeric vector or matrix.
 #' @param Ytst Numeric vector or matrix.
 #' @param fit \code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).
@@ -466,17 +466,17 @@ rmsep <- function(Xtst,Ytst,fit)
   n1=n2=T
   if(!is.matrix(Xtst)){Xtst=t(Xtst);n1=F} # If Xtst is a row-vector
   if(!is.matrix(Ytst)){Ytst=t(Ytst);n2=F} # If Xtst is a row-vector
-  
+
   Yhat = Xtst%*%fit$W.%*%fit$B_T%*%t(fit$C.)
   Xhat = Ytst%*%fit$C.%*%fit$B_U%*%t(fit$W.)
-  
+
   return(mean(c(sqrt(mse(Yhat,Ytst)))))#,sqrt(mse(Xhat,Xtst)))))
 }
 
 #' K fold CV for O2PLS
-#' 
+#'
 #' For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} estimates the prediction error using k-fold CV.
-#' 
+#'
 #' @param X Numeric matrix.
 #' @param Y Numeric matrix.
 #' @param a Vector of integers. Contains the numbers of joint components.
@@ -490,7 +490,7 @@ rmsep <- function(Xtst,Ytst,fit)
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
-#' @details The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations. 
+#' @details The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations.
 #' The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
 #' The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
 #' Typing \code{example(loocv)} (hopefully) clarifies this function.
@@ -502,7 +502,7 @@ rmsep <- function(Xtst,Ytst,fit)
 #' array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
 loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_err=F,kcv)
-  #Input: Data X,Y; model to fit; loop through nr of components; 
+  #Input: Data X,Y; model to fit; loop through nr of components;
   # calculate apparent error?; nr of folds (loo:kcv=N)
   #Output: several MSE's per chosen nr of component
 {
@@ -510,14 +510,14 @@ loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_er
   p=dim(X)[2]
   # determine type of model
   type=3#ifelse(deparse(substitute(func))=="o2m",3,ifelse(deparse(substitute(func))=="oplsm",2,1))
-  
+
   N = length(X[,1]);if(N!=length(Y[,1])){stop('N not the same')}
   mean_err=mean_fit=NA*1:max(length(a),length(a2),length(b2))
   k=0
-  
+
   #blocks contains the begin and endpoints of test indices to use
   blocks = c(seq(0,N,by=floor(N/kcv)),N)
-  
+
   #loop through chosen parameters
   for(j in a){for(j2 in a2){for(j3 in b2){
     k=k+1
@@ -552,9 +552,9 @@ loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_er
 }
 
 #' Gridwise adjusted R2 for O2PLS
-#' 
+#'
 #' For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} calculates the R2 of the joint part. Parallel computing is supported on Windows with package \code{parallel}.
-#' 
+#'
 #' @param X Numeric matrix.
 #' @param Y Numeric matrix.
 #' @param a Vector of integers. Contains the numbers of joint components.
@@ -564,7 +564,7 @@ loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_er
 #' @param parall Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.
 #' @param cl Object of class "\code{cluster}". If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.
 #' @details The use of this function is to calculate the R2 of the joint part, while varying the number of orthogonal components. Adding more joint components will increase the R2!
-#' 
+#'
 #' A parallelized version is built in -tested on windows-, use package \code{parallel} and set \code{parall=TRUE} to activate this. There should not be already a cluster object with the name \code{cl}.
 #' In case of some error, don't forget to invoke \code{stopCluster(cl)} to end the cluster. See Task Manager (Windows) to verify that the workers are spanned/ended.
 #' @return Matrix with two rows:
@@ -579,7 +579,7 @@ loocv <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_er
 #' array(unlist(result[1,]),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
 adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
-  #Input: Data X,Y; model to fit; loop through nr of components; 
+  #Input: Data X,Y; model to fit; loop through nr of components;
   # calculate apparent error?; nr of folds (loo:kcv=N)
   #Output: several MSE's per chosen nr of component
 {
@@ -593,7 +593,7 @@ adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
     clusterExport(cl=cl, varlist=c("ssq",'o2m_stripped',"adjR2"))
   }
   if(parall&!is.null(cl)){S_apply=parSapply}
-  
+
   pars1 = merge(merge(data.frame(a = a),data.frame(a2=a2)),data.frame(b2=b2))
   pars2 = apply(pars1, 1, as.list)
   N = dim(X)[1]
@@ -612,10 +612,10 @@ adjR2 <- function(X,Y,a=1:2,a2=1,b2=1,func=o2m_stripped,parall=F,cl=NULL)
 }
 
 #' Norm of a vector or columns of a matrix
-#' 
+#'
 #' @param x Numeric vector or matrix.
 #' @return (columnwise) Euclidian norm of \eqn{x}
-#' @examples 
+#' @examples
 #' vnorm(orth(1:5))
 #' vnorm(matrix(1:9,3,3))^2 - colSums(matrix(1:9,3)^2)
 #' @export
@@ -628,16 +628,16 @@ vnorm <- function(x)
 }
 
 #' Perform O2-PLS with two-way orthogonal corrections
-#' 
+#'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #' A stripped version of O2PLS
-#' 
+#'
 #' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' 
+#'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -649,10 +649,10 @@ vnorm <- function(x)
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    
+#'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
-#'    
+#'
 #' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 #' @export
 o2m_stripped<-function(X,Y,n,nx,ny)
@@ -663,72 +663,72 @@ o2m_stripped<-function(X,Y,n,nx,ny)
   if(nrow(X) < ncol(X) & nrow(X) < ncol(Y)){
     return(o2m_stripped2(X,Y,n,nx,ny))
   }
-  
+
   X_true = X
   Y_true = Y
-  
+
   N=dim(X)[1]
   p=dim(X)[2]; q=dim(Y)[2]
-  
+
   T_Yosc = U_Xosc = matrix(NA,N,1)
   P_Yosc = W_Yosc = matrix(NA,p,1)
   P_Xosc = C_Xosc = matrix(NA,q,1)
-  
+
   if(nx+ny>0){
     n2=n+max(nx,ny)
-    
+
     cdw = svd(t(Y)%*%X,nu=n2,nv=n2); # 3.2.1. 1
     C=cdw$u;W=cdw$v
     rm(cdw)
     Tt = X%*%W;                    # 3.2.1. 2
-    
+
     if(nx > 0){
       # 3.2.1. 3
-      E_XY = X 
+      E_XY = X
       E_XY = E_XY - Tt%*%t(W);
-      
+
       udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
       rm(E_XY)
-      W_Yosc = udv$u 
+      W_Yosc = udv$u
       T_Yosc = X%*%W_Yosc;
       P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
       X = X - T_Yosc%*%t(P_Yosc);
-      
+
       # Update T again (since X has changed)
       Tt = X%*%W;
     }
-    
+
     U = Y%*%C;                   # 3.2.1. 4
-    
+
     if(ny > 0){
       # 3.2.1. 5
-      F_XY = Y 
+      F_XY = Y
       F_XY = F_XY - U%*%t(C);
-      
+
       udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
       rm(F_XY)
-      C_Xosc = udv$u ; s = udv$d 
+      C_Xosc = udv$u ; s = udv$d
       U_Xosc = Y%*%C_Xosc;
       P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
       Y = Y - U_Xosc%*%t(P_Xosc);
-      
-      # Update U again (since Y has changed) 
+
+      # Update U again (since Y has changed)
       U = Y%*%C;
     }
   }
-  
+
   # repeat steps 1, 2, and 4 before step 6
   cdw = svd(t(Y)%*%X,nu=n,nv=n);    # 3.2.1. 1
   C=cdw$u;W=cdw$v
   Tt = X%*%W;                    # 3.2.1. 2
   U = Y%*%C;                    # 3.2.1. 4
-  
+
   # 3.2.1. 6
   B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
   B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
   H_TU = Tt - U%*%B_U;
   H_UT = U - Tt%*%B_T;
-  
+
   model=list(Tt=Tt,U=U,W.=W,C.=C,P_Yosc.=P_Yosc,P_Xosc.=P_Xosc,B_T.=B_T,B_U=B_U,H_TU=H_TU,H_UT=H_UT)
   class(model)='o2m'
   return(model)
@@ -736,16 +736,16 @@ o2m_stripped<-function(X,Y,n,nx,ny)
 
 
 #' Perform O2-PLS with two-way orthogonal corrections
-#' 
+#'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #' A stripped version of O2PLS
-#' 
+#'
 #' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' 
+#'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -757,10 +757,10 @@ o2m_stripped<-function(X,Y,n,nx,ny)
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    
+#'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
-#'    
+#'
 #' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 #' @export
 o2m_stripped2<-function(X,Y,n,nx,ny)
@@ -769,20 +769,20 @@ o2m_stripped2<-function(X,Y,n,nx,ny)
   Y = as.matrix(Y)
   if(n<=0){stop("#joint components must be >0")}
   if(nrow(X) >= ncol(X) | nrow(X) >= ncol(Y)){return(o2m_stripped(X,Y,n,nx,ny))}
-  
+
   X_true = X
   Y_true = Y
-  
+
   N=dim(X)[1]
   p=dim(X)[2]; q=dim(Y)[2]
-  
+
   T_Yosc = U_Xosc = matrix(NA,N,1)
   P_Yosc = W_Yosc = matrix(NA,p,1)
   P_Xosc = C_Xosc = matrix(NA,q,1)
-  
+
   if(nx+ny>0){
     n2=n+max(nx,ny)
-    
+
     if(N<p&N<q){ # When N is smaller than p and q
       W_C = pow_o2m(X,Y,n)
       W = W_C$W
@@ -792,41 +792,41 @@ o2m_stripped2<-function(X,Y,n,nx,ny)
       rm(W_C);gc()
     }
     # 3.2.1. 2
-    
+
     if(nx > 0){
       # 3.2.1. 3
       E_XY = X - Tt%*%t(W);
-      
+
       udv = svd(t(E_XY)%*%Tt,nu=nx,nv=0);
       rm(E_XY)
-      W_Yosc = udv$u 
+      W_Yosc = udv$u
       T_Yosc = X%*%W_Yosc;
       P_Yosc = t(solve(t(T_Yosc)%*%T_Yosc)%*%t(T_Yosc)%*%X);
       X = X - T_Yosc%*%t(P_Yosc);
-      
+
       # Update T again (since X has changed)
       #Tt = X%*%W;
     }
-    
+
     #U = Y%*%C;                   # 3.2.1. 4
-    
+
     if(ny > 0){
       # 3.2.1. 5
-      F_XY = Y 
+      F_XY = Y
       F_XY = F_XY - U%*%t(C);
-      
+
       udv = svd(t(F_XY)%*%U,nu=ny,nv=0);
       rm(F_XY)
-      C_Xosc = udv$u ; s = udv$d 
+      C_Xosc = udv$u ; s = udv$d
       U_Xosc = Y%*%C_Xosc;
       P_Xosc = t(solve(t(U_Xosc)%*%U_Xosc)%*%t(U_Xosc)%*%Y);
       Y = Y - U_Xosc%*%t(P_Xosc);
-      
-      # Update U again (since Y has changed) 
+
+      # Update U again (since Y has changed)
       #U = Y%*%C;
     }
   }
-  
+
   # repeat steps 1, 2, and 4 before step 6
   if(N<p&N<q){ # When N is smaller than p and q
     W_C = pow_o2m(X,Y,n)
@@ -836,27 +836,27 @@ o2m_stripped2<-function(X,Y,n,nx,ny)
     U = W_C$U
     rm(W_C);gc()
   }
-  
+
   # 3.2.1. 6
   B_U = solve(t(U)%*%U)%*%t(U)%*%Tt;
   B_T = solve(t(Tt)%*%Tt)%*%t(Tt)%*%U;
   H_TU = Tt - U%*%B_U;
   H_UT = U - Tt%*%B_T;
-  
+
   model=list(Tt=Tt,U=U,W.=W,C.=C,P_Yosc.=P_Yosc,P_Xosc.=P_Xosc,B_T.=B_T,B_U=B_U,H_TU=H_TU,H_UT=H_UT)
   class(model)='o2m'
   return(model)
 }
 
 #' Symmetrized root MSE of Prediction
-#' 
+#'
 #' Calculates the symmetrized root MSE of prediction on test data. *Expected* to work in combination with \code{\link{loocv}}.
-#' 
+#'
 #' @param Xtst Numeric vector or matrix.
 #' @param Ytst Numeric vector or matrix.
 #' @param fit \code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).
 #' @details This function is the building block for \code{\link{loocv}}, as it produced the prediction error for test (left out) data.
-#' 
+#'
 #' This is a symmetrized version of \code{\link{rmsep}}, and is used by \code{\link{loocv}}. The predicion error of both \code{Xtst} and \code{Ytst} are calculated and summed.
 #' Whether this is a good idea depends: If \eqn{X} and \eqn{Y} have similar meanings (LC-MS versus MALDI) this is a good thing to do. If the two matrices do not have similar meanings,
 #' (Metabolomics versus Transcriptomics) then you may want to not sum up the two prediction errors or include weights in the sum.
@@ -869,20 +869,20 @@ rmsep_combi <- function(Xtst,Ytst,fit)
   n1=n2=T
   if(!is.matrix(Xtst)){Xtst=t(Xtst);n1=F} # If Xtst is a row-vector
   if(!is.matrix(Ytst)){Ytst=t(Ytst);n2=F} # If Xtst is a row-vector
-  
+
   if(class(fit)=='plsm')
     # PLS fit is quickly done
   {
     Yhat=cbind(1,Xtst)%*%fit$ori
   }
-  
+
   if(class(fit)=='oplsm')
     # OPLS corrects Xtst
   {
     if(n1){Xtst=oscr(Xtst,Ytst,n_orth=n_orth)$Xcorr}
     Yhat=cbind(1,Xtst)%*%fit$ori
   }
-  
+
   if(class(fit)=='o2m')
     # O2PLS we should correct both Xtst and Ytst?
   {
@@ -899,7 +899,7 @@ rmsep_combi <- function(Xtst,Ytst,fit)
 }
 
 #' K-fold CV based on symmetrized prediction error
-#' 
+#'
 #' The prediction error of both \code{X~Xhat} and \code{Y~Yhat} are summed. This provides a symmetrized version of \code{\link{loocv}}.
 #' @param X Numeric matrix.
 #' @param Y Numeric matrix.
@@ -914,12 +914,12 @@ rmsep_combi <- function(Xtst,Ytst,fit)
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
-#' 
+#'
 #' @examples
 #' loocv_combi(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m,kcv=5)
 #' @export
 loocv_combi <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,app_err=F,kcv)
-  #Input: Data X,Y; model to fit; loop through nr of components; 
+  #Input: Data X,Y; model to fit; loop through nr of components;
   # calculate apparent error?; nr of folds (loo:kcv=N)
   #Output: several MSE's per chosen nr of component
 {
@@ -927,14 +927,14 @@ loocv_combi <- function(X,Y,a=1:2,a2=1,b2=1,fitted_model=NULL,func=o2m_stripped,
   p=dim(X)[2]
   # determine type of model
   type=3#ifelse(deparse(substitute(func))=="o2m",3,ifelse(deparse(substitute(func))=="oplsm",2,1))
-  
+
   N = length(X[,1]);if(N!=length(Y[,1])){stop('N not the same')}
   mean_err=mean_fit=NA*1:max(length(a),length(a2),length(b2))
   k=0
-  
+
   #blocks contains the begin and endpoints of test indices to use
   blocks = c(seq(0,N,by=floor(N/kcv)),N)
-  
+
   #loop through chosen parameters
   for(j in a){for(j2 in a2){for(j3 in b2){
     k=k+1
