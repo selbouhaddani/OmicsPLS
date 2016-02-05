@@ -4,7 +4,7 @@
 \alias{rmsep}
 \title{Root MSE of Prediction}
 \usage{
-rmsep(Xtst, Ytst, fit)
+rmsep(Xtst, Ytst, fit, combi = FALSE)
 }
 \arguments{
 \item{Xtst}{Numeric vector or matrix.}
@@ -12,6 +12,8 @@ rmsep(Xtst, Ytst, fit)
 \item{Ytst}{Numeric vector or matrix.}
 
 \item{fit}{\code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).}
+
+\item{combi}{Logical. Should the symmetrized MSE be used, i.e.}
 }
 \value{
 Mean squares difference between predicted Y and true Y

@@ -9,9 +9,9 @@ orth(X, X_true = NULL, type = c("QR", "SVD"))
 \arguments{
 \item{X}{Numeric vector or matrix.}
 
-\item{X_true}{(optional) A "true" matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.}
+\item{X_true}{(optional) A 'true' matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.}
 
-\item{type}{A character or numeric. type="QR" and type=1 are equivalent.}
+\item{type}{A character or numeric. Should be one of QR or SVD, or equivalently 1 or 2.}
 }
 \value{
 An orthogonalized representation of \eqn{X}
@@ -20,11 +20,11 @@ An orthogonalized representation of \eqn{X}
 Orthogonalize a matrix
 }
 \details{
-Choosing type="QR" (or type=1) uses a QR decomposition of X to produce orthonormal columns. For type=="SVD" (or type not 1) it uses an SVD decomposition.
+Choosing type='QR' (or type=1) uses a QR decomposition of X to produce orthonormal columns. For type=='SVD' (or type not 1) it uses an SVD decomposition.
 }
 \examples{
 orth(c(3,4))
 round(crossprod(orth(matrix(rnorm(500),100,5))),4)
-orth(matrix(1:9,3,3),type="QR")[,1] - orth(1:3); orth(matrix(1:9,3,3),type="SVD")[,1] - orth(1:3);
+orth(matrix(1:9,3,3),type='QR')[,1] - orth(1:3); orth(matrix(1:9,3,3),type='SVD')[,1] - orth(1:3);
 }
 

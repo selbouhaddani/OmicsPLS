@@ -4,10 +4,12 @@
 \alias{summary.o2m}
 \title{Summary of an O2PLS fit}
 \usage{
-\method{summary}{o2m}(fit)
+\method{summary}{o2m}(object, ...)
 }
 \arguments{
-\item{fit}{List. Contains the R2's as produced by \code{\link{o2m}}.}
+\item{object}{List. Contains the R2's as produced by \code{\link{o2m}}.}
+
+\item{...}{For compatibility}
 }
 \value{
 Matrix with R2 values given in percentage in two decimals.

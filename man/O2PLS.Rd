@@ -6,7 +6,7 @@
 \alias{O2PLS-package}
 \title{O2PLS: Two-Way Orthogonal Partial Least Squares}
 \description{
-This is based on work of (Trygg, Wold, 2003). 
+This is based on work of (Trygg, Wold, 2003).
 Includes the O2PLS fit, some misc functions and some cross-validation tools.
 }
 \section{Functions}{
@@ -28,9 +28,9 @@ List of main functions:\itemize{
 }
 }
 \author{
-Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}), 
-Jeanine Houwing-Duistermaat (\email{J.J.Houwing@lumc.nl}), 
-Geurt Jongbloed (\email{G.Jongbloed@tudelft.nl}), 
+Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),
+Jeanine Houwing-Duistermaat (\email{J.J.Houwing@lumc.nl}),
+Geurt Jongbloed (\email{G.Jongbloed@tudelft.nl}),
 Hae-Won Uh (\email{H.Uh@lumc.nl}).
 
 Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}).

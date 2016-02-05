@@ -4,7 +4,8 @@
 \alias{o2m2}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m2(X, Y, n, nx, ny)
+o2m2(X, Y, n, nx, ny, stripped = FALSE, toler = 1e-10,
+  max_iterations = 100)
 }
 \arguments{
 \item{X}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -16,6 +17,12 @@ o2m2(X, Y, n, nx, ny)
 \item{nx}{Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0}
 
 \item{ny}{Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0}
+
+\item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
+
+\item{toler}{double. Threshold for power method iteration}
+
+\item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
 A list containing
@@ -55,19 +62,19 @@ This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For 
 Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
 }
 \examples{
-test.data=matrix(rnorm(100))
-hist(replicate(1000,
-         o2m2(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-     ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
-hist(replicate(1000,
-         o2m2(test.data,test.data+rnorm(100),1,0,0)$B_T.
-    ),main="B_T=1; 25\% joint variation",xlab="B_T",xlim=c(0,1.5));
-hist(replicate(1000,
-         o2m2(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-    ),main="B_T=1; 90\% joint variation",xlab="B_T",xlim=c(0,1.5));
-                 
+# This takes a couple of seconds on an intel i5
+system.time(
+             o2m2(matrix(rnorm(50*2000),50),matrix(rnorm(50*2000),50),1,0,0)
+)
+
+# This however takes 10 times as much...
+# system.time(
+#              o2m(matrix(rnorm(50*2000),50),matrix(rnorm(50*2000),50),1,0,0,
+#              p_thresh = 1e4,q_thresh = 1e4)  # makes sure power method is not used
+# )
+
 }
 \seealso{
-\code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+\code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}
 }
 

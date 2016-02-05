@@ -22,7 +22,7 @@ adjR2(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m_stripped, parall = F,
 
 \item{parall}{Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.}
 
-\item{cl}{Object of class "\code{cluster}". If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.}
+\item{cl}{Object of class '\code{cluster}'. If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.}
 }
 \value{
 Matrix with two rows:
@@ -42,9 +42,9 @@ See \code{\link{loocv}} for more intuition.
 }
 \examples{
 result=adjR2(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped)
-names_for_a=sapply(1:3,function(i){paste("a",i,sep="=")})
-names_for_a2=sapply(0:1,function(i){paste("a2",i,sep="=")})
-names_for_b2=sapply(0:1,function(i){paste("b2",i,sep="=")})
+names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
+names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
+names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
 array(unlist(result[1,]),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 }
 

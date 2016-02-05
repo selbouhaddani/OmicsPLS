@@ -37,16 +37,16 @@ For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} estim
 \details{
 Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 
-The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations. 
+The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations.
 The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
 The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
 Typing \code{example(loocv)} (hopefully) clarifies this function.
 }
 \examples{
 result=loocv(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped,kcv=2)
-names_for_a=sapply(1:3,function(i){paste("a",i,sep="=")})
-names_for_a2=sapply(0:1,function(i){paste("a2",i,sep="=")})
-names_for_b2=sapply(0:1,function(i){paste("b2",i,sep="=")})
+names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
+names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
+names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
 array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 }
 

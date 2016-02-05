@@ -4,18 +4,29 @@
 \alias{o2m}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m(X, Y, n, nx, ny)
+o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000, q_thresh = 3000,
+  toler = 1e-10, max_iterations = 100)
 }
 \arguments{
-\item{X}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{n}{Integer. Number of joint PLS components. Must be positive!}
 
 \item{nx}{Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0}
 
 \item{ny}{Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0}
+
+\item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
+
+\item{p_thresh}{Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{toler}{double. Threshold for power method iteration}
+
+\item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
 A list containing
@@ -51,20 +62,24 @@ NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalizati
 }
 \details{
 If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+For high dimensional matrices, a power method can be applied. 
+If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (power method) which does not store the entire covariance matrix.
+The squared error between iterands in the power method can be adjusted with \code{toler}.
+The maximum number of iterations is tuned by \code{max_iterations}.
 }
 \examples{
 test.data=matrix(rnorm(100))
 hist(replicate(1000,
          o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-     ),main="No joint variation",xlab="B_T",xlim=c(0,1.5));
+     ),main='No joint variation',xlab='B_T',xlim=c(0,1.5));
 hist(replicate(1000,
          o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-    ),main="B_T=1; 25\% joint variation",xlab="B_T",xlim=c(0,1.5));
+    ),main='B_T=1; 25\% joint variation',xlab='B_T',xlim=c(0,1.5));
 hist(replicate(1000,
          o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-    ),main="B_T=1; 90\% joint variation",xlab="B_T",xlim=c(0,1.5));
-                 
+    ),main='B_T=1; 90\% joint variation',xlab='B_T',xlim=c(0,1.5));
+
 }
 \seealso{
 \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
