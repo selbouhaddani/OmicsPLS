@@ -7,9 +7,9 @@
 o2m_stripped(X, Y, n, nx, ny)
 }
 \arguments{
-\item{X}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{n}{Integer. Number of joint PLS components. Must be positive!}
 
@@ -41,4 +41,5 @@ This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data an
 \seealso{
 \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 }
+\keyword{internal}
 

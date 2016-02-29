@@ -2,35 +2,60 @@
 #'
 #' This is based on work of (Trygg, Wold, 2003).
 #' Includes the O2PLS fit, some misc functions and some cross-validation tools.
+#' 
 #' @author
 #' Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}),
 #' Jeanine Houwing-Duistermaat (\email{J.J.Houwing@@lumc.nl}),
 #' Geurt Jongbloed (\email{G.Jongbloed@@tudelft.nl}),
+#' Szymon Kielbasa (\email{S.M.Kielbasa@@lumc.nl}),
 #' Hae-Won Uh (\email{H.Uh@@lumc.nl}).
 #'
 #' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
 #'
-#' @section Functions:
-#' The O2PLS fit is done with \code{\link{o2m}}.
-#' Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
-#'
-#' List of main functions:\itemize{
-#' \item{\code{\link{o2m}}}
-#'
-#' \item{\code{\link{adjR2}}}
-#' \item{\code{\link{loocv}}}
-#' \item{\code{\link{mse}}}
-#' \item{\code{\link{orth}}}
-#' \item{\code{\link{rmsep}}}
-#' \item{\code{\link{ssq}}}
-#' \item{\code{\link{summary.o2m}}}
-#' \item{\code{\link{vnorm}}}
+#' @section Fitting:
+#' The O2PLS fit is done with \code{\link{o2m}}. 
+#' For data \code{X} and \code{Y} you can run \code{o2m(X,Y,n,nx,ny)} for an O2PLS fit with \code{n} joint and \code{nx, ny} orthogonal components.
+#' See the help page of \code{\link{o2m}} for more information on parameters.
+#' There are four ways to obtain an O2PLS fit, depending on the dimensionality.
+#' \itemize{
+#'  \item{} For the not-too-high dimensional case, you may use \code{\link{o2m}} with default parameters. E.g. \code{o2m(X,Y,n,nx,ny)}.
+#'  \item{} In case you don't want the fancy output, but only the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
+#'  \item{} For high dimensional cases defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh} a Power-Method approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
+#'  The thresholds are by default both at 3000 variables.
+#'  \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
 #' }
-#'
+#' 
+#' @section Obtaining results:
+#' After fitting an O2PLS model, by running e.g. \code{fit = o2m(X,Y,n,nx,ny)}, the results can be visualised.
+#' Use \code{\link{plot}(fit,...)} to plot the desired loadings with/without ggplot2.
+#' Use \code{\link{summary}(fit,...)} to see the relative explained variances in the joint/orthogonal parts.
+#' Also plotting the joint scores \code{fit$Tt, fit$U} and orthogonal scores \code{fit$T_Yosc, fit$U_Xosc} are of help.
+#' 
+#' @section Cross-validating: 
+#' Determining the number of components \code{n,nx,ny} is an important task. For this we have two methods.
+#' See \code{citation("O2PLS")} for our proposed approach for determining the number of components.
+#' \itemize{
+#'  \item{} Cross-validation (CV) is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
+#'  This part is not yet fully developed, and a somewhat advanced understanding of R is needed to fully exploit CV here.
+#'  However a slow \code{for} loop implementation of the cross-validated prediction error is implemented in \code{loocv(X,Y,a,a2,b2,kcv)}, where \code{X, Y} are the data and \code{a,a2,b2} are integer vectors representing \code{n,nx,ny}.
+#'  \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV. 
+#'  \code{\link{loocv}} was proposed to find the number of joint components.
+#'  \item{} For \code{\link{adjR2}} the same holds, but this function implements the coefficient of determination of the inner relation \eqn{U = TB + H} rather than the prediction error.
+#'  This was proposed to find the number of orthogonal components.
+#' }
+#' 
+#' @section Misc:
+#' Also some handy tools are available
+#' \itemize{
+#'  \item{} \code{\link{orth}(X)} is a function to obtain an orthogonalized version of a matrix or vector \code{X}.
+#'  \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
+#'  \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
+#' }
+#' 
 #' @docType package
 #' @name O2PLS
 #' @keywords O2PLS
-#' @import parallel
+#' @import parallel ggplot2
 NULL
 
 #' Check if matrices satisfy input conditions
@@ -39,12 +64,21 @@ NULL
 #' @param Y Should be numeric matrix.
 #' @return NULL
 #' @details This function throws an error if any of the elements is \code{NA}, \code{Inf}, \code{NaN} or \code{nrow(X)} doesn't match \code{nrow(Y)}.
+#' 
+#' @keywords internal
 #' @export
 input_checker <- function(X, Y = NULL) {
-  stopifnot(is.numeric(X), !any(is.na(X)), is.finite(X), !is.nan(X))
+  if(!is.numeric(X)) stop("Input is not numeric, but of mode ",mode(X))
+  if(!is.matrix(X)) stop("Input is not a matrix, but of class ",class(X))
+  if(any(is.na(X))) stop("Input contains NA's or NaN's")
+  if(!any(is.finite(X))) stop("Input contains non-finite elements")
+  
   if (!is.null(Y)) {
-    stopifnot(is.numeric(Y), !any(is.na(Y)), is.finite(Y), !is.nan(Y))
-    stopifnot(nrow(as.matrix(X)) == nrow(as.matrix(Y)))
+    if(!is.numeric(Y)) stop("Input is not numeric, but of mode ",mode(Y))
+    if(!is.matrix(Y)) stop("Input is not a matrix, but of class ",class(Y))
+    if(any(is.na(Y))) stop("Input contains NA's or NaN's")
+    if(!any(is.finite(Y))) stop("Input contains non-finite elements")
+    if(nrow(X) != nrow(Y)) stop("# rows don't match: ",nrow(X)," versus ",nrow(Y))
   }
   NULL
 }
@@ -53,33 +87,40 @@ input_checker <- function(X, Y = NULL) {
 #'
 #' @param X Numeric vector or matrix.
 #' @param X_true (optional) A 'true' matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.
-#' @param type A character or numeric. Should be one of QR or SVD, or equivalently 1 or 2.
+#' @param type A character or numeric. Should be one of "QR" or "SVD".
 #' @return An orthogonalized representation of \eqn{X}
-#' @details Choosing type='QR' (or type=1) uses a QR decomposition of X to produce orthonormal columns. For type=='SVD' (or type not 1) it uses an SVD decomposition.
+#' @details Choosing type='QR' uses a QR decomposition of X to produce orthonormal columns. For type=='SVD' it uses an SVD decomposition.
+#' The columns are corrected for sign.
 #' @examples
 #' orth(c(3,4))
 #' round(crossprod(orth(matrix(rnorm(500),100,5))),4)
 #' orth(matrix(1:9,3,3),type='QR')[,1] - orth(1:3); orth(matrix(1:9,3,3),type='SVD')[,1] - orth(1:3);
 #' @export
 orth <- function(X, X_true = NULL, type = c("QR", "SVD")) {
-  input_checker(X)
-  if (!is.null(X_true)) 
-    input_checker(X_true)
-  if (is.character(type)) {
-    type <- match.arg(type)
-  } else if (is.numeric(type)) {
-    type <- type[1]
-  } else {stop("type should be one of QR (or 1) or SVD (or 2)")}
-  if (type == "SVD" || type == 2) {
-    e <- svd(X)
-    return(tcrossprod(e$u, e$v))
+  X <- as.matrix(X)
+  if (!is.null(X_true)) {
+    X_true <- as.matrix(X_true)
+    input_checker(X,X_true)
+    if(ncol(X) != ncol(X_true)) stop("# columns don't match:",ncol(X),"versus",ncol(X_true))
+  }else {
+    input_checker(X)
   }
-  e <- qr.Q(qr(X))
-  sign_e <- ifelse(!is.null(X_true), 
-                   c(sign(crossprod(e[, 1], as.matrix(X_true)[, 1]))), 
-                   c(sign(crossprod(e[,1], as.matrix(X)[, 1])))
-                   )
-  return(sign_e * e)
+  
+  type <- match.arg(type)
+  if (type == "SVD") {
+    e <- svd(X)
+    e <- tcrossprod(e$u, e$v)
+  } else {
+    e <- qr.Q(qr(X))
+  }
+  if(is.null(X_true)) {
+    sign_e <- sign(crossprod(e,X)) * diag(1,ncol(e))
+  } else {
+    sign_e <- sign(crossprod(e,X_true)) * diag(1,ncol(e))
+  }
+  if(any(diag(sign_e)==0)){warning("Orthogonalization made some columns orthogonal to original columns")}
+  
+  return(e %*% sign_e)
 }
 
 #' Calculate Sum of Squares
@@ -88,7 +129,7 @@ orth <- function(X, X_true = NULL, type = c("QR", "SVD")) {
 #' @return The sum of squared elements of \eqn{X}
 #' @details This is the Frobenius norm of \eqn{X}.
 #' @examples
-#' ssq(1:5)
+#' ssq(tcrossprod(1:5))
 #' ssq(rnorm(1e5))/1e5
 #' @export
 ssq <- function(X) {
@@ -110,9 +151,7 @@ ssq <- function(X) {
 #' @export
 mse <- function(x, y = 0, na.rm = FALSE)
 {
-  if (length(x) != length(y) && length(y) != 1) {
-    warning("unequal length:result may not be sensible")
-  }
+  if(length(x) != length(y) && length(y) != 0) message("Comparing lengths",length(x),"with",length(y))
   mean((x - y)^2, na.rm = na.rm)
 }
 
@@ -128,7 +167,7 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' @param stripped Logical. Use the stripped version of o2m (usually when cross-validating)?
 #' @param p_thresh Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
 #' @param q_thresh Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
-#' @param toler double. Threshold for power method iteration
+#' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #'
 #' @return A list containing
@@ -163,7 +202,7 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 #' For high dimensional matrices, a power method can be applied. 
 #' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (power method) which does not store the entire covariance matrix.
-#' The squared error between iterands in the power method can be adjusted with \code{toler}.
+#' The squared error between iterands in the power method can be adjusted with \code{tol}.
 #' The maximum number of iterations is tuned by \code{max_iterations}.
 #'
 #' @examples
@@ -182,22 +221,40 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
-                p_thresh = 3000, q_thresh = 3000, toler = 1e-10, max_iterations = 100) {
+                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
+  Xnames = dimnames(X)
+  Ynames = dimnames(Y)
+  
+  if(!is.matrix(X)){
+    message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
+    X <- as.matrix(X)
+  }
+  if(!is.matrix(Y)){
+    message("Y has class ",class(Y),", trying to convert with as.matrix.",sep="")
+    Y <- as.matrix(Y)
+  }
   input_checker(X, Y)
   
-  X <- as.matrix(X)
-  Y <- as.matrix(Y)
-  stopifnot(ncol(X) >= n + max(nx, ny), ncol(Y) >= n + max(nx, ny),
-            n == round(n), nx == round(nx), ny == round(ny), 
-            p_thresh == round(p_thresh), q_thresh == round(q_thresh),
-            max_iterations == round(abs(max_iterations)), toler >= 0
-  )
+  if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
+    stop("n + max(nx, ny) =", n + max(nx, ny), "exceed # columns in X or Y")
+  if(nx != round(abs(nx)) || ny != round(abs(ny))) 
+    stop("n, nx and ny should be non-negative integers")
+  if(p_thresh != round(abs(p_thresh)) || q_thresh != round(abs(q_thresh))) 
+    stop("p_thresh and q_thresh should be non-negative integers")
+  if(max_iterations != round(abs(max_iterations)) ) 
+    stop("max_iterations should be a non-negative integer")
+  if(tol < 0) 
+    stop("tol should be non-negative")
   
-  if (n <= 0) {
-    stop("#joint components must be >0")
+  if (n != round(abs(n)) || n <= 0) {
+    stop("n should be a positive integer")
   }
+  
+  if(any(abs(colMeans(X)) > 1e-8)){message("Data is not centered, proceed with caution!")}
+  
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
-    return(o2m2(X, Y, n, nx, ny, stripped, toler, max_iterations))
+    message("Using Power Method with tolerance",tol,"and max iterations",max_iterations)
+    return(o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations))
   }
   if(stripped){
     return(o2m_stripped(X, Y, n, nx, ny))
@@ -282,6 +339,11 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_TU) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
+  
   model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
                 X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
@@ -290,12 +352,19 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   return(model)
 }
 
+#' Power method for PLS2
+#' 
+#' Performs power method for PLS2 loadings.
+#' 
+#' @inheritParams o2m
+#' 
+#' @keywords internal
 #' @export
-pow_o2m <- function(X, Y, n, toler = 1e-10, max_iterations = 100) {
+pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
   input_checker(X, Y)
   stopifnot(n == round(n))
-  message("High dimensional problem: switching to power method.\n")
-  message("initialize Power Method. Stopping crit: sq.err<", toler, " or ", max_iterations, " iter.\n")
+#  message("High dimensional problem: switching to power method.\n")
+#  message("initialize Power Method. Stopping crit: sq.err<", tol, " or ", max_iterations, " iter.\n")
   Tt <- NULL
   U <- NULL
   W <- NULL
@@ -307,7 +376,7 @@ pow_o2m <- function(X, Y, n, toler = 1e-10, max_iterations = 100) {
       tmpp <- c(W0, C0)
       W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
       C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
-      if (mse(tmpp, c(W0, C0)) < toler) {
+      if (mse(tmpp, c(W0, C0)) < tol) {
         break
       }
     }
@@ -318,7 +387,7 @@ pow_o2m <- function(X, Y, n, toler = 1e-10, max_iterations = 100) {
         tmpp <- c(W0, C0)
         W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
         C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
-        if (mse(tmpp, c(W0, C0)) < toler) {
+        if (mse(tmpp, c(W0, C0)) < tol) {
           message("The initialization of the power method lied in a degenerate space\n")
           message("Initialization changed and power method rerun\n")
           break
@@ -340,14 +409,7 @@ pow_o2m <- function(X, Y, n, toler = 1e-10, max_iterations = 100) {
 #'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #'
-#' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
-#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
-#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' @param stripped Logical. Use the stripped version of o2m (usually when cross-validating)?
-#' @param toler double. Threshold for power method iteration
-#' @param max_iterations Integer, Maximum number of iterations for power method
+#' @inheritParams o2m
 #' 
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -394,21 +456,16 @@ pow_o2m <- function(X, Y, n, toler = 1e-10, max_iterations = 100) {
 #' # )
 #'
 #' @seealso \code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}
-#'
+#' 
+#' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, toler = 1e-10, max_iterations = 100) {
-  stopifnot(n == round(n), nx == round(nx), ny == round(ny))
-  input_checker(X, Y)
+o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100) {
+
   X <- as.matrix(X)
   Y <- as.matrix(Y)
-  stopifnot(nrow(X) == nrow(Y), ncol(X) >= n + max(nx, ny), ncol(Y) >= n + max(nx, ny))
-  if (n <= 0) {
-    stop("#joint components must be >0")
-  }
-  # if(nrow(X) >= ncol(X) | nrow(X) >= ncol(Y)){ return(o2m(X,Y,n,nx,ny)) }
   
   if(stripped){
-    return(o2m_stripped2(X, Y, n, nx, ny, toler, max_iterations))
+    return(o2m_stripped2(X, Y, n, nx, ny, tol, max_iterations))
   }
   
   X_true <- X
@@ -427,7 +484,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, toler = 1e-10, max_iteration
     n2 <- n + max(nx, ny)
     
     # if(N<p&N<q){ # When N is smaller than p and q
-    W_C <- pow_o2m(X, Y, n2, toler, max_iterations)
+    W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
     W <- W_C$W
     C <- W_C$C
     Tt <- W_C$Tt
@@ -465,7 +522,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, toler = 1e-10, max_iteration
     }
   }
   # Re-estimate joint part in n-dimensional subspace if(N<p&N<q){ # When N is smaller than p and q
-  W_C <- pow_o2m(X, Y, n, toler, max_iterations)
+  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
   W <- W_C$W
   C <- W_C$C
   Tt <- W_C$Tt
@@ -495,25 +552,6 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, toler = 1e-10, max_iteration
   return(model)
 }
 
-#' Summary of an O2PLS fit
-#'
-#' Until now only variational summary given by the R2's is outputted
-#'
-#' @param object List. Contains the R2's as produced by \code{\link{o2m}}.
-#' @param ... For compatibility
-#' @return Matrix with R2 values given in percentage in two decimals.
-#' @examples
-#' summary(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
-#' @export
-summary.o2m <- function(object,...) {
-  fit <- object
-  a <- nrow(fit$W.)
-  Mname <- list(c(""), c("Comp", "R2X", "R2Y", "R2Xcorr", "R2Ycorr", "R2Xhat", "R2Yhat", "XRatio", "YRatio"))
-  M <- matrix(c(a/100, fit$R2X, fit$R2Y, fit$R2Xcorr, fit$R2Ycorr, fit$R2Xhat, fit$R2Yhat, fit$R2Xhat/fit$R2Xcorr, 
-                fit$R2Yhat/fit$R2Ycorr), nrow = 1, dimnames = Mname)
-  return(round(100 * M, 2))
-}
-
 #' Root MSE of Prediction
 #'
 #' Calculates the Root MSE of prediction on test data. Only tested to work inside \code{\link{loocv}}.
@@ -526,20 +564,13 @@ summary.o2m <- function(object,...) {
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
 rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
-  input_checker(Xtst)
-  input_checker(Ytst)
+  if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
   
-  stopifnot("o2m" %in% class(fit))
+  if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
-  if (!is.matrix(Xtst)) 
-  {
-    Xtst <- t(Xtst)
-  }
+  if (!is.matrix(Ytst)) Ytst <- t(Ytst)
   
-  if (!is.matrix(Ytst)) 
-  {
-    Ytst <- t(Ytst)
-  }
+  input_checker(Xtst, Ytst)
   
   Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
   # Xhat = Ytst%*%fit$C.%*%fit$B_U%*%t(fit$W.)
@@ -579,6 +610,8 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
                   kcv)
 {
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
+  X = as.matrix(X)
+  Y = as.matrix(Y)
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
     app_err <- F
@@ -724,12 +757,8 @@ vnorm <- function(x)
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #' A stripped version of O2PLS
 #'
-#' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
-#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
-#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#'
+#' @inheritParams o2m
+#' 
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -746,15 +775,12 @@ vnorm <- function(x)
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'
 #' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @keywords internal
 #' @export
 o2m_stripped <- function(X, Y, n, nx, ny) {
-  stopifnot(n == round(n), nx == round(nx), ny == round(ny))
-  input_checker(X, Y)
+  
   X <- as.matrix(X)
   Y <- as.matrix(Y)
-  if (n <= 0) {
-    stop("#joint components must be >0")
-  }
   
   X_true <- X
   Y_true <- Y
@@ -829,7 +855,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
   R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
   R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true) / ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(W) - Y_true) / ssq(Y_true))
+  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
@@ -848,14 +874,8 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #' A stripped version of O2PLS
 #'
-#' @param X Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param Y Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
-#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
-#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' @param toler double. Threshold for power method iteration
-#' @param max_iterations Integer, Maximum number of iterations for power method
-#'
+#' @inheritParams o2m
+#' 
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
@@ -872,18 +892,12 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'
 #' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @keywords internal
 #' @export
-o2m_stripped2 <- function(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100) {
-  stopifnot(n == round(n), nx == round(nx), ny == round(ny))
-  input_checker(X, Y)
+o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
+  
   X <- as.matrix(X)
   Y <- as.matrix(Y)
-  if (n <= 0) {
-    stop("#joint components must be >0")
-  }
-#   if (nrow(X) >= ncol(X) || nrow(X) >= ncol(Y) || ncol(X) > 2000 || ncol(X) > 2000) {
-#     return(o2m_stripped(X, Y, n, nx, ny))
-#   }
   
   X_true <- X
   Y_true <- Y
@@ -901,7 +915,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100) 
     
 #    if (N < p & N < q) {
       # When N is smaller than p and q
-      W_C <- pow_o2m(X, Y, n2, toler, max_iterations)
+      W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
       W <- W_C$W
       C <- W_C$C
       Tt <- W_C$Tt
@@ -945,7 +959,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100) 
   
   # repeat steps 1, 2, and 4 before step 6 When N is smaller than p and q
 #  if (N < p & N < q) {
-    W_C <- pow_o2m(X, Y, n, toler, max_iterations)
+    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
     W <- W_C$W
     C <- W_C$C
     Tt <- W_C$Tt
@@ -965,7 +979,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100) 
   R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
   R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
   R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true) / ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(W) - Y_true) / ssq(Y_true))
+  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
@@ -995,20 +1009,13 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100) 
 #' @export
 rmsep_combi <- function(Xtst, Ytst, fit)
 {
-  input_checker(Xtst)
-  input_checker(Ytst)
+  if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
   
-  stopifnot("o2m" %in% class(fit))
+  if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
-  if (!is.matrix(Xtst)) 
-  {
-    Xtst <- t(Xtst)
-  }
+  if (!is.matrix(Ytst)) Ytst <- t(Ytst)
   
-  if (!is.matrix(Ytst)) 
-  {
-    Ytst <- t(Ytst)
-  }
+  input_checker(Xtst, Ytst)
 
   Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
   Xhat <- Ytst %*% fit$C. %*% fit$B_U %*% t(fit$W.)
@@ -1039,9 +1046,13 @@ rmsep_combi <- function(Xtst, Ytst, fit)
 loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m_stripped, app_err = F, 
                         kcv)
 {
-  stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
+  stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)), kcv == round(kcv[1]))
+  stopifnot(is.logical(app_err), is.function(func))
+  X = as.matrix(X)
+  Y = as.matrix(Y)
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
+    if(class(fitted_model) != 'o2m'){stop("fitted_model should be of class 'o2m' or NULL")}
     app_err <- F
     warning("apparent error calculated with provided fit")
   }
@@ -1107,3 +1118,107 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   }
   return(list(CVerr = mean_err, Fiterr = mean_fit))
 } 
+
+#' Print function for O2PLS.
+#' 
+#' This function is the print method for an O2PLS fit
+#' 
+#' @param x An O2PLS fit (an object of class o2m)
+#' @param ... For consistency
+#' @return NULL
+#'
+#'
+#' @export
+print.o2m <- function (x, ...) {
+  # Diagnostics or something?
+  # Time to end
+  # Used stripped method or high dimensional method
+  # ...
+  n = ncol(x$W.)
+  nx = ifelse(vnorm(x$P_Yosc.) == 0, 0, ncol(x$P_Yosc.))
+  ny = ifelse(vnorm(x$P_Xosc.) == 0, 0, ncol(x$P_Xosc.))
+  cat("O2PLS fit\n")
+  cat("with ",n," joint components  \n",sep='')
+  cat("and  ",nx," orthogonal components in X \n",sep='')
+  cat("and  ",ny," orthogonal joint components in Y \n",sep='')
+}
+
+
+#' Plot one or two loading vectors for class o2m
+#' 
+#' This function plots one or two loading vectors, by default with ggplot2. 
+#' 
+#' @param x An O2PLS fit, with class 'o2m'
+#' @param loading_name character string. One of \code{"X"} (for plotting the X loadings) or \code{"Y"} (for plotting the Y loadings). 
+#' @param i Integer. First component to be plotted.
+#' @param j NULL (default) or Integer. Second component to be plotted.
+#' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
+#' @param label Character, either 'number' or 'colnames'. The first option prints numbers, the second prints the colnames
+#' @param ... For compatibility
+#' 
+#' @export
+plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
+{
+  stopifnot(i == round(i), is.logical(use_ggplot2))
+  if(ncol(x$W.) < i || (!is.null(j) && ncol(x$W.) < j)){stop("i and j cannot exceed #components!")}
+  fit <- list()
+  which_loading <- match.arg(loading_name)
+  fit$load = as.matrix(x[which_loading][[1]])[,c(i,j)]
+  
+  p = nrow(as.matrix(fit$load))
+  if(is.null(j)){
+    fit$load = cbind(1:p,fit$load)
+    colnames(fit$load) = c("index",paste("loadings",i))
+  }else{
+    stopifnot(j == round(j))
+    colnames(fit$load) = c(paste("loadings",i),paste("loadings",j))
+  }
+  
+  label = match.arg(label)
+  if(label == "colnames" && !is.null(rownames(x[which_loading][[1]]))) 
+    label = rownames(x[which_loading][[1]]) else label = 1:p
+  
+  if (use_ggplot2) {
+    plt = with(fit, qplot(x = load[, 1], y = load[, 2], label = label,
+                          geom = "text", xlab = colnames(load)[1], ylab = colnames(load)[2]))
+    plt = plt + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
+    print(plt)
+    return(invisible(plt))
+  }
+  else {
+    with(fit, {
+      plot(load[, 1], load[, 2], type = "n")
+      text(load[, 1], load[, 2])
+    })
+    abline(v=0,h=0)
+  }
+}
+
+#' Summary of an O2PLS fit
+#'
+#' Until now only variational summary given by the R2's is outputted
+#'
+#' @param object List. Should be of class \code{\link{o2m}}.
+#' @param perc Logical, show percentages?
+#' @param ... For compatibility
+#' @return List with R2 values.
+#' @examples
+#' summary(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
+#' @export
+summary.o2m <- function(object, perc = TRUE, ...) {
+  fit <- object
+  a <- ncol(fit$W.)
+  outp <- with( fit, list(
+    Comp = a,
+    R2_X = R2X,
+    R2_Y = R2Y,
+    R2_Xjoint = R2Xcorr,
+    R2_Y_joint = R2Ycorr,
+    R2_Xhat = R2Xhat,
+    R2_Yhat = R2Yhat
+  ) )
+  Mname <- list(c(""), c("Comp", "R2X", "R2Y", "R2Xcorr", "R2Ycorr", "R2Xhat", "R2Yhat", "XRatio", "YRatio"))
+  M <- matrix(c(ifelse(perc,a/100,a), fit$R2X, fit$R2Y, fit$R2Xcorr, fit$R2Ycorr, fit$R2Xhat, fit$R2Yhat, fit$R2Xhat/fit$R2Xcorr, 
+                fit$R2Yhat/fit$R2Ycorr), nrow = 1, dimnames = Mname)
+  return(round((1 + perc * 99) * M, 4 - perc * 2))
+}

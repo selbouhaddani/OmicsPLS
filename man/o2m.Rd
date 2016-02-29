@@ -4,8 +4,8 @@
 \alias{o2m}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000, q_thresh = 3000,
-  toler = 1e-10, max_iterations = 100)
+o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
+  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -24,7 +24,7 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000, q_thresh = 3000,
 
 \item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
 
-\item{toler}{double. Threshold for power method iteration}
+\item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
@@ -65,7 +65,7 @@ If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with 
 This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
 For high dimensional matrices, a power method can be applied. 
 If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (power method) which does not store the entire covariance matrix.
-The squared error between iterands in the power method can be adjusted with \code{toler}.
+The squared error between iterands in the power method can be adjusted with \code{tol}.
 The maximum number of iterations is tuned by \code{max_iterations}.
 }
 \examples{

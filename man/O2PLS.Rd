@@ -9,28 +9,58 @@
 This is based on work of (Trygg, Wold, 2003).
 Includes the O2PLS fit, some misc functions and some cross-validation tools.
 }
-\section{Functions}{
+\section{Fitting}{
 
-The O2PLS fit is done with \code{\link{o2m}}.
-Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
+The O2PLS fit is done with \code{\link{o2m}}. 
+For data \code{X} and \code{Y} you can run \code{o2m(X,Y,n,nx,ny)} for an O2PLS fit with \code{n} joint and \code{nx, ny} orthogonal components.
+See the help page of \code{\link{o2m}} for more information on parameters.
+There are four ways to obtain an O2PLS fit, depending on the dimensionality.
+\itemize{
+ \item{} For the not-too-high dimensional case, you may use \code{\link{o2m}} with default parameters. E.g. \code{o2m(X,Y,n,nx,ny)}.
+ \item{} In case you don't want the fancy output, but only the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
+ \item{} For high dimensional cases defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh} a Power-Method approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
+ The thresholds are by default both at 3000 variables.
+ \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
+}
+}
 
-List of main functions:\itemize{
-\item{\code{\link{o2m}}}
+\section{Obtaining results}{
 
-\item{\code{\link{adjR2}}}
-\item{\code{\link{loocv}}}
-\item{\code{\link{mse}}}
-\item{\code{\link{orth}}}
-\item{\code{\link{rmsep}}}
-\item{\code{\link{ssq}}}
-\item{\code{\link{summary.o2m}}}
-\item{\code{\link{vnorm}}}
+After fitting an O2PLS model, by running e.g. \code{fit = o2m(X,Y,n,nx,ny)}, the results can be visualised.
+Use \code{\link{plot}(fit,...)} to plot the desired loadings with/without ggplot2.
+Use \code{\link{summary}(fit,...)} to see the relative explained variances in the joint/orthogonal parts.
+Also plotting the joint scores \code{fit$Tt, fit$U} and orthogonal scores \code{fit$T_Yosc, fit$U_Xosc} are of help.
+}
+
+\section{Cross-validating}{
+ 
+Determining the number of components \code{n,nx,ny} is an important task. For this we have two methods.
+See \code{citation("O2PLS")} for our proposed approach for determining the number of components.
+\itemize{
+ \item{} Cross-validation (CV) is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
+ This part is not yet fully developed, and a somewhat advanced understanding of R is needed to fully exploit CV here.
+ However a slow \code{for} loop implementation of the cross-validated prediction error is implemented in \code{loocv(X,Y,a,a2,b2,kcv)}, where \code{X, Y} are the data and \code{a,a2,b2} are integer vectors representing \code{n,nx,ny}.
+ \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV. 
+ \code{\link{loocv}} was proposed to find the number of joint components.
+ \item{} For \code{\link{adjR2}} the same holds, but this function implements the coefficient of determination of the inner relation \eqn{U = TB + H} rather than the prediction error.
+ This was proposed to find the number of orthogonal components.
+}
+}
+
+\section{Misc}{
+
+Also some handy tools are available
+\itemize{
+ \item{} \code{\link{orth}(X)} is a function to obtain an orthogonalized version of a matrix or vector \code{X}.
+ \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
+ \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
 }
 }
 \author{
 Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),
 Jeanine Houwing-Duistermaat (\email{J.J.Houwing@lumc.nl}),
 Geurt Jongbloed (\email{G.Jongbloed@tudelft.nl}),
+Szymon Kielbasa (\email{S.M.Kielbasa@lumc.nl}),
 Hae-Won Uh (\email{H.Uh@lumc.nl}).
 
 Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}).

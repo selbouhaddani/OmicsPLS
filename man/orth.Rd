@@ -11,7 +11,7 @@ orth(X, X_true = NULL, type = c("QR", "SVD"))
 
 \item{X_true}{(optional) A 'true' matrix/vector. Used to correct the sign of the orthonormalized X if QR is used. Only the first column is corrected.}
 
-\item{type}{A character or numeric. Should be one of QR or SVD, or equivalently 1 or 2.}
+\item{type}{A character or numeric. Should be one of "QR" or "SVD".}
 }
 \value{
 An orthogonalized representation of \eqn{X}
@@ -20,7 +20,8 @@ An orthogonalized representation of \eqn{X}
 Orthogonalize a matrix
 }
 \details{
-Choosing type='QR' (or type=1) uses a QR decomposition of X to produce orthonormal columns. For type=='SVD' (or type not 1) it uses an SVD decomposition.
+Choosing type='QR' uses a QR decomposition of X to produce orthonormal columns. For type=='SVD' it uses an SVD decomposition.
+The columns are corrected for sign.
 }
 \examples{
 orth(c(3,4))

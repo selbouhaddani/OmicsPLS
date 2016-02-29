@@ -17,4 +17,5 @@ Check if matrices satisfy input conditions
 \details{
 This function throws an error if any of the elements is \code{NA}, \code{Inf}, \code{NaN} or \code{nrow(X)} doesn't match \code{nrow(Y)}.
 }
+\keyword{internal}
 

@@ -4,15 +4,17 @@
 \alias{summary.o2m}
 \title{Summary of an O2PLS fit}
 \usage{
-\method{summary}{o2m}(object, ...)
+\method{summary}{o2m}(object, perc = TRUE, ...)
 }
 \arguments{
-\item{object}{List. Contains the R2's as produced by \code{\link{o2m}}.}
+\item{object}{List. Should be of class \code{\link{o2m}}.}
+
+\item{perc}{Logical, show percentages?}
 
 \item{...}{For compatibility}
 }
 \value{
-Matrix with R2 values given in percentage in two decimals.
+List with R2 values.
 }
 \description{
 Until now only variational summary given by the R2's is outputted

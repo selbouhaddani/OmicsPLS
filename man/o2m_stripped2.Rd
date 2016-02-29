@@ -4,12 +4,12 @@
 \alias{o2m_stripped2}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m_stripped2(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100)
+o2m_stripped2(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
-\item{X}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix. Other types will be coerced to matrix with \code{as.matrix} (if this is possible)}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{n}{Integer. Number of joint PLS components. Must be positive!}
 
@@ -17,7 +17,7 @@ o2m_stripped2(X, Y, n, nx, ny, toler = 1e-10, max_iterations = 100)
 
 \item{ny}{Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0}
 
-\item{toler}{double. Threshold for power method iteration}
+\item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
@@ -45,4 +45,5 @@ This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data an
 \seealso{
 \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 }
+\keyword{internal}
 

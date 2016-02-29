@@ -19,7 +19,7 @@ Calculate Sum of Squares
 This is the Frobenius norm of \eqn{X}.
 }
 \examples{
-ssq(1:5)
+ssq(tcrossprod(1:5))
 ssq(rnorm(1e5))/1e5
 }
 
