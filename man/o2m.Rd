@@ -69,16 +69,16 @@ The squared error between iterands in the power method can be adjusted with \cod
 The maximum number of iterations is tuned by \code{max_iterations}.
 }
 \examples{
-test.data=matrix(rnorm(100))
+test.data <- scale(matrix(rnorm(100)))
 hist(replicate(1000,
-         o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-     ),main='No joint variation',xlab='B_T',xlim=c(0,1.5));
+         o2m(test.data,scale(matrix(rnorm(100))),1,0,0)$B_T.
+     ),main='No joint variation',xlab='B_T',xlim=c(0,0.6));
 hist(replicate(1000,
-         o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-    ),main='B_T=1; 25\% joint variation',xlab='B_T',xlim=c(0,1.5));
+         o2m(test.data,scale(test.data+rnorm(100))/2,1,0,0)$B_T.
+    ),main='B_T = 0.5 \\n 25\% joint variation',xlab='B_T',xlim=c(0,0.6));
 hist(replicate(1000,
-         o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-    ),main='B_T=1; 90\% joint variation',xlab='B_T',xlim=c(0,1.5));
+         o2m(test.data,scale(test.data+rnorm(100,0,0.1))/2,1,0,0)$B_T.
+    ),main='B_T = 0.5 \\n 90\% joint variation',xlab='B_T',xlim=c(0,0.6));
 
 }
 \seealso{

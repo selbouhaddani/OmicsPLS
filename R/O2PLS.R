@@ -151,7 +151,7 @@ ssq <- function(X) {
 #' @export
 mse <- function(x, y = 0, na.rm = FALSE)
 {
-  if(length(x) != length(y) && length(y) != 0) message("Comparing lengths",length(x),"with",length(y))
+  if(length(x) != length(y) && length(y) != 0) message("Comparing lengths ",length(x)," with ",length(y))
   mean((x - y)^2, na.rm = na.rm)
 }
 
@@ -206,22 +206,23 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' The maximum number of iterations is tuned by \code{max_iterations}.
 #'
 #' @examples
-#' test.data=matrix(rnorm(100))
+#' test.data <- scale(matrix(rnorm(100)))
 #' hist(replicate(1000,
-#'          o2m(test.data,matrix(rnorm(100)),1,0,0)$B_T.
-#'      ),main='No joint variation',xlab='B_T',xlim=c(0,1.5));
+#'          o2m(test.data,scale(matrix(rnorm(100))),1,0,0)$B_T.
+#'      ),main='No joint variation',xlab='B_T',xlim=c(0,0.6));
 #' hist(replicate(1000,
-#'          o2m(test.data,test.data+rnorm(100),1,0,0)$B_T.
-#'     ),main='B_T=1; 25% joint variation',xlab='B_T',xlim=c(0,1.5));
+#'          o2m(test.data,scale(test.data+rnorm(100))/2,1,0,0)$B_T.
+#'     ),main='B_T = 0.5 \n 25% joint variation',xlab='B_T',xlim=c(0,0.6));
 #' hist(replicate(1000,
-#'          o2m(test.data,test.data+rnorm(100,0,0.1),1,0,0)$B_T.
-#'     ),main='B_T=1; 90% joint variation',xlab='B_T',xlim=c(0,1.5));
+#'          o2m(test.data,scale(test.data+rnorm(100,0,0.1))/2,1,0,0)$B_T.
+#'     ),main='B_T = 0.5 \n 90% joint variation',xlab='B_T',xlim=c(0,0.6));
 #'
 #' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
+  tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
   
@@ -250,10 +251,10 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     stop("n should be a positive integer")
   }
   
-  if(any(abs(colMeans(X)) > 1e-8)){message("Data is not centered, proceed with caution!")}
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceed with caution!")}
   
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
-    message("Using Power Method with tolerance",tol,"and max iterations",max_iterations)
+    message("Using Power Method with tolerance ",tol," and max iterations ",max_iterations)
     return(o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations))
   }
   if(stripped){
@@ -343,11 +344,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_TU) <- Ynames[[1]]
   rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
   rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
-  
+  toc <- proc.time() - tic
   model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
                 X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
-                R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+                R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat,
+                flags = c(time = toc, as.list(match.call())[-(1:3)]))
   class(model) <- "o2m"
   return(model)
 }
@@ -1134,13 +1136,14 @@ print.o2m <- function (x, ...) {
   # Time to end
   # Used stripped method or high dimensional method
   # ...
-  n = ncol(x$W.)
-  nx = ifelse(vnorm(x$P_Yosc.) == 0, 0, ncol(x$P_Yosc.))
-  ny = ifelse(vnorm(x$P_Xosc.) == 0, 0, ncol(x$P_Xosc.))
-  cat("O2PLS fit\n")
+  n = x$flags$n #ncol(x$W.)
+  nx = x$flags$nx #ifelse(vnorm(x$P_Yosc.)[1] == 0, 0, ncol(x$P_Yosc.))
+  ny = x$flags$ny #ifelse(vnorm(x$P_Xosc.)[1] == 0, 0, ncol(x$P_Xosc.))
+  if(!is.null(x$flags$stripped)) cat("O2PLS fit: Stripped \n") else cat("O2PLS fit \n")
   cat("with ",n," joint components  \n",sep='')
   cat("and  ",nx," orthogonal components in X \n",sep='')
-  cat("and  ",ny," orthogonal joint components in Y \n",sep='')
+  cat("and  ",ny," orthogonal components in Y \n",sep='')
+  cat("Elapsed time: ",x$flags$time.el, " sec", sep='')
 }
 
 
@@ -1160,10 +1163,13 @@ print.o2m <- function (x, ...) {
 plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
   stopifnot(i == round(i), is.logical(use_ggplot2))
-  if(ncol(x$W.) < i || (!is.null(j) && ncol(x$W.) < j)){stop("i and j cannot exceed #components!")}
+  
   fit <- list()
   which_loading <- match.arg(loading_name)
-  fit$load = as.matrix(x[which_loading][[1]])[,c(i,j)]
+  fit$load = as.matrix(x[which_loading][[1]])
+  if(ncol(fit$load) < min(i,j) )
+    stop("i and j cannot exceed #components = ",ncol(fit$load))
+  fit$load = fit$load[,c(i,j)]
   
   p = nrow(as.matrix(fit$load))
   if(is.null(j)){
@@ -1208,6 +1214,7 @@ plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i =
 summary.o2m <- function(object, perc = TRUE, ...) {
   fit <- object
   a <- ncol(fit$W.)
+  
   outp <- with( fit, list(
     Comp = a,
     R2_X = R2X,
@@ -1217,6 +1224,7 @@ summary.o2m <- function(object, perc = TRUE, ...) {
     R2_Xhat = R2Xhat,
     R2_Yhat = R2Yhat
   ) )
+  
   Mname <- list(c(""), c("Comp", "R2X", "R2Y", "R2Xcorr", "R2Ycorr", "R2Xhat", "R2Yhat", "XRatio", "YRatio"))
   M <- matrix(c(ifelse(perc,a/100,a), fit$R2X, fit$R2Y, fit$R2Xcorr, fit$R2Ycorr, fit$R2Xhat, fit$R2Yhat, fit$R2Xhat/fit$R2Xcorr, 
                 fit$R2Yhat/fit$R2Ycorr), nrow = 1, dimnames = Mname)
