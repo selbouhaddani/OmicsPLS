@@ -1209,7 +1209,7 @@ plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i =
 #' @param ... For compatibility
 #' @return List with R2 values.
 #' @examples
-#' summary(o2m(matrix(-2:2),matrix(-2:2*4),1,0,0))
+#' summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' @export
 summary.o2m <- function(object, perc = TRUE, ...) {
   fit <- object
@@ -1229,4 +1229,56 @@ summary.o2m <- function(object, perc = TRUE, ...) {
   M <- matrix(c(ifelse(perc,a/100,a), fit$R2X, fit$R2Y, fit$R2Xcorr, fit$R2Ycorr, fit$R2Xhat, fit$R2Yhat, fit$R2Xhat/fit$R2Xcorr, 
                 fit$R2Yhat/fit$R2Ycorr), nrow = 1, dimnames = Mname)
   return(round((1 + perc * 99) * M, 4 - perc * 2))
+}
+
+#' Extract the loadings from an O2PLS fit
+#'
+#' This function extracts loading parameters from an O2PLS fit
+#'
+#' @inheritParams plot.o2m
+#' @inheritParams summary.o2m
+#' @param subset subset of loading vectors to be extracted.
+#' 
+#' @return Loading matrix
+#' @examples
+#' loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#' @export
+loadings.o2m <- function(object, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), subset = 0, ...) {
+  if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
+  
+  loading_name = match.arg(loading_name)
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  loading_matrix = object[[which_load]]
+  dim_names = dimnames(loading_matrix)
+  if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)
+  if(max(subset) > ncol(loading_matrix)) stop("Elements in subset exceed #components")
+  loading_matrix = as.matrix(loading_matrix[,subset])
+  dimnames(loading_matrix) <- dim_names
+  
+  return(loading_matrix)
+}
+
+#' Extract the loadings from an O2PLS fit
+#'
+#' This function extracts loading parameters from an O2PLS fit
+#'
+#' @inheritParams loadings.o2m
+#' @param newdata New data, which one of X or Y is specified in \code{XorY}.
+#' @param XorY Character specifying \code{newdata} is X or Y.
+#' 
+#' @return Predicted Data
+#' @examples
+#' predict(o2m(scale(1:10), scale(1:10), 1, 0, 0), newdata = scale(1:5), XorY = "X")
+#' @export
+predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
+  XorY = match.arg(XorY)
+  dummyData = switch(XorY,
+                     X = object$W.,
+                     Y = object$C.)
+  if(ncol(newdata) != nrow(dummyData)) stop("Number of columns mismatch!")
+  pred = switch(XorY, 
+                Y = with(object,newdata %*% C. %*% B_U %*% t(W.)), 
+                X = with(object,newdata %*% W. %*% B_T. %*% t(C.)))
+  
+  return(pred)
 }

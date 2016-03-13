@@ -1,5 +1,5 @@
 crossval_o2m <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, kcv, app_err = F) {
-  stopifnot(ncol(X) > max(a)+max(a2) , ncol(Y) > max(a)+max(b2) , nrow(X) >= kcv ,require(parallel))
+  stopifnot(ncol(X) > max(a)+max(a2) , ncol(Y) > max(a)+max(b2) , nrow(X) >= kcv)
   
   parms = data.frame(nx = a2)
   parms = merge(parms,data.frame(ny = b2))
