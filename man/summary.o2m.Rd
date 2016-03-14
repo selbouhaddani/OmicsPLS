@@ -4,12 +4,12 @@
 \alias{summary.o2m}
 \title{Summary of an O2PLS fit}
 \usage{
-\method{summary}{o2m}(object, perc = TRUE, ...)
+\method{summary}{o2m}(object, digits = 3, ...)
 }
 \arguments{
 \item{object}{List. Should be of class \code{\link{o2m}}.}
 
-\item{perc}{Logical, show percentages?}
+\item{digits}{Integer, number of digits.}
 
 \item{...}{For compatibility}
 }
