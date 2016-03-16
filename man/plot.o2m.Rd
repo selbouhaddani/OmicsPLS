@@ -4,14 +4,14 @@
 \alias{plot.o2m}
 \title{Plot one or two loading vectors for class o2m}
 \usage{
-\method{plot}{o2m}(x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."),
+\method{plot}{o2m}(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   i = 1, j = NULL, use_ggplot2 = TRUE, label = c("number", "colnames"),
   ...)
 }
 \arguments{
 \item{x}{An O2PLS fit, with class 'o2m'}
 
-\item{loading_name}{character string. One of \code{"X"} (for plotting the X loadings) or \code{"Y"} (for plotting the Y loadings).}
+\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.}
 
 \item{i}{Integer. First component to be plotted.}
 

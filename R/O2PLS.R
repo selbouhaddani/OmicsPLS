@@ -11,7 +11,18 @@
 #' Hae-Won Uh (\email{H.Uh@@lumc.nl}).
 #'
 #' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
-#'
+#' 
+#' @section Model and assumptions:
+#' The O2PLS model (Trygg \& Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
+#' \itemize{
+#'  \item{1.} A joint part, representing the relationship between \eqn{X} and \eqn{Y}
+#'  \item{2.} An orthogonal part, representing the unrelated latent variation in \eqn{X} and \eqn{Y} separately.
+#'  \item{3.} A noise part capturing all residual variation.
+#' }
+#' \strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
+#' The number of columns may be different, but the subjects should be the same in both datasets.
+#' 
+#' 
 #' @section Fitting:
 #' The O2PLS fit is done with \code{\link{o2m}}. 
 #' For data \code{X} and \code{Y} you can run \code{o2m(X,Y,n,nx,ny)} for an O2PLS fit with \code{n} joint and \code{nx, ny} orthogonal components.
@@ -51,6 +62,16 @@
 #'  \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
 #'  \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
 #' }
+#' 
+#' @section Citation:
+#' If you use the R package in your research, please cite the corresponding paper:
+#' 
+#' \strong{Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W.} (2016).
+#' \emph{Evaluation of O2PLS in Omics data integration.}
+#' BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
+#' 
+#' The bibtex entry can be obtained with command \code{citation("O2PLS")}.
+#' Thank You!
 #' 
 #' @docType package
 #' @name O2PLS
@@ -505,7 +526,9 @@ print.o2m <- function (x, ...) {
   n = x$flags$n #ncol(x$W.)
   nx = x$flags$nx #ifelse(vnorm(x$P_Yosc.)[1] == 0, 0, ncol(x$P_Yosc.))
   ny = x$flags$ny #ifelse(vnorm(x$P_Xosc.)[1] == 0, 0, ncol(x$P_Xosc.))
-  if(!is.null(x$flags$stripped)) cat("O2PLS fit: Stripped \n") else cat("O2PLS fit \n")
+  if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
+    else if(x$flags$highd) cat("O2PLS fit: High dimensional \n") 
+      else cat("O2PLS fit \n")
   cat("with ",n," joint components  \n",sep='')
   cat("and  ",nx," orthogonal components in X \n",sep='')
   cat("and  ",ny," orthogonal components in Y \n",sep='')
@@ -518,7 +541,7 @@ print.o2m <- function (x, ...) {
 #' This function plots one or two loading vectors, by default with ggplot2. 
 #' 
 #' @param x An O2PLS fit, with class 'o2m'
-#' @param loading_name character string. One of \code{"X"} (for plotting the X loadings) or \code{"Y"} (for plotting the Y loadings). 
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
 #' @param i Integer. First component to be plotted.
 #' @param j NULL (default) or Integer. Second component to be plotted.
 #' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
@@ -528,13 +551,14 @@ print.o2m <- function (x, ...) {
 #' @return If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
 #' 
 #' @export
-plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
+plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
   stopifnot(i == round(i), is.logical(use_ggplot2))
   
   fit <- list()
-  which_loading <- match.arg(loading_name)
-  fit$load = as.matrix(x[which_loading][[1]])
+  loading_name = match.arg(loading_name)
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  fit$load = as.matrix(x[which_load][[1]])
   if(ncol(fit$load) < min(i,j) )
     stop("i and j cannot exceed #components = ",ncol(fit$load))
   fit$load = fit$load[,c(i,j)]
@@ -542,22 +566,22 @@ plot.o2m <- function (x, loading_name = c("W.", "C.", "P_Yosc.", "P_Xosc."), i =
   p = nrow(as.matrix(fit$load))
   if(is.null(j)){
     fit$load = cbind(1:p,fit$load)
-    colnames(fit$load) = c("index",paste("loadings",i))
+    colnames(fit$load) = c("index",paste(which_load,"loadings",i))
   }else{
     stopifnot(j == round(j))
-    colnames(fit$load) = c(paste("loadings",i),paste("loadings",j))
+    colnames(fit$load) = c(paste("loadings",i),paste(which_load,"loadings",j))
   }
   
   label = match.arg(label)
-  if(label == "colnames" && !is.null(rownames(x[which_loading][[1]]))) 
-    label = rownames(x[which_loading][[1]]) else label = 1:p
+  if(label == "colnames" && !is.null(rownames(x[which_load][[1]]))) 
+    label = rownames(x[which_load][[1]]) else label = 1:p
   
   if (use_ggplot2) {
     plt = with(fit, qplot(x = load[, 1], y = load[, 2], label = label,
                           geom = "text", xlab = colnames(load)[1], ylab = colnames(load)[2]))
     plt = plt + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
-    print(plt)
-    return(invisible(plt))
+    #print(plt)
+    return(plt)
   }
   else {
     with(fit, {
@@ -592,7 +616,8 @@ summary.o2m <- function(object, digits = 3, ...) {
     R2_Xhat = R2Xhat,
     R2_Yhat = R2Yhat,
     B_T = B_T.,
-    B_U = B_U
+    B_U = B_U,
+    flags = flags
   ) )
   class(outp) <- "summary.o2m"
 #   Mname <- list(c(""), c("Comp", "R2X", "R2Y", "R2Xcorr", "R2Ycorr", "R2Xhat", "R2Yhat", "XRatio", "YRatio"))
@@ -608,20 +633,25 @@ summary.o2m <- function(object, digits = 3, ...) {
 #'
 #' @inheritParams summary.o2m
 #' @return NULL
+#' @keywords internal
 #' @examples
 #' summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' @export
 print.summary.o2m <- function(x, digits = 3, ...){
   cat("\n*** Summary of the O2PLS fit *** \n\n")
   R2_names = c("Joint","Orthogonal","Noise")
-  R2_Xall = with(x,{c(R2_Xjoint, R2_X - R2_Xjoint, 1 - R2_X )})
-  R2_Yall = with(x,{c(R2_Yjoint, R2_Y - R2_Yjoint, 1 - R2_Y )})
+  R2_Xall = with(x,{c(R2_Xjoint, R2_X - R2_Xjoint, 1 - R2_X)})
+  R2_Yall = with(x,{c(R2_Yjoint, R2_Y - R2_Yjoint, 1 - R2_Y)})
   R2_dataframe = data.frame(X = R2_Xall, Y = R2_Yall, 
                             row.names = R2_names)
   names(R2_dataframe) <- c("data X", "data Y")
   with(x,{
+    cat("-  Call:",x$flags$Call,"\n\n")
     cat("-  Modeled variation\n")
-    cat("-- Joint, Orthogonal and Noise:\n\n")
+    cat("-- Total variation:\n")
+    cat("in X:",flags$ssqX,"\n")
+    cat("in Y:",flags$ssqY,"\n\n")
+    cat("-- Joint, Orthogonal and Noise as proportions:\n\n")
     print(round(R2_dataframe, digits))
     cat("\n")
     cat("-- Predictable variation in Y by X:\n")
@@ -630,12 +660,25 @@ print.summary.o2m <- function(x, digits = 3, ...){
     cat("Variation in Xhat:",round(R2_Xhat,digits),"\n")
     cat("\n")
     cat("-- Coefficient in 'U = T B_T + H_U' model:\n")
-    cat("diagonal elements of B_T =\n", diag(B_T),"\n\n")
+    cat("Diagonal elements of B_T =\n", diag(B_T),"\n\n")
     cat("-- Coefficient in 'T = U B_U + H_T' model:\n")
-    cat("diagonal elements of B_U =\n", diag(B_U))
+    cat("Diagonal elements of B_U =\n", diag(B_U))
+    cat("\n\n")
+    cat("-- Variances per component:\n\n")
+    with(flags,{
+      ssqdf = rbind(varXjoint,varYjoint)
+      ssqdf = as.data.frame(ssqdf)
+      row.names(ssqdf) <- c("X joint", "Y joint")
+      names(ssqdf) <- paste("Comp", 1:n)
+      print(ssqdf)
+      cat("\n")
+    })
   })
   NULL
 }
+
+#' #@export
+#loadings <- function(x,...) UseMethod("loadings")
 
 #' Extract the loadings from an O2PLS fit
 #'
@@ -644,29 +687,40 @@ print.summary.o2m <- function(x, digits = 3, ...){
 #' @inheritParams plot.o2m
 #' @inheritParams summary.o2m
 #' @param subset subset of loading vectors to be extracted.
+#' @param sorted Logical. Should the rows of the loadings be sorted according to the 
+#' absolute magnitute of the first column?
+#' @param ... For consistency
 #' 
 #' @return Loading matrix
 #' @examples
 #' loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#' #@method loadings o2m
+#' #@rdname loadings.o2m
 #' @export
-loadings.o2m <- function(object, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), subset = 0, ...) {
+loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
+                         subset = 0, sorted = FALSE, ...) {
   if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
   
   loading_name = match.arg(loading_name)
   which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
-  loading_matrix = object[[which_load]]
+  loading_matrix = x[[which_load]]
   dim_names = dimnames(loading_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)
   if(max(subset) > ncol(loading_matrix)) stop("Elements in subset exceed #components")
   loading_matrix = as.matrix(loading_matrix[,subset])
   dimnames(loading_matrix) <- dim_names
   
+  if(sorted){
+    order_load = order(loading_matrix[,1])
+    if(is.null(dim_names[[1]])) dim_names[[1]] <- order_load
+    loading_matrix = loading_matrix[order_load,]
+  }
   return(loading_matrix)
 }
 
-#' Extract the loadings from an O2PLS fit
+#' Predicts X or Y
 #'
-#' This function extracts loading parameters from an O2PLS fit
+#' Predicts X or Y based on new data on Y or X
 #'
 #' @inheritParams loadings.o2m
 #' @param newdata New data, which one of X or Y is specified in \code{XorY}.
@@ -678,10 +732,10 @@ loadings.o2m <- function(object, loading_name = c("Xjoint", "Yjoint", "Xorth", "
 #' @export
 predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
   XorY = match.arg(XorY)
-  dummyData = switch(XorY,
-                     X = object$W.,
-                     Y = object$C.)
-  if(ncol(newdata) != nrow(dummyData)) stop("Number of columns mismatch!")
+  switch(XorY,
+         X = if(ncol(newdata) != nrow(object$W.)) stop("Number of columns mismatch!"),
+         Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!"))
+  
   pred = switch(XorY, 
                 Y = with(object,newdata %*% C. %*% B_U %*% t(W.)), 
                 X = with(object,newdata %*% W. %*% B_T. %*% t(C.)))

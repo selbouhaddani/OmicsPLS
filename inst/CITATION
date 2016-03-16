@@ -12,5 +12,5 @@ abstract="Rapid computational and technological developments made large amounts 
 issn="1471-2105",
 doi="10.1186/s12859-015-0854-z",
 url="http://dx.doi.org/10.1186/s12859-015-0854-z",
-  textVersion = "Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W. (2016). Evaluation of O2PLS in Omics data integration. BMC Bioinformatics BMTL Supplement. 10.1186/s12859-015-0854-z"
+  textVersion = "Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W. (2016). Evaluation of O2PLS in Omics data integration. BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z"
 )

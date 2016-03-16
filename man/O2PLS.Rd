@@ -9,6 +9,18 @@
 This is based on work of (Trygg, Wold, 2003).
 Includes the O2PLS fit, some misc functions and some cross-validation tools.
 }
+\section{Model and assumptions}{
+
+The O2PLS model (Trygg \& Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
+\itemize{
+ \item{1.} A joint part, representing the relationship between \eqn{X} and \eqn{Y}
+ \item{2.} An orthogonal part, representing the unrelated latent variation in \eqn{X} and \eqn{Y} separately.
+ \item{3.} A noise part capturing all residual variation.
+}
+\strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
+The number of columns may be different, but the subjects should be the same in both datasets.
+}
+
 \section{Fitting}{
 
 The O2PLS fit is done with \code{\link{o2m}}. 
@@ -55,6 +67,18 @@ Also some handy tools are available
  \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
  \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
 }
+}
+
+\section{Citation}{
+
+If you use the R package in your research, please cite the corresponding paper:
+
+\strong{Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W.} (2016).
+\emph{Evaluation of O2PLS in Omics data integration.}
+BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
+
+The bibtex entry can be obtained with command \code{citation("O2PLS")}.
+Thank You!
 }
 \author{
 Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),

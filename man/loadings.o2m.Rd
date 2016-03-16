@@ -2,19 +2,23 @@
 % Please edit documentation in R/O2PLS.R
 \name{loadings.o2m}
 \alias{loadings.o2m}
-\title{Extract the loadings from an O2PLS fit}
+\title{#@export
+Extract the loadings from an O2PLS fit}
 \usage{
-loadings.o2m(object, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
-  subset = 0, ...)
+loadings.o2m(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
+  subset = 0, sorted = FALSE, ...)
 }
 \arguments{
-\item{object}{List. Should be of class \code{\link{o2m}}.}
+\item{x}{An O2PLS fit, with class 'o2m'}
 
-\item{loading_name}{character string. One of \code{"X"} (for plotting the X loadings) or \code{"Y"} (for plotting the Y loadings).}
+\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.}
 
 \item{subset}{subset of loading vectors to be extracted.}
 
-\item{...}{For compatibility}
+\item{sorted}{Logical. Should the rows of the loadings be sorted according to the 
+absolute magnitute of the first column?}
+
+\item{...}{For consistency}
 }
 \value{
 Loading matrix
@@ -24,5 +28,7 @@ This function extracts loading parameters from an O2PLS fit
 }
 \examples{
 loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#@method loadings o2m
+#@rdname loadings.o2m
 }
 

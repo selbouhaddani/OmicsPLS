@@ -2,24 +2,22 @@
 % Please edit documentation in R/O2PLS.R
 \name{predict.o2m}
 \alias{predict.o2m}
-\title{Extract the loadings from an O2PLS fit}
+\title{Predicts X or Y}
 \usage{
 \method{predict}{o2m}(object, newdata, XorY = c("X", "Y"), ...)
 }
 \arguments{
-\item{object}{List. Should be of class \code{\link{o2m}}.}
-
 \item{newdata}{New data, which one of X or Y is specified in \code{XorY}.}
 
 \item{XorY}{Character specifying \code{newdata} is X or Y.}
 
-\item{...}{For compatibility}
+\item{...}{For consistency}
 }
 \value{
 Predicted Data
 }
 \description{
-This function extracts loading parameters from an O2PLS fit
+Predicts X or Y based on new data on Y or X
 }
 \examples{
 predict(o2m(scale(1:10), scale(1:10), 1, 0, 0), newdata = scale(1:5), XorY = "X")

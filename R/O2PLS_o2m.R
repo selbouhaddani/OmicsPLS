@@ -72,15 +72,20 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if(!is.matrix(X)){
     message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
     X <- as.matrix(X)
+    dimnames(X) <- Xnames
   }
   if(!is.matrix(Y)){
     message("Y has class ",class(Y),", trying to convert with as.matrix.",sep="")
     Y <- as.matrix(Y)
+    dimnames(Y) <- Ynames
   }
   input_checker(X, Y)
   
+  ssqX = ssq(X)
+  ssqY = ssq(Y)
+  
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) =", n + max(nx, ny), "exceed # columns in X or Y")
+    stop("n + max(nx, ny) =", n + max(nx, ny), " exceed # columns in X or Y")
   if(nx != round(abs(nx)) || ny != round(abs(ny))) 
     stop("n, nx and ny should be non-negative integers")
   if(p_thresh != round(abs(p_thresh)) || q_thresh != round(abs(q_thresh))) 
@@ -89,111 +94,123 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     stop("max_iterations should be a non-negative integer")
   if(tol < 0) 
     stop("tol should be non-negative")
-  
+  if(nrow(X) < n + max(nx, ny)) 
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceed sample size N = ",nrow(X))
+  if(nrow(X) == n + max(nx, ny)) 
+    warning("n + max(nx, ny) = ", n + max(nx, ny)," equals sample size")
   if (n != round(abs(n)) || n <= 0) {
     stop("n should be a positive integer")
   }
   
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   
+  highd = FALSE
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
+    highd = TRUE
     message("Using Power Method with tolerance ",tol," and max iterations ",max_iterations)
-    return(o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations))
-  }
-  if(stripped){
-    return(o2m_stripped(X, Y, n, nx, ny))
-  }
-  
-  X_true <- X
-  Y_true <- Y
-  
-  N <- nrow(X)
-  p <- ncol(X)
-  q <- ncol(Y)
-  
-  T_Yosc <- U_Xosc <- matrix(0, N, n)
-  W_Yosc <- P_Yosc <- matrix(0, p, n)
-  C_Xosc <- P_Xosc <- matrix(0, q, n)
-  
-  if (nx + ny > 0) {
-    # larger principal subspace
-    n2 <- n + max(nx, ny)
+    model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
+  } else if(stripped){
+    model = o2m_stripped(X, Y, n, nx, ny)
+  } else {
     
-    cdw <- svd(t(Y) %*% X, nu = n2, nv = n2)
+    X_true <- X
+    Y_true <- Y
+    
+    N <- nrow(X)
+    p <- ncol(X)
+    q <- ncol(Y)
+    
+    T_Yosc <- U_Xosc <- matrix(0, N, n)
+    W_Yosc <- P_Yosc <- matrix(0, p, n)
+    C_Xosc <- P_Xosc <- matrix(0, q, n)
+    
+    if (nx + ny > 0) {
+      # larger principal subspace
+      n2 <- n + max(nx, ny)
+      
+      cdw <- svd(t(Y) %*% X, nu = n2, nv = n2)
+      C <- cdw$u
+      W <- cdw$v
+      
+      Tt <- X %*% W
+      
+      if (nx > 0) {
+        # Orthogonal components in Y
+        E_XY <- X - Tt %*% t(W)
+        
+        udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
+        W_Yosc <- udv$u
+        T_Yosc <- X %*% W_Yosc
+        P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
+        X <- X - T_Yosc %*% t(P_Yosc)
+        
+        # Update T again
+        Tt <- X %*% W
+      }
+      
+      U <- Y %*% C
+      
+      if (ny > 0) {
+        # Orthogonal components in Y
+        F_XY <- Y - U %*% t(C)
+        
+        udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
+        C_Xosc <- udv$u
+        U_Xosc <- Y %*% C_Xosc
+        P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
+        Y <- Y - U_Xosc %*% t(P_Xosc)
+        
+        # Update U again
+        U <- Y %*% C
+      }
+    }
+    # Re-estimate joint part in n-dimensional subspace
+    cdw <- svd(t(Y) %*% X, nu = n, nv = n)
     C <- cdw$u
     W <- cdw$v
-    
     Tt <- X %*% W
-    
-    if (nx > 0) {
-      # Orthogonal components in Y
-      E_XY <- X - Tt %*% t(W)
-      
-      udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
-      W_Yosc <- udv$u
-      T_Yosc <- X %*% W_Yosc
-      P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
-      X <- X - T_Yosc %*% t(P_Yosc)
-      
-      # Update T again
-      Tt <- X %*% W
-    }
-    
     U <- Y %*% C
     
-    if (ny > 0) {
-      # Orthogonal components in Y
-      F_XY <- Y - U %*% t(C)
-      
-      udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
-      C_Xosc <- udv$u
-      U_Xosc <- Y %*% C_Xosc
-      P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
-      Y <- Y - U_Xosc %*% t(P_Xosc)
-      
-      # Update U again
-      U <- Y %*% C
-    }
+    # Inner relation parameters
+    B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
+    B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
+    
+    # Residuals and R2's
+    E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+    Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
+    H_TU <- Tt - U %*% B_U
+    H_UT <- U - Tt %*% B_T
+    Y_hat <- Tt %*% B_T %*% t(C)
+    X_hat <- U %*% B_U %*% t(W)
+    
+    R2Xcorr <- (ssq(Tt %*% t(W))/ssqX)
+    R2Ycorr <- (ssq(U %*% t(C))/ssqY)
+    R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
+    R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
+    R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true)/ssqX)
+    R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true)/ssqY)
+    R2X <- R2Xcorr + R2X_YO
+    R2Y <- R2Ycorr + R2Y_XO
+    
+    rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
+    rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_UT) <- Ynames[[1]]
+    rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
+    rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
+    model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+                  U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
+                  X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                  R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+    class(model) <- "o2m"
   }
-  # Re-estimate joint part in n-dimensional subspace
-  cdw <- svd(t(Y) %*% X, nu = n, nv = n)
-  C <- cdw$u
-  W <- cdw$v
-  Tt <- X %*% W
-  U <- Y %*% C
-  
-  # Inner relation parameters
-  B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
-  B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
-  
-  # Residuals and R2's
-  E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
-  Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
-  H_TU <- Tt - U %*% B_U
-  H_UT <- U - Tt %*% B_T
-  Y_hat <- Tt %*% B_T %*% t(C)
-  X_hat <- U %*% B_U %*% t(W)
-  
-  R2Xcorr <- (ssq(Tt %*% t(W))/ssq(X_true))
-  R2Ycorr <- (ssq(U %*% t(C))/ssq(Y_true))
-  R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssq(X_true))
-  R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssq(Y_true))
-  R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true)/ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true)/ssq(Y_true))
-  R2X <- R2Xcorr + R2X_YO
-  R2Y <- R2Ycorr + R2Y_XO
-  
-  rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
-  rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_TU) <- Ynames[[1]]
-  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
-  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
   toc <- proc.time() - tic
-  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
-                U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
-                X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
-                R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat,
-                flags = c(time = toc[3], as.list(match.call())[-(1:3)]))
-  class(model) <- "o2m"
+  model$flags = c(time = toc[3], 
+                  list(n = n, nx = nx, ny = ny, 
+                       stripped = stripped, highd = highd, 
+                       call = match.call(), ssqX = ssqX, ssqY = ssqY,
+                       varXjoint = apply(model$Tt,2,var),
+                       varYjoint = apply(model$U,2,var),
+                       varXorth = apply(model$P_Y,2,var),
+                       varYorth = apply(model$P_X,2,var)))
   return(model)
 }
 
@@ -306,8 +323,8 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' @export
 o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100) {
   
-  X <- as.matrix(X)
-  Y <- as.matrix(Y)
+  Xnames = dimnames(X)
+  Ynames = dimnames(Y)
   
   if(stripped){
     return(o2m_stripped2(X, Y, n, nx, ny, tol, max_iterations))
@@ -379,6 +396,10 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
   B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
   
+  # Residuals and R2's
+  H_TU <- Tt - U %*% B_U
+  H_UT <- U - Tt %*% B_T
+  
   # R2
   R2Xcorr <- (ssq(Tt %*% t(W))/ssq(X_true))
   R2Ycorr <- (ssq(U %*% t(C))/ssq(Y_true))
@@ -389,8 +410,13 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(H_UT) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
+  
   model <- list(Tt = Tt, W. = W, U = U, C. = C, E = 0, Ff = 0, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
-                U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = 0, H_UT = 0, 
+                U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
                 X_hat = 0, Y_hat = 0, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
                 R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
   class(model) <- "o2m"
@@ -424,8 +450,8 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
 #' @export
 o2m_stripped <- function(X, Y, n, nx, ny) {
   
-  X <- as.matrix(X)
-  Y <- as.matrix(Y)
+  Xnames = dimnames(X)
+  Ynames = dimnames(Y)
   
   X_true <- X
   Y_true <- Y
@@ -504,6 +530,11 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(H_TU) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
+  
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
                 T_Yosc. = T_Yosc, U_Xosc. = U_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
@@ -541,8 +572,8 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 #' @export
 o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   
-  X <- as.matrix(X)
-  Y <- as.matrix(Y)
+  Xnames = dimnames(X)
+  Ynames = dimnames(Y)
   
   X_true <- X
   Y_true <- Y
@@ -627,6 +658,11 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
+  
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(H_TU) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
   
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
                 T_Yosc. = T_Yosc, U_Xosc. = U_Xosc,

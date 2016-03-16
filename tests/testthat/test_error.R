@@ -25,6 +25,15 @@ test_that("size, ratios and names are correct", {
   expect_equal(o2m(diag(4),diag(4),1,0,1)$R2Y,      0.5)
   expect_equal(nrow(o2m(diag(4),diag(4),1,0,0)$W.), 4)
   expect_equal(nrow(o2m(diag(5),diag(5),1,0,0)$C.), 5)
-  expect_equal(rownames(o2m(data.frame(a=1:10,b=2:11,c=3:12),orth(1:10),1,0,0)$W.), letters[1:3])
-  expect_equal(rownames(o2m(orth(1:10),data.frame(a=1:10,b=2:11,c=3:12),1,0,0)$C.), letters[1:3])
+  expect_equal(rownames(o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(1:10,2:11,3:12),1,0,0)$W.), letters[1:3])
+  expect_equal(rownames(o2m(data.frame(1:10,2:11,3:12),data.frame(a=1:10,b=2:11,c=3:12),1,0,0)$C.), letters[1:3])
+})
+
+test_that("S3 Methods are working OK", {
+  fit = o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),1,0,0)
+  expect_error(print(fit), NA)
+  expect_error(summary(fit), NA)
+  expect_error(plot(fit), NA)
+  expect_error(loadings(fit), NA)
+  expect_error(predict(fit,t(1:3)), NA)
 })
