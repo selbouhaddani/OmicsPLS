@@ -7,6 +7,8 @@
 \method{predict}{o2m}(object, newdata, XorY = c("X", "Y"), ...)
 }
 \arguments{
+\item{object}{List. Should be of class \code{\link{o2m}}.}
+
 \item{newdata}{New data, which one of X or Y is specified in \code{XorY}.}
 
 \item{XorY}{Character specifying \code{newdata} is X or Y.}

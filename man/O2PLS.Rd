@@ -11,14 +11,17 @@ Includes the O2PLS fit, some misc functions and some cross-validation tools.
 }
 \section{Model and assumptions}{
 
+\strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
+The number of columns may be different, but the subjects should be the same in both datasets.
+
 The O2PLS model (Trygg \& Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
 \itemize{
  \item{1.} A joint part, representing the relationship between \eqn{X} and \eqn{Y}
  \item{2.} An orthogonal part, representing the unrelated latent variation in \eqn{X} and \eqn{Y} separately.
  \item{3.} A noise part capturing all residual variation.
 }
-\strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
-The number of columns may be different, but the subjects should be the same in both datasets.
+
+See also the corresponding paper for interpretation (el Bouhaddani et al, 2016).
 }
 
 \section{Fitting}{
@@ -79,6 +82,12 @@ BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
 
 The bibtex entry can be obtained with command \code{citation("O2PLS")}.
 Thank You!
+
+The original paper proposing O2PLS is
+
+\strong{Trygg, J., & Wold, S.} (2003). 
+\emph{O2-PLS, a two-block (X-Y) latent variable regression (LVR) method with an integral OSC filter.} 
+Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 }
 \author{
 Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),

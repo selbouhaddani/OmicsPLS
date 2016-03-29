@@ -13,14 +13,17 @@
 #' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
 #' 
 #' @section Model and assumptions:
+#' \strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
+#' The number of columns may be different, but the subjects should be the same in both datasets.
+#' 
 #' The O2PLS model (Trygg \& Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
 #' \itemize{
 #'  \item{1.} A joint part, representing the relationship between \eqn{X} and \eqn{Y}
 #'  \item{2.} An orthogonal part, representing the unrelated latent variation in \eqn{X} and \eqn{Y} separately.
 #'  \item{3.} A noise part capturing all residual variation.
 #' }
-#' \strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
-#' The number of columns may be different, but the subjects should be the same in both datasets.
+#' 
+#' See also the corresponding paper for interpretation (el Bouhaddani et al, 2016).
 #' 
 #' 
 #' @section Fitting:
@@ -72,6 +75,12 @@
 #' 
 #' The bibtex entry can be obtained with command \code{citation("O2PLS")}.
 #' Thank You!
+#' 
+#' The original paper proposing O2PLS is
+#' 
+#' \strong{Trygg, J., & Wold, S.} (2003). 
+#' \emph{O2-PLS, a two-block (X-Y) latent variable regression (LVR) method with an integral OSC filter.} 
+#' Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 #' 
 #' @docType package
 #' @name O2PLS
@@ -559,22 +568,24 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   loading_name = match.arg(loading_name)
   which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   fit$load = as.matrix(x[which_load][[1]])
-  if(ncol(fit$load) < min(i,j) )
+  if(ncol(fit$load) < max(i,j) )
     stop("i and j cannot exceed #components = ",ncol(fit$load))
   fit$load = fit$load[,c(i,j)]
   
   p = nrow(as.matrix(fit$load))
   if(is.null(j)){
     fit$load = cbind(1:p,fit$load)
-    colnames(fit$load) = c("index",paste(which_load,"loadings",i))
+    colnames(fit$load) = c("index",paste(loading_name,"loadings",i))
   }else{
     stopifnot(j == round(j))
-    colnames(fit$load) = c(paste("loadings",i),paste(which_load,"loadings",j))
+    colnames(fit$load) = c(paste(loading_name,"loadings",i),paste(loading_name,"loadings",j))
   }
   
   label = match.arg(label)
-  if(label == "colnames" && !is.null(rownames(x[which_load][[1]]))) 
-    label = rownames(x[which_load][[1]]) else label = 1:p
+  if(label == "colnames" && !is.null(rownames(x[which_load][[1]]))) {
+    label = rownames(x[which_load][[1]])
+    } else label = 1:p
+  if(label == "colnames" && is.null(rownames(x[which_load][[1]]))) warning("No labels found in colnames, proceeding...")
   
   if (use_ggplot2) {
     plt = with(fit, qplot(x = load[, 1], y = load[, 2], label = label,
@@ -646,7 +657,7 @@ print.summary.o2m <- function(x, digits = 3, ...){
                             row.names = R2_names)
   names(R2_dataframe) <- c("data X", "data Y")
   with(x,{
-    cat("-  Call:",x$flags$Call,"\n\n")
+    cat("-  Call:",deparse(x$flags$call),"\n\n")
     cat("-  Modeled variation\n")
     cat("-- Total variation:\n")
     cat("in X:",flags$ssqX,"\n")
@@ -656,23 +667,39 @@ print.summary.o2m <- function(x, digits = 3, ...){
     cat("\n")
     cat("-- Predictable variation in Y by X:\n")
     cat("Variation in Yhat:",round(R2_Yhat,digits),"\n")
-    cat("-   Predictable variation in X by Y:\n")
+    cat("-- Predictable variation in X by Y:\n")
     cat("Variation in Xhat:",round(R2_Xhat,digits),"\n")
     cat("\n")
-    cat("-- Coefficient in 'U = T B_T + H_U' model:\n")
-    cat("Diagonal elements of B_T =\n", diag(B_T),"\n\n")
-    cat("-- Coefficient in 'T = U B_U + H_T' model:\n")
-    cat("Diagonal elements of B_U =\n", diag(B_U))
-    cat("\n\n")
     cat("-- Variances per component:\n\n")
     with(flags,{
       ssqdf = rbind(varXjoint,varYjoint)
       ssqdf = as.data.frame(ssqdf)
       row.names(ssqdf) <- c("X joint", "Y joint")
       names(ssqdf) <- paste("Comp", 1:n)
-      print(ssqdf)
+      print(round(ssqdf, digits))
       cat("\n")
+      if(nx > 0){
+        ssqdf = t(varXorth)
+        ssqdf = as.data.frame(ssqdf)
+        row.names(ssqdf) <- "X Orth"
+        names(ssqdf) <- paste("Comp", 1:nx)
+        print(round(ssqdf, digits))
+        cat("\n")
+      }
+      if(ny > 0){
+        ssqdf = t(varYorth)
+        ssqdf = as.data.frame(ssqdf)
+        row.names(ssqdf) <- "Y Orth"
+        names(ssqdf) <- paste("Comp", 1:ny)
+        print(round(ssqdf, digits))
+        cat("\n")
+      }
     })
+    cat("\n")
+    cat("-  Coefficient in 'U = T B_T + H_U' model:\n")
+    cat("-- Diagonal elements of B_T =\n", round(diag(B_T),3),"\n\n")
+    #     cat("-- Coefficient in 'T = U B_U + H_T' model:\n")
+    #     cat("Diagonal elements of B_U =\n", diag(B_U))
   })
   NULL
 }
@@ -723,6 +750,7 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 #' Predicts X or Y based on new data on Y or X
 #'
 #' @inheritParams loadings.o2m
+#' @inheritParams summary.o2m
 #' @param newdata New data, which one of X or Y is specified in \code{XorY}.
 #' @param XorY Character specifying \code{newdata} is X or Y.
 #' 
