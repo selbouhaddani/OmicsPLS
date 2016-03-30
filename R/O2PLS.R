@@ -704,25 +704,27 @@ print.summary.o2m <- function(x, digits = 3, ...){
   NULL
 }
 
-#' #@export
-#loadings <- function(x,...) UseMethod("loadings")
-
 #' Extract the loadings from an O2PLS fit
 #'
 #' This function extracts loading parameters from an O2PLS fit
 #'
-#' @inheritParams plot.o2m
-#' @inheritParams summary.o2m
-#' @param subset subset of loading vectors to be extracted.
-#' @param sorted Logical. Should the rows of the loadings be sorted according to the 
-#' absolute magnitute of the first column?
+#' @param x Object of class \code{o2m}
 #' @param ... For consistency
 #' 
 #' @return Loading matrix
 #' @examples
 #' loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
-#' #@method loadings o2m
-#' #@rdname loadings.o2m
+#' @rdname loadings
+#' @export
+loadings <- function(x, ...) UseMethod("loadings")
+
+
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param subset subset of loading vectors to be extracted.
+#' @param sorted Logical. Should the rows of the loadings be sorted according to the 
+#' absolute magnitute of the first column?
+#' 
+#' @rdname loadings
 #' @export
 loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
                          subset = 0, sorted = FALSE, ...) {
@@ -749,7 +751,6 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 #'
 #' Predicts X or Y based on new data on Y or X
 #'
-#' @inheritParams loadings.o2m
 #' @inheritParams summary.o2m
 #' @param newdata New data, which one of X or Y is specified in \code{XorY}.
 #' @param XorY Character specifying \code{newdata} is X or Y.

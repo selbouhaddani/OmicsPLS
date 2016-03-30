@@ -13,7 +13,7 @@
 
 \item{XorY}{Character specifying \code{newdata} is X or Y.}
 
-\item{...}{For consistency}
+\item{...}{For compatibility}
 }
 \value{
 Predicted Data
