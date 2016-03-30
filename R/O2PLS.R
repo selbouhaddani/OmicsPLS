@@ -588,8 +588,11 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   if(label == "colnames" && is.null(rownames(x[which_load][[1]]))) warning("No labels found in colnames, proceeding...")
   
   if (use_ggplot2) {
-    plt = with(fit, qplot(x = load[, 1], y = load[, 2], label = label,
-                          geom = "text", xlab = colnames(load)[1], ylab = colnames(load)[2]))
+    plt = with(fit, {
+      ggplot(data.frame(x = load[, 1], y = load[, 2]), aes(x = x, y = y)) + 
+        geom_text(label = label) + 
+        labs(x = colnames(load)[1], y = colnames(load)[2])
+      })
     plt = plt + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
     #print(plt)
     return(plt)
