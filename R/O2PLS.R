@@ -589,8 +589,8 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   
   if (use_ggplot2) {
     plt = with(fit, {
-      ggplot(data.frame(x = load[, 1], y = load[, 2]), aes(x = x, y = y)) + 
-        geom_text(label = label) + 
+      ggplot(data.frame(x = load[, 1], y = load[, 2]), aes(x = x, y = y, label = label)) + 
+        geom_text() + 
         labs(x = colnames(load)[1], y = colnames(load)[2])
       })
     plt = plt + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)
