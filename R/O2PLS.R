@@ -555,7 +555,7 @@ print.o2m <- function (x, ...) {
 #' @param j NULL (default) or Integer. Second component to be plotted.
 #' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
 #' @param label Character, either 'number' or 'colnames'. The first option prints numbers, the second prints the colnames
-#' @param ... For compatibility
+#' @param ... Further arguments to \code{geom_text}, such as size, col, alpha, etc.
 #' 
 #' @return If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
 #' 
@@ -585,12 +585,12 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   if(label == "colnames" && !is.null(rownames(x[which_load][[1]]))) {
     label = rownames(x[which_load][[1]])
     } else label = 1:p
-  if(label == "colnames" && is.null(rownames(x[which_load][[1]]))) warning("No labels found in colnames, proceeding...")
+  if(label == "colnames" && is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
   
   if (use_ggplot2) {
     plt = with(fit, {
-      ggplot(data.frame(x = load[, 1], y = load[, 2]), aes(x = x, y = y, label = label)) + 
-        geom_text() + 
+      ggplot(data.frame(x = load[, 1], y = load[, 2]), aes(x = x, y = y, label = I(label))) + 
+        geom_text(...) + 
         labs(x = colnames(load)[1], y = colnames(load)[2])
       })
     plt = plt + geom_vline(xintercept = 0) + geom_hline(yintercept = 0)

@@ -21,7 +21,7 @@
 
 \item{label}{Character, either 'number' or 'colnames'. The first option prints numbers, the second prints the colnames}
 
-\item{...}{For compatibility}
+\item{...}{Further arguments to \code{geom_text}, such as size, col, alpha, etc.}
 }
 \value{
 If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
