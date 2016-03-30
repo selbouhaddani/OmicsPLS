@@ -3,15 +3,15 @@ Type: Package
 Title: O2PLS: Two-Way Orthogonal Partial Least Squares
 Version: 1.0.0
 Date: 2015-05-03
-Author: Said el Bouhaddani, Jeanine Houwing-Duistermaat, Geurt Jongbloed and
+Author: Said el Bouhaddani, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
     Hae-Won Uh
 Maintainer: Said el Bouhaddani <s.el_bouhaddani@lumc.nl>
 Description: This is based on work of (Trygg, Wold, 2003). Includes the O2PLS
     fit, some misc functions and some cross-validation tools.
 License: GPL-3
 Imports:
-    ggplot2
+    ggplot2,
+    parallel
 Suggests:
-    parallel,
     testthat
 RoxygenNote: 5.0.1
