@@ -209,6 +209,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
                        call = match.call(), ssqX = ssqX, ssqY = ssqY,
                        varXjoint = apply(model$Tt,2,ssq),
                        varYjoint = apply(model$U,2,ssq),
+                       varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
+                       varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq)))
   return(model)
 }
 
