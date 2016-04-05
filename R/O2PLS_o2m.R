@@ -207,10 +207,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
                   list(n = n, nx = nx, ny = ny, 
                        stripped = stripped, highd = highd, 
                        call = match.call(), ssqX = ssqX, ssqY = ssqY,
-                       varXjoint = apply(model$Tt,2,var),
-                       varYjoint = apply(model$U,2,var),
-                       varXorth = apply(model$P_Y,2,var),
-                       varYorth = apply(model$P_X,2,var)))
+                       varXjoint = apply(model$Tt,2,ssq),
+                       varYjoint = apply(model$U,2,ssq),
   return(model)
 }
 
