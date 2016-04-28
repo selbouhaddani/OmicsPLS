@@ -629,6 +629,8 @@ summary.o2m <- function(object, digits = 3, ...) {
     R2_Yjoint = R2Ycorr,
     R2_Xhat = R2Xhat,
     R2_Yhat = R2Yhat,
+    R2_Xpred = 1 - ssq(H_TU)/ssq(Tt),
+    R2_Ypred = 1 - ssq(H_UT)/ssq(U),
     B_T = B_T.,
     B_U = B_U,
     flags = flags,
@@ -671,9 +673,9 @@ print.summary.o2m <- function(x, ...){
     print(round(R2_dataframe, digits))
     cat("\n")
     cat("-- Predictable variation in Y by X:\n")
-    cat("Variation in Yhat:",round(R2_Yhat/R2_Yjoint,digits),"\n")
+    cat("Variation in Yhat:",round(R2_Xpred,digits),"\n")
     cat("-- Predictable variation in X by Y:\n")
-    cat("Variation in Xhat:",round(R2_Xhat/R2_Xjoint,digits),"\n")
+    cat("Variation in Xhat:",round(R2_Ypred,digits),"\n")
     cat("\n")
     cat("-- Variances per component:\n\n")
     with(flags,{
