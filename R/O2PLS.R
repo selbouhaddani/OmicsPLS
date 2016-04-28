@@ -631,7 +631,8 @@ summary.o2m <- function(object, digits = 3, ...) {
     R2_Yhat = R2Yhat,
     B_T = B_T.,
     B_U = B_U,
-    flags = flags
+    flags = flags,
+    digits = digits
   ) )
   class(outp) <- "summary.o2m"
 #   Mname <- list(c(""), c("Comp", "R2X", "R2Y", "R2Xcorr", "R2Ycorr", "R2Xhat", "R2Yhat", "XRatio", "YRatio"))
@@ -651,7 +652,8 @@ summary.o2m <- function(object, digits = 3, ...) {
 #' @examples
 #' summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' @export
-print.summary.o2m <- function(x, digits = 3, ...){
+print.summary.o2m <- function(x, ...){
+  digits = x$digits
   cat("\n*** Summary of the O2PLS fit *** \n\n")
   R2_names = c("Joint","Orthogonal","Noise")
   R2_Xall = with(x,{c(R2_Xjoint, R2_X - R2_Xjoint, 1 - R2_X)})
@@ -669,9 +671,9 @@ print.summary.o2m <- function(x, digits = 3, ...){
     print(round(R2_dataframe, digits))
     cat("\n")
     cat("-- Predictable variation in Y by X:\n")
-    cat("Variation in Yhat:",round(R2_Yhat,digits),"\n")
+    cat("Variation in Yhat:",round(R2_Yhat/R2_Yjoint,digits),"\n")
     cat("-- Predictable variation in X by Y:\n")
-    cat("Variation in Xhat:",round(R2_Xhat,digits),"\n")
+    cat("Variation in Xhat:",round(R2_Xhat/R2_Xjoint,digits),"\n")
     cat("\n")
     cat("-- Variances per component:\n\n")
     with(flags,{

@@ -4,11 +4,9 @@
 \alias{print.summary.o2m}
 \title{Prints the summary of an O2PLS fit}
 \usage{
-\method{print}{summary.o2m}(x, digits = 3, ...)
+\method{print}{summary.o2m}(x, ...)
 }
 \arguments{
-\item{digits}{Integer, number of digits.}
-
 \item{...}{For compatibility}
 }
 \description{
