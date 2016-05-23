@@ -5,26 +5,37 @@
 \title{K-fold CV based on symmetrized prediction error}
 \usage{
 loocv_combi(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
-  func = o2m_stripped, app_err = F, kcv)
+  func = o2m, app_err = F, kcv, stripped = TRUE, p_thresh = 3000,
+  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
-\item{X}{Numeric matrix.}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix.}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{a}{Vector or integers. Contains the #joint components.}
+\item{a}{Vector of integers. Contains the numbers of joint components.}
 
-\item{a2}{Vector or integers. Contains the number of orthogonal components in \eqn{X}.}
+\item{a2}{Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.}
 
-\item{b2}{Vector or integers. Contains the number of orthogonal components in \eqn{Y}.}
+\item{b2}{Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.}
 
 \item{fitted_model}{List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.}
 
 \item{func}{Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.}
 
-\item{app_err}{Logical. Should the apparent error also be computed?}
+\item{app_err}{Logical. Should the apparent error also be computed? Not used anymore.}
 
 \item{kcv}{Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.}
+
+\item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
+
+\item{p_thresh}{Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{tol}{double. Threshold for power method iteration}
+
+\item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
 List with two numeric vectors:
@@ -36,8 +47,5 @@ The prediction error of both \code{X~Xhat} and \code{Y~Yhat} are summed. This pr
 }
 \details{
 Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
-}
-\examples{
-loocv_combi(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m,kcv=5)
 }
 

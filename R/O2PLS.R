@@ -195,7 +195,7 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' @param Xtst Numeric vector or matrix.
 #' @param Ytst Numeric vector or matrix.
 #' @param fit \code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).
-#' @param combi Logical. Should the symmetrized MSE be used, i.e. 
+#' @param combi Logical. Should the symmetrized MSE be used, i.e. add both MSEs. Not yet implemented, but see \code{\link{rmsep_combi}} 
 #' @details This function is the building block for \code{\link{loocv}}, as it produced the prediction error for test (left out) data.
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
@@ -218,14 +218,13 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #'
 #' For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} estimates the prediction error using k-fold CV.
 #'
-#' @param X Numeric matrix.
-#' @param Y Numeric matrix.
+#' @inheritParams o2m
 #' @param a Vector of integers. Contains the numbers of joint components.
 #' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
 #' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
 #' @param fitted_model List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
-#' @param app_err Logical. Should the apparent error also be computed?
+#' @param app_err Logical. Should the apparent error also be computed? Not used anymore.
 #' @param kcv Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.
 #' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 #' @return List with two numeric vectors:
@@ -235,16 +234,12 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #' The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
 #' The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
 #' Typing \code{example(loocv)} (hopefully) clarifies this function.
-#' @examples
-#' result=loocv(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped,kcv=2)
-#' names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
-#' names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
-#' names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
-#' array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
-loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m_stripped, app_err = F, 
-                  kcv)
+loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
+                  stripped = TRUE, p_thresh = 3000, 
+                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
+  app_err = F
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
   X = as.matrix(X)
   Y = as.matrix(Y)
@@ -277,7 +272,9 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
         for (i in 1:kcv) {
           ii <- (blocks[i] + 1):(blocks[i + 1])
           if (type == 3) {
-            pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3)
+            pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3,
+                         stripped = stripped, p_thresh = p_thresh, 
+                         q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
           }
           # if(type==2){pars=list(X=X[-i,],Y=Y[-i,],ncomp=j,n_orth=j2)}
           # if(type==1){pars=list(X=X[-i,],Y=Y[-i,],ncomp=j)}
@@ -311,8 +308,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
 #'
 #' For (a grid of) values for \code{a}, \code{nx} and \code{ny}, \code{loocv} calculates the R2 of the joint part. Parallel computing is supported on Windows with package \code{parallel}.
 #'
-#' @param X Numeric matrix.
-#' @param Y Numeric matrix.
+#' @inheritParams o2m
 #' @param a Vector of integers. Contains the numbers of joint components.
 #' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
 #' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
@@ -327,14 +323,10 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
 #' \item{adjR2X}{Contains the joint R2 in X}
 #' \item{adjR2Y}{Contains the joint R2 in Y}
 #' @details See \code{\link{loocv}} for more intuition.
-#' @examples
-#' result=adjR2(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped)
-#' names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
-#' names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
-#' names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
-#' array(unlist(result[1,]),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 #' @export
-adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m_stripped, parall = F, cl = NULL)
+adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NULL, 
+                  stripped = TRUE, p_thresh = 3000, 
+                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
   input_checker(X, Y)
@@ -361,7 +353,8 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m_stripped, parall = F
   # cl <- makeCluster(rep( 'localhost', detectCores()),type='SOCK') clusterExport(cl=cl,
   # varlist=c('X','Y','N','pars2','ssq','o2m'))
   outp <- S_apply(cl, pars2, function(p) {
-    fit <- func(X, Y, p$a, p$a2, p$b2)
+    fit <- func(X, Y, p$a, p$a2, p$b2, stripped = stripped, p_thresh = p_thresh, 
+                q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
     RX <- 1 - ssq(fit$H_UT)/ssq(fit$U)
     RY <- 1 - ssq(fit$H_TU)/ssq(fit$Tt)
     adjRX <- RX  #1 - (1 - RX)*(N - 1)/(N - p$a - 1)
@@ -421,26 +414,19 @@ rmsep_combi <- function(Xtst, Ytst, fit)
 #' K-fold CV based on symmetrized prediction error
 #'
 #' The prediction error of both \code{X~Xhat} and \code{Y~Yhat} are summed. This provides a symmetrized version of \code{\link{loocv}}.
-#' @param X Numeric matrix.
-#' @param Y Numeric matrix.
-#' @param a Vector or integers. Contains the #joint components.
-#' @param a2 Vector or integers. Contains the number of orthogonal components in \eqn{X}.
-#' @param b2 Vector or integers. Contains the number of orthogonal components in \eqn{Y}.
-#' @param fitted_model List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.
-#' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
-#' @param app_err Logical. Should the apparent error also be computed?
-#' @param kcv Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.
+#' @inheritParams o2m
+#' @inheritParams loocv
 #' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
 #'
-#' @examples
-#' loocv_combi(matrix(c(-2:2)),matrix(c(-2:2*4)),1,0,0,func=o2m,kcv=5)
 #' @export
-loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m_stripped, app_err = F, 
-                        kcv)
+loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
+                        stripped = TRUE, p_thresh = 3000, 
+                        q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
+  app_err = F
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)), kcv == round(kcv[1]))
   stopifnot(is.logical(app_err), is.function(func))
   X = as.matrix(X)
@@ -476,17 +462,14 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
         for (i in 1:kcv) {
           ii <- (blocks[i] + 1):(blocks[i + 1])
           if (type == 3) {
-            pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3)
-          }
-          if (type == 2) {
-            pars <- list(X = X[-i, ], Y = Y[-i, ], ncomp = j, n_orth = j2)
-          }
-          if (type == 1) {
-            pars <- list(X = X[-i, ], Y = Y[-i, ], ncomp = j)
+            pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3, 
+                         stripped = stripped, p_thresh = p_thresh, 
+                         q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
           }
           fit <- try(do.call(func, pars), silent = T)
-          err[i] <- ifelse(class(fit) == "try-error", NA, rmsep_combi(X[folds[ii], ], Y[folds[ii], 
-                                                                                        ], fit))
+          err[i] <- ifelse(inherits(class(fit),"try-error"), 
+                           NA, 
+                           rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
         }
         mean_err[k] <- mean(err)
         # calculate apparent error
@@ -500,7 +483,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
           if (class(fit) == "plsm") {
             pars2 <- list(X = X, Y = Y, ncomp = j)
           }
-          fit2 <- try(do.call(func, pars2), T)
+          fit2 <- try(do.call(func, pars2), F)
           mean_fit[k] <- ifelse(class(fit) == "try-error", NA, rmsep_combi(X, Y, fit2))
           print("1e loop")
         }

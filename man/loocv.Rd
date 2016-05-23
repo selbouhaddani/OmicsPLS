@@ -4,13 +4,14 @@
 \alias{loocv}
 \title{K fold CV for O2PLS}
 \usage{
-loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
-  func = o2m_stripped, app_err = F, kcv)
+loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m,
+  app_err = F, kcv, stripped = TRUE, p_thresh = 3000,
+  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
-\item{X}{Numeric matrix.}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix.}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{a}{Vector of integers. Contains the numbers of joint components.}
 
@@ -22,9 +23,19 @@ loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
 
 \item{func}{Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.}
 
-\item{app_err}{Logical. Should the apparent error also be computed?}
+\item{app_err}{Logical. Should the apparent error also be computed? Not used anymore.}
 
 \item{kcv}{Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.}
+
+\item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
+
+\item{p_thresh}{Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{tol}{double. Threshold for power method iteration}
+
+\item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
 List with two numeric vectors:
@@ -41,12 +52,5 @@ The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of i
 The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
 The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
 Typing \code{example(loocv)} (hopefully) clarifies this function.
-}
-\examples{
-result=loocv(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped,kcv=2)
-names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
-names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
-names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
-array(unlist(result$CVerr),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 }
 

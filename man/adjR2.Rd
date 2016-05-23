@@ -4,13 +4,14 @@
 \alias{adjR2}
 \title{Gridwise adjusted R2 for O2PLS}
 \usage{
-adjR2(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m_stripped, parall = F,
-  cl = NULL)
+adjR2(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F,
+  cl = NULL, stripped = TRUE, p_thresh = 3000, q_thresh = p_thresh,
+  tol = 1e-10, max_iterations = 100)
 }
 \arguments{
-\item{X}{Numeric matrix.}
+\item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{Y}{Numeric matrix.}
+\item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{a}{Vector of integers. Contains the numbers of joint components.}
 
@@ -23,6 +24,16 @@ adjR2(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m_stripped, parall = F,
 \item{parall}{Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.}
 
 \item{cl}{Object of class '\code{cluster}'. If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.}
+
+\item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
+
+\item{p_thresh}{Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{tol}{double. Threshold for power method iteration}
+
+\item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
 Matrix with two rows:
@@ -39,12 +50,5 @@ A parallelized version is built in -tested on windows-, use package \code{parall
 In case of some error, don't forget to invoke \code{stopCluster(cl)} to end the cluster. See Task Manager (Windows) to verify that the workers are spanned/ended.
 
 See \code{\link{loocv}} for more intuition.
-}
-\examples{
-result=adjR2(matrix(rnorm(10*100),ncol=10),matrix(rnorm(10*100),ncol=10),a=1:3,a2=0:1,b2=0:1,func=o2m_stripped)
-names_for_a=sapply(1:3,function(i){paste('a',i,sep='=')})
-names_for_a2=sapply(0:1,function(i){paste('a2',i,sep='=')})
-names_for_b2=sapply(0:1,function(i){paste('b2',i,sep='=')})
-array(unlist(result[1,]),dim=c(3,2,2),dimnames=list(names_for_a,names_for_a2,names_for_b2))
 }
 

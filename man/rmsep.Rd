@@ -13,7 +13,7 @@ rmsep(Xtst, Ytst, fit, combi = FALSE)
 
 \item{fit}{\code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).}
 
-\item{combi}{Logical. Should the symmetrized MSE be used, i.e.}
+\item{combi}{Logical. Should the symmetrized MSE be used, i.e. add both MSEs. Not yet implemented, but see \code{\link{rmsep_combi}}}
 }
 \value{
 Mean squares difference between predicted Y and true Y
