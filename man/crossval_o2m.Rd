@@ -4,8 +4,8 @@
 \alias{crossval_o2m}
 \title{Cross-validate procedure for O2PLS}
 \usage{
-crossval_o2m(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
-  stripped = TRUE, p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10,
+crossval_o2m(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
+  p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10,
   max_iterations = 100)
 }
 \arguments{
@@ -15,13 +15,11 @@ crossval_o2m(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
 
 \item{a}{Vector of positive integers. Denotes the numbers of joint components to consider.}
 
-\item{a2}{Vector of non-negative integers. Denotes the numbers of X-specific components to consider.}
+\item{ax}{Vector of non-negative integers. Denotes the numbers of X-specific components to consider.}
 
-\item{b2}{Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.}
+\item{ay}{Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.}
 
-\item{kcv}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV.}
-
-\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}.}
+\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.}
 
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
 
@@ -32,6 +30,8 @@ crossval_o2m(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
+
+\item{kcv}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV.}
 }
 \value{
 List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
@@ -43,7 +43,7 @@ Cross-validate procedure for O2PLS
 local({
 X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
-crossval_o2m(X, Y, a = 1:4, a2 = 1:2, b2 = 1:2, 
+crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
              kcv = 5, nr_cores = 1)
 })
 

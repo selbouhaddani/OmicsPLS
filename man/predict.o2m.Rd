@@ -11,7 +11,7 @@
 
 \item{newdata}{New data, which one of X or Y is specified in \code{XorY}.}
 
-\item{XorY}{Character specifying \code{newdata} is X or Y.}
+\item{XorY}{Character specifying whether \code{newdata} is X or Y.}
 
 \item{...}{For compatibility}
 }

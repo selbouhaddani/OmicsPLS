@@ -536,7 +536,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
   
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
-                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc,
+                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)
@@ -665,7 +665,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
   
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
-                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc,
+                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)

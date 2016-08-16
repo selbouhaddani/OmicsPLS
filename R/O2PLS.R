@@ -405,8 +405,8 @@ rmsep_combi <- function(Xtst, Ytst, fit)
   
   input_checker(Xtst, Ytst)
 
-  Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
-  Xhat <- Ytst %*% fit$C. %*% fit$B_U %*% t(fit$W.)
+  Yhat <- (Xtst - Xtst %*% fit$W_Yosc %*% t(fit$W_Yosc)) %*% fit$W. %*% fit$B_T %*% t(fit$C.)
+  Xhat <- (Ytst - Ytst %*% fit$C_Xosc %*% t(fit$C_Xosc)) %*% fit$C. %*% fit$B_U %*% t(fit$W.)
   
   return(sqrt(mse(Yhat, Ytst)) + sqrt(mse(Xhat, Xtst)))
 }
@@ -449,6 +449,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   k <- 0
   
   # blocks contains the begin and endpoints of test indices to use
+  # Extra N ignored by 1:kcv if N/kcv is integer
   blocks <- c(seq(0, N, by = floor(N/kcv)), N)
   
   # loop through chosen parameters
@@ -655,9 +656,9 @@ print.summary.o2m <- function(x, ...){
     cat("-- Joint, Orthogonal and Noise as proportions:\n\n")
     print(round(R2_dataframe, digits))
     cat("\n")
-    cat("-- Predictable variation in Y by X:\n")
+    cat("-- Predictable variation in Y-joint part by X-joint part:\n")
     cat("Variation in Yhat:",round(R2_Xpred,digits),"\n")
-    cat("-- Predictable variation in X by Y:\n")
+    cat("-- Predictable variation in X-joint part by Y-joint part:\n")
     cat("Variation in Xhat:",round(R2_Ypred,digits),"\n")
     cat("\n")
     cat("-- Variances per component:\n\n")
@@ -743,7 +744,7 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 #'
 #' @inheritParams summary.o2m
 #' @param newdata New data, which one of X or Y is specified in \code{XorY}.
-#' @param XorY Character specifying \code{newdata} is X or Y.
+#' @param XorY Character specifying whether \code{newdata} is X or Y.
 #' 
 #' @return Predicted Data
 #' @examples
@@ -756,8 +757,8 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
          Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!"))
   
   pred = switch(XorY, 
-                Y = with(object,newdata %*% C. %*% B_U %*% t(W.)), 
-                X = with(object,newdata %*% W. %*% B_T. %*% t(C.)))
+                Y = with(object, (newdata - newdata %*% C_Xosc %*% t(C_Xosc)) %*% C. %*% B_U %*% t(W.)), 
+                X = with(object, (newdata - newdata %*% W_Yosc %*% t(W_Yosc)) %*% W. %*% B_T. %*% t(C.)))
   
   return(pred)
 }

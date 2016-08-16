@@ -1,11 +1,11 @@
 #' Cross-validate procedure for O2PLS
 #'
 #' @inheritParams o2m
-#' @param a Vector of positive integers. Denotes the numbers of joint components to consider.
-#' @param a2 Vector of non-negative integers. Denotes the numbers of X-specific components to consider.
-#' @param b2 Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.
+#' @param a Vector of positive integers. Denotes the numbers of joint components to consider. 
+#' @param ax Vector of non-negative integers. Denotes the numbers of X-specific components to consider.
+#' @param ay Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.
 #' @param kcv Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV.
-#' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}.
+#' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.
 #' 
 #' @return List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
 #' 
@@ -13,18 +13,21 @@
 #' local({
 #' X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
-#' crossval_o2m(X, Y, a = 1:4, a2 = 1:2, b2 = 1:2, 
+#' crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
 #'              kcv = 5, nr_cores = 1)
 #' })
 #' 
 #' @export
-crossval_o2m <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
+crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1, 
                          stripped = TRUE, p_thresh = 3000, 
                          q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
-  stopifnot(ncol(X) > max(a)+max(a2) , ncol(Y) > max(a)+max(b2) , nrow(X) >= kcv)
+  tic = proc.time()
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  kcv = nr_folds
+  stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
   stopifnot(nr_cores == abs(round(nr_cores)))
-  parms = data.frame(nx = a2)
-  parms = merge(parms,data.frame(ny = b2))
+  parms = data.frame(nx = ax)
+  parms = merge(parms,data.frame(ny = ay))
   parms = merge(parms,data.frame(a = a))
   parms = apply(parms,1,as.list)
   cl_crossval_o2m <- NULL
@@ -36,19 +39,19 @@ crossval_o2m <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
     clusterEvalQ(cl_crossval_o2m, library(O2PLS))
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
-      loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
+      suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
                   stripped = stripped, p_thresh = p_thresh, 
-                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]]
+                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   } else {
     outp=mclapply(mc.cores=nr_cores,parms,function(e){
-      loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
+      suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
                   stripped = stripped, p_thresh = p_thresh, 
-                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]]
+                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   }
-  dnams = list(paste("a2=",a2,sep=""),paste("b2=",b2,sep=""),paste("a=",a,sep=""))
-  outp1 = array(unlist(outp),dim=c(length(a2),length(b2),length(a)),
+  dnams = list(paste("ax=",ax,sep=""),paste("ay=",ay,sep=""),paste("a=",a,sep=""))
+  outp1 = array(unlist(outp),dim=c(length(ax),length(ay),length(a)),
                 dimnames=dnams)
   outp = aperm(outp1,order(dim(outp1),decreasing=TRUE))
   dnams = dimnames(outp)
@@ -60,6 +63,8 @@ crossval_o2m <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
   
   outpt = list(Original=outp1,Sorted=outp,kcv=kcv)
   class(outpt) <- "cvo2m"
+  toc = proc.time() - tic
+  outpt$time = round(toc[3],2)
   return(outpt)
 }
 
@@ -74,15 +79,18 @@ crossval_o2m <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
 #' local({
 #' X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
-#' crossval_o2m_adjR2(X, Y, a = 1:4, a2 = 1:2, b2 = 1:2, 
+#' crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
 #'              kcv = 5, nr_cores = 1)
 #' })
 #' @export
-crossval_o2m_adjR2 <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
+crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                                stripped = TRUE, p_thresh = 3000, 
                                q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
-  stopifnot(ncol(X) > max(a)+max(a2) , ncol(Y) > max(a)+max(b2) , nrow(X) >= kcv)
+  tic = proc.time()
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  kcv = nr_folds
+  stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
   stopifnot(nr_cores == abs(round(nr_cores)))
   cl_crossval_o2m <- NULL
   on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
@@ -95,39 +103,40 @@ crossval_o2m_adjR2 <- function(X, Y, a = 1, a2 = 1, b2 = 1, kcv, nr_cores = 1,
     clusterEvalQ(cl_crossval_o2m, library(O2PLS))
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
-      parms = data.frame(nx = a2)
-      parms = merge(parms,data.frame(ny = b2))
+      parms = data.frame(nx = ax)
+      parms = merge(parms,data.frame(ny = ay))
       parms = apply(parms,1,as.list)
-      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, a2, b2,
+      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
                                                       stripped = stripped, p_thresh = p_thresh, 
                                                       q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
-                      nrow = length(b2), byrow=TRUE)
+                      nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = loocv_combi(X,Y,e$a,a2[nxny[2]],b2[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
+      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
                           stripped = stripped, p_thresh = p_thresh, 
-                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]]
-      c(a_mse, e$a, a2[nxny[2]],b2[nxny[1]])
+                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+      c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })
   } else {
     outp=mclapply(mc.cores=nr_cores,parms,function(e){
-      parms = data.frame(nx = a2)
-      parms = merge(parms,data.frame(ny = b2))
+      parms = data.frame(nx = ax)
+      parms = merge(parms,data.frame(ny = ay))
       parms = apply(parms,1,as.list)
-      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, a2, b2,
+      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
                                      stripped = stripped, p_thresh = p_thresh, 
                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
-                      nrow = length(b2), byrow=TRUE)
+                      nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = loocv_combi(X,Y,e$a,a2[nxny[2]],b2[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
+      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
                           stripped = stripped, p_thresh = p_thresh, 
-                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]]
-      c(a_mse, e$a, a2[nxny[2]],b2[nxny[1]])
+                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+      c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })
   }
   outp2 = matrix(unlist(outp), nrow = length(a), byrow = T)
   outp2 <- as.data.frame(outp2)
   names(outp2) <- c("MSE", "n", "nx", "ny")
-  message("minimum is at n = ", outp2[,2][which.min(outp2[,1])])
+  message("minimum is at n = ", outp2[,2][which.min(outp2[,1])], sep = ' ')
+  message("Elapsed time: ", round((proc.time() - tic)[3],2), " sec")
   return(outp2)
 }
 
@@ -147,6 +156,8 @@ print.cvo2m <- function(x,include_matrix=FALSE,...) {
   dnams3 = dnams[[3]][wmCV[3]]
   
   cat("*******************\n")
+  cat("Elapsed time: ",x$time, " sec", '\n', sep='')
+  cat("*******\n")
   cat("Minimal ",x$kcv,"-CV error is at ",dnams1," ",dnams2," ",dnams3," ","\n",sep="")
   cat("*******\n")
   cat("Minimum is",min(x$Sor),"\n")
