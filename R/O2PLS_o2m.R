@@ -222,7 +222,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
 #' 
 #' @keywords internal
 #' @export
-pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
+pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
   input_checker(X, Y)
   stopifnot(n == round(n))
   #  message("High dimensional problem: switching to power method.\n")
@@ -263,6 +263,62 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
     Y <- Y - (Y %*% C0) %*% t(C0)
     W <- cbind(W, W0)
     C <- cbind(C, C0)
+  }
+  return(list(W = W, C = C, Tt = Tt, U = U))
+}
+
+#' NIPALS method for PLS2
+#' 
+#' Performs power method for PLS2 loadings.
+#' 
+#' @inheritParams o2m
+#' 
+#' @keywords internal
+#' @export
+pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
+  input_checker(X, Y)
+  stopifnot(n == round(n))
+  #  message("High dimensional problem: switching to power method.\n")
+  #  message("initialize Power Method. Stopping crit: sq.err<", tol, " or ", max_iterations, " iter.\n")
+  Tt <- NULL
+  U <- NULL
+  W <- NULL
+  C <- NULL
+  for (indx in 1:n) {
+    Ui = rowSums(Y)
+    for (indx2 in 1:max_iterations) {
+      tmpp <- Ui
+      Wi = crossprod(X, Ui)
+      Wi = Wi / c(vnorm(Wi))
+      Ti = X %*% Wi
+      Ci = crossprod(Y, Ti)
+      Ci = Ci / c(vnorm(Ci))
+      Ui = Y %*% Ci
+      if (mse(tmpp, Ui) < tol) {
+        break
+      }
+    }
+    if(ssq(Wi) < 1e-10 || ssq(Ci) < 1e-10){
+      Wi <- orth(rep(1,ncol(X)))
+      Ci <- orth(rep(1,ncol(Y)))
+      for (indx2 in 1:max_iterations) {
+        tmpp <- c(Wi, Ci)
+        Wi <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% Wi))
+        Ci <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% Ci))
+        if (mse(tmpp, c(Wi, Ci)) < tol) {
+          message("The initialization of the power method lied in a degenerate space\n")
+          message("Initialization changed and power method rerun\n")
+          break
+        }
+      }
+    }
+    message("Power Method (comp ", indx, ") stopped after ", indx2, " iterations.\n")
+    Tt <- cbind(Tt, X %*% Wi)
+    U <- cbind(U, Y %*% Ci)
+    X <- X - (X %*% Wi) %*% t(Wi)
+    Y <- Y - (Y %*% Ci) %*% t(Ci)
+    W <- cbind(W, Wi)
+    C <- cbind(C, Ci)
   }
   return(list(W = W, C = C, Tt = Tt, U = U))
 }
