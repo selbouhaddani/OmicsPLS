@@ -259,7 +259,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
   k <- 0
   
   # blocks contains the begin and endpoints of test indices to use
-  blocks <- c(seq(0, N, by = floor(N/kcv)), N)
+  blocks <- cut(seq(1:N), breaks=kcv, labels=F)
   
   # loop through chosen parameters
   for (j in a) {
@@ -270,7 +270,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
         folds <- sample(N)
         # loop through number of folds
         for (i in 1:kcv) {
-          ii <- (blocks[i] + 1):(blocks[i + 1])
+          ii <- which(blocks==i)
           if (type == 3) {
             pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3,
                          stripped = stripped, p_thresh = p_thresh, 
@@ -417,6 +417,7 @@ rmsep_combi <- function(Xtst, Ytst, fit)
 #' @inheritParams o2m
 #' @inheritParams loocv
 #' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
+#' If there are NAs in the CVerr component, this is due to an error in the fitting.
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
@@ -450,7 +451,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   
   # blocks contains the begin and endpoints of test indices to use
   # Extra N ignored by 1:kcv if N/kcv is integer
-  blocks <- c(seq(0, N, by = floor(N/kcv)), N)
+  blocks <- cut(seq(1:N), breaks=kcv, labels=F)
   
   # loop through chosen parameters
   for (j in a) {
@@ -461,14 +462,15 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
         folds <- sample(N)
         # loop through number of folds
         for (i in 1:kcv) {
-          ii <- (blocks[i] + 1):(blocks[i + 1])
+          ii <- which(blocks==i)
           if (type == 3) {
             pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = j, nx = j2, ny = j3, 
                          stripped = stripped, p_thresh = p_thresh, 
                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
           }
           fit <- try(do.call(func, pars), silent = T)
-          err[i] <- ifelse(inherits(class(fit),"try-error"), 
+          if("try-error" %in% class(fit)) warning(fit[1])
+          err[i] <- ifelse("try-error" %in% class(fit), 
                            NA, 
                            rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
         }

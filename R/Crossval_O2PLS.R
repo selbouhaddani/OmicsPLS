@@ -26,6 +26,8 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   kcv = nr_folds
   stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
   stopifnot(nr_cores == abs(round(nr_cores)))
+  if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
+  
   parms = data.frame(nx = ax)
   parms = merge(parms,data.frame(ny = ay))
   parms = merge(parms,data.frame(a = a))
@@ -92,6 +94,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   kcv = nr_folds
   stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
   stopifnot(nr_cores == abs(round(nr_cores)))
+  if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
   cl_crossval_o2m <- NULL
   on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
   
