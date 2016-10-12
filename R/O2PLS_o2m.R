@@ -42,11 +42,10 @@
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
-#' For high dimensional matrices, a power method can be applied. 
-#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (power method) which does not store the entire covariance matrix.
-#' The squared error between iterands in the power method can be adjusted with \code{tol}.
-#' The maximum number of iterations is tuned by \code{max_iterations}.
+#' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
+#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (NIPALS) which does not store the entire covariance matrix.
+#' The squared error between iterands in the NIPALS approach can be adjusted with \code{tol}.
+#' The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
 #'
 #' @examples
 #' test.data <- scale(matrix(rnorm(100)))
@@ -60,7 +59,7 @@
 #'          o2m(test.data,scale(test.data+rnorm(100,0,0.1))/2,1,0,0)$B_T.
 #'     ),main='B_T = 0.5 \n 90% joint variation',xlab='B_T',xlim=c(0,0.6));
 #'
-#' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{o2m_stripped}}
+#' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 

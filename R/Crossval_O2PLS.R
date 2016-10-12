@@ -4,8 +4,13 @@
 #' @param a Vector of positive integers. Denotes the numbers of joint components to consider. 
 #' @param ax Vector of non-negative integers. Denotes the numbers of X-specific components to consider.
 #' @param ay Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.
-#' @param kcv Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV.
+#' @param nr_folds Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.
 #' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.
+#' 
+#' @details This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
+#' Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
+#'  and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
+#'  A print method is defined, printing the minimizers and minimum in a readible way. Also the elapsed time is tracked and reported.
 #' 
 #' @return List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
 #' 
@@ -14,7 +19,7 @@
 #' X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
-#'              kcv = 5, nr_cores = 1)
+#'              nr_folds = 5, nr_cores = 1)
 #' })
 #' 
 #' @export
@@ -76,13 +81,19 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' 
 #' @inheritParams crossval_o2m
 #' 
-#' @return List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
+#' @details This is an alternative way of cross-validating. It is proposed in \code{citation(O2PLS)}. 
+#' This approach is (much) faster than the standard \code{crossval_o2m} approach and works fine even with two folds.
+#' For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model. 
+#' This approach often yields similar integer as the standard approach. 
+#' We however suggest to use the standard approach to minimize the prediction error around the found integers.
+#' 
+#' @return data.frame with four columns: MSE, n, nx and ny. Each row corresponds to an element in \code{a}.
 #' @examples 
 #' local({
 #' X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 #' crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
-#'              kcv = 5, nr_cores = 1)
+#'              nr_folds = 5, nr_cores = 1)
 #' })
 #' @export
 crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
@@ -114,7 +125,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                                                       q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
                       nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
+      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
                           stripped = stripped, p_thresh = p_thresh, 
                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
@@ -129,7 +140,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
                       nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=app_err,func=o2m,kcv=kcv,
+      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
                           stripped = stripped, p_thresh = p_thresh, 
                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])

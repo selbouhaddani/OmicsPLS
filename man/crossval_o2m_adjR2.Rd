@@ -19,6 +19,8 @@ crossval_o2m_adjR2(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
 
 \item{ay}{Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.}
 
+\item{nr_folds}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.}
+
 \item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.}
 
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
@@ -32,17 +34,24 @@ crossval_o2m_adjR2(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 }
 \value{
-List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
+data.frame with four columns: MSE, n, nx and ny. Each row corresponds to an element in \code{a}.
 }
 \description{
 Combines CV with R2 optimization
+}
+\details{
+This is an alternative way of cross-validating. It is proposed in \code{citation(O2PLS)}. 
+This approach is (much) faster than the standard \code{crossval_o2m} approach and works fine even with two folds.
+For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model. 
+This approach often yields similar integer as the standard approach. 
+We however suggest to use the standard approach to minimize the prediction error around the found integers.
 }
 \examples{
 local({
 X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
-             kcv = 5, nr_cores = 1)
+             nr_folds = 5, nr_cores = 1)
 })
 }
 

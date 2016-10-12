@@ -9,6 +9,15 @@ test_that("Normal input goes without error", {
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1, stripped = TRUE), NA)
 })
 
+# test_that("Examples run", {
+#   expect_error(example("o2m",package = "O2PLS"), NA)
+#   expect_error(example("crossval_o2m",package = "O2PLS"), NA)
+#   expect_error(example("crossval_o2m_adjR2",package = "O2PLS"), NA)
+#   expect_error(example("orth",package = "O2PLS"), NA)
+#   expect_error(example("summary.o2m",package = "O2PLS"), NA)
+#   expect_error(example("loadings.o2m",package = "O2PLS"), NA)
+# })
+
 test_that("Errors in o2m are thrown", {
   expect_error(o2m(diag(3),diag(4),1,0,0),                   "rows")
   expect_error(o2m(matrix(1:9,3),matrix(1:9,3),0,1,1),       "n")

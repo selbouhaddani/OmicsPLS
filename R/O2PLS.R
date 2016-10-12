@@ -16,7 +16,7 @@
 #' \strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
 #' The number of columns may be different, but the subjects should be the same in both datasets.
 #' 
-#' The O2PLS model (Trygg \& Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
+#' The O2PLS model (Trygg & Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y} into three parts. 
 #' \itemize{
 #'  \item{1.} A joint part, representing the relationship between \eqn{X} and \eqn{Y}
 #'  \item{2.} An orthogonal part, representing the unrelated latent variation in \eqn{X} and \eqn{Y} separately.
@@ -36,7 +36,7 @@
 #'  \item{} In case you don't want the fancy output, but only the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
 #'  \item{} For high dimensional cases defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh} a Power-Method approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
 #'  The thresholds are by default both at 3000 variables.
-#'  \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
+#'  \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
 #' }
 #' 
 #' @section Obtaining results:
@@ -47,15 +47,13 @@
 #' 
 #' @section Cross-validating: 
 #' Determining the number of components \code{n,nx,ny} is an important task. For this we have two methods.
-#' See \code{citation("O2PLS")} for our proposed approach for determining the number of components.
+#' See \code{citation("O2PLS")} for our proposed approach for determining the number of components, implemented in \code{crossval_o2m_adjR2}!
 #' \itemize{
-#'  \item{} Cross-validation (CV) is done with \code{\link{loocv}} or \code{\link{adjR2}}, the last has built in parallelization (when you use Windows!) which relies on the \code{parallel} package.
-#'  This part is not yet fully developed, and a somewhat advanced understanding of R is needed to fully exploit CV here.
-#'  However a slow \code{for} loop implementation of the cross-validated prediction error is implemented in \code{loocv(X,Y,a,a2,b2,kcv)}, where \code{X, Y} are the data and \code{a,a2,b2} are integer vectors representing \code{n,nx,ny}.
+#'  \item{} Cross-validation (CV) is done with \code{\link{crossval_o2m}} and \code{\link{crossval_o2m_adjR2}}, both have built in parallelization which relies on the \code{parallel} package.
+#'  Usage is something like \code{crossval_o2m(X,Y,a,ax,ay)} where \code{a,ax,ay} are vectors of integers. See the help pages.
 #'  \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV. 
-#'  \code{\link{loocv}} was proposed to find the number of joint components.
-#'  \item{} For \code{\link{adjR2}} the same holds, but this function implements the coefficient of determination of the inner relation \eqn{U = TB + H} rather than the prediction error.
-#'  This was proposed to find the number of orthogonal components.
+#'  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
+#'  faster than the standard approach. 
 #' }
 #' 
 #' @section Misc:
@@ -86,6 +84,7 @@
 #' @name O2PLS
 #' @keywords O2PLS
 #' @import parallel ggplot2
+#' @importFrom graphics abline
 NULL
 
 #' Check if matrices satisfy input conditions

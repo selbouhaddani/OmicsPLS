@@ -19,6 +19,8 @@ crossval_o2m(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
 
 \item{ay}{Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.}
 
+\item{nr_folds}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.}
+
 \item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.}
 
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
@@ -30,8 +32,6 @@ crossval_o2m(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
-
-\item{kcv}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV.}
 }
 \value{
 List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
@@ -39,12 +39,18 @@ List of class \code{"cvo2m"} with the original and sorted Prediction errors and 
 \description{
 Cross-validate procedure for O2PLS
 }
+\details{
+This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
+Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
+ and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
+ A print method is defined, printing the minimizers and minimum in a readible way. Also the elapsed time is tracked and reported.
+}
 \examples{
 local({
 X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
-             kcv = 5, nr_cores = 1)
+             nr_folds = 5, nr_cores = 1)
 })
 
 }
