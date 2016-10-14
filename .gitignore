@@ -2,3 +2,4 @@
 .Rproj.user
 .Rbuildignore
 .RData
+inst/doc

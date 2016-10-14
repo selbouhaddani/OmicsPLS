@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Said el Bouhaddani" />
+
+<meta name="date" content="2016-10-14" />
+
+<title>The O2PLS R Package</title>
+
+
+
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">The O2PLS R Package</h1>
+<h4 class="author"><em>Said el Bouhaddani</em></h4>
+<h4 class="date"><em>2016-10-14</em></h4>
+
+
+
+<div id="the-o2pls-r-package" class="section level1">
+<h1>The O2PLS R package</h1>
+<p>Welcome to the vignette of the O2PLS package for analyzing two Omics datasets!</p>
+<p>Here you can find examples and explanation of the input options and output objects. As always: help is always found by using the mighty <code>?</code> operator. Try to type <code>?O2PLS</code> for an overview of the package and <code>?o2m</code> for description of the fitting function.</p>
+</div>
+<div id="background" class="section level1">
+<h1>Background</h1>
+<div id="the-o2pls-method" class="section level2">
+<h2>The O2PLS method</h2>
+<p>The O2PLS method is proposed in (Trygg &amp; Wold, 2003). It decomposes the variation of two datasets in three parts:</p>
+<ul>
+<li>A Joint part for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>: <span class="math inline">\(TW^\top\)</span> and <span class="math inline">\(UC^\top\)</span>,</li>
+<li>A Systematic/Specific/Orthogonal part for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>: <span class="math inline">\(T_\perp W_\perp^\top\)</span> and <span class="math inline">\(U_\perp C_\perp^\top\)</span>,</li>
+<li>A noise part for <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>: <span class="math inline">\(E\)</span> and <span class="math inline">\(F\)</span>.</li>
+</ul>
+<p>The number of columns in <span class="math inline">\(T\)</span>, <span class="math inline">\(U\)</span>, <span class="math inline">\(W\)</span> and <span class="math inline">\(C\)</span> are denoted by as <span class="math inline">\(n\)</span> and are referred to as the number of joint components. The number of columns in <span class="math inline">\(T_\perp\)</span> and <span class="math inline">\(W_\perp\)</span> are denoted by as <span class="math inline">\(n_X\)</span> and are referred to as the number of <span class="math inline">\(X\)</span>-specific components. Analoguous for <span class="math inline">\(Y\)</span>, where we use <span class="math inline">\(n_Y\)</span> to denote the number of <span class="math inline">\(Y\)</span>-specific components. The relation between <span class="math inline">\(T\)</span> and <span class="math inline">\(U\)</span> makes the joint part the joint part: <span class="math inline">\(U = TB + H\)</span> or <span class="math inline">\(U = TB'+ H'\)</span>. The number of components <span class="math inline">\((n, n_X, n_Y)\)</span> are chosen beforehand (e.g. with Cross-Validation).</p>
+</div>
+<div id="cross-validation" class="section level2">
+<h2>Cross-Validation</h2>
+<p>In cross-validation (CV) you minimize a certain measure of error for a finite number of values of some nuisance parameters. In our case we have three nuisance parameters: <span class="math inline">\((n, n_X, n_Y)\)</span>. A popular measure is the prediction error <span class="math inline">\(||\hat{Y} - Y||\)</span>, where <span class="math inline">\(\hat{Y}\)</span> is a prediction of <span class="math inline">\(Y\)</span>. In our case the O2PLS method is symmetric in <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, so we minimize the sum of the prediction errors: <span class="math inline">\(||\hat{X} - X||+||\hat{Y} - Y||\)</span>. The idea is to fit O2PLS to our data <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> and compute the prediction errors for a grid of <span class="math inline">\(n\)</span>, <span class="math inline">\(n_X\)</span> and <span class="math inline">\(n_Y\)</span> values. Here <span class="math inline">\(n\)</span> should be a positive integer, but <span class="math inline">\(n_X\)</span> and <span class="math inline">\(n_Y\)</span> can be zero. The best integers are then the minimizers of the prediction error.</p>
+</div>
+<div id="proposed-cross-validation-approach" class="section level2">
+<h2>Proposed cross-validation approach</h2>
+<p>We proposed an alternative way for choosin the number of components (Bouhaddani, 2016). Here we only construct a grid of <span class="math inline">\(n\)</span> values. For each <span class="math inline">\(n\)</span> we consider then the <span class="math inline">\(R^2\)</span> between <span class="math inline">\(T\)</span> and <span class="math inline">\(U\)</span> for different <span class="math inline">\(n_X\)</span> and <span class="math inline">\(n_Y\)</span>. If <span class="math inline">\(T\)</span> and <span class="math inline">\(U\)</span> are polluted with specific variation the <span class="math inline">\(R^2\)</span> will be lower. If too many specific components are removed the <span class="math inline">\(R^2\)</span> will again be lower. Somewhere in between is the maximum, with its maximizers <span class="math inline">\(n_X\)</span> and <span class="math inline">\(n_Y\)</span>. With these two integers we now compute the prediction error for our <span class="math inline">\(n\)</span> that we have kept fixed. This process we repeat for different <span class="math inline">\(n\)</span> and get our maximizers. This can provide a (big) speed-up and often yields similar values for <span class="math inline">\((n, n_X, n_Y)\)</span>.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

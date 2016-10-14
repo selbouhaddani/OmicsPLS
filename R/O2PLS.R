@@ -658,9 +658,9 @@ print.summary.o2m <- function(x, ...){
     print(round(R2_dataframe, digits))
     cat("\n")
     cat("-- Predictable variation in Y-joint part by X-joint part:\n")
-    cat("Variation in Yhat:",round(R2_Xpred,digits),"\n")
+    cat("Variation in Yhat relative to U:",round(R2_Xpred,digits),"\n")
     cat("-- Predictable variation in X-joint part by Y-joint part:\n")
-    cat("Variation in Xhat:",round(R2_Ypred,digits),"\n")
+    cat("Variation in Xhat relative to T:",round(R2_Ypred,digits),"\n")
     cat("\n")
     cat("-- Variances per component:\n\n")
     with(flags,{

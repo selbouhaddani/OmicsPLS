@@ -1,0 +1,38 @@
+---
+title: "The O2PLS R Package"
+author: "Said el Bouhaddani"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# The O2PLS R package
+Welcome to the vignette of the O2PLS package for analyzing two Omics datasets!
+
+Here you can find examples and explanation of the input options and output objects. As always: help is always found by using the mighty `?` operator. Try to type `?O2PLS` for an overview of the package and `?o2m` for description of the fitting function.
+
+# Background
+## The O2PLS method
+
+The O2PLS method is proposed in (Trygg & Wold, 2003). It decomposes the variation of two datasets in three parts:
+
+- A Joint part for $X$ and $Y$: $TW^\top$ and $UC^\top$,
+- A Systematic/Specific/Orthogonal part for $X$ and $Y$: $T_\perp W_\perp^\top$ and $U_\perp C_\perp^\top$,
+- A noise part for $X$ and $Y$: $E$ and $F$.
+
+The number of columns in $T$, $U$, $W$ and $C$ are denoted by as $n$ and are referred to as the number of joint components. The number of columns in $T_\perp$ and $W_\perp$ are denoted by as $n_X$ and are referred to as the number of $X$-specific components. Analoguous for $Y$, where we use $n_Y$ to denote the number of $Y$-specific components.
+The relation between $T$ and $U$ makes the joint part the joint part: $U = TB + H$ or $U = TB'+ H'$. The number of components $(n, n_X, n_Y)$ are chosen beforehand (e.g. with Cross-Validation). 
+
+## Cross-Validation
+
+In cross-validation (CV) you minimize a certain measure of error for a finite number of values of some nuisance parameters. In our case we have three nuisance parameters: $(n, n_X, n_Y)$. A popular measure is the prediction error $||\hat{Y} - Y||$, where $\hat{Y}$ is a prediction of $Y$. In our case the O2PLS method is symmetric in $X$ and $Y$, so we minimize the sum of the prediction errors: $||\hat{X} - X||+||\hat{Y} - Y||$. The idea is to fit O2PLS to our data $X$ and $Y$ and compute the prediction errors for a grid of $n$, $n_X$ and $n_Y$ values. Here $n$ should be a positive integer, but $n_X$ and $n_Y$ can be zero. The best integers are then the minimizers of the prediction error.
+
+## Proposed cross-validation approach
+
+We proposed an alternative way for choosin the number of components (Bouhaddani, 2016). Here we only construct a grid of $n$ values. For each $n$ we consider then the $R^2$ between $T$ and $U$ for different $n_X$ and $n_Y$. If $T$ and $U$ are polluted with specific variation the $R^2$ will be lower. If too many specific components are removed the $R^2$ will again be lower. Somewhere in between is the maximum, with its maximizers $n_X$ and $n_Y$. With these two integers we now compute the prediction error for our $n$ that we have kept fixed. This process we repeat for different $n$ and get our maximizers. This can provide a (big) speed-up and often yields similar values for $(n, n_X, n_Y)$. 
+
+
+
