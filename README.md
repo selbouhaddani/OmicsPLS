@@ -1,6 +1,6 @@
-# O2PLS
+# OmicsPLS
 
-Welcome to the O2PLS package page on Github!
+Welcome to the OmicsPLS package page on Github! It contains an implementation of O2PLS.
 
 O2PLS is designed for integrating two high dimensional datasets and the O2PLS package is an implementation of this method.
 
@@ -25,4 +25,4 @@ Also please see http://atlasofscience.org/simultaneous-integrated-analysis-of-bi
 # Updates
 
 - A new name will be given to this package, please keep this in mind. Apologies for any inconveniences.
-- We are working on a software tutorial paper to appear soon! In the meantime just email me for more information on the package.
+- We are working on a software tutorial paper and vignette to appear soon! In the meantime just email me for more information on the package.
