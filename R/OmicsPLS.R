@@ -47,7 +47,7 @@
 #' 
 #' @section Cross-validating: 
 #' Determining the number of components \code{n,nx,ny} is an important task. For this we have two methods.
-#' See \code{citation("O2PLS")} for our proposed approach for determining the number of components, implemented in \code{crossval_o2m_adjR2}!
+#' See \code{citation("OmicsPLS")} for our proposed approach for determining the number of components, implemented in \code{crossval_o2m_adjR2}!
 #' \itemize{
 #'  \item{} Cross-validation (CV) is done with \code{\link{crossval_o2m}} and \code{\link{crossval_o2m_adjR2}}, both have built in parallelization which relies on the \code{parallel} package.
 #'  Usage is something like \code{crossval_o2m(X,Y,a,ax,ay)} where \code{a,ax,ay} are vectors of integers. See the help pages.
@@ -65,13 +65,13 @@
 #' }
 #' 
 #' @section Citation:
-#' If you use the R package in your research, please cite the corresponding paper:
+#' If you use the OmicsPLS R package in your research, please cite the corresponding paper:
 #' 
 #' \strong{Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W.} (2016).
 #' \emph{Evaluation of O2PLS in Omics data integration.}
 #' BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
 #' 
-#' The bibtex entry can be obtained with command \code{citation("O2PLS")}.
+#' The bibtex entry can be obtained with command \code{citation("OmicsPLS")}.
 #' Thank You!
 #' 
 #' The original paper proposing O2PLS is
@@ -81,8 +81,8 @@
 #' Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 #' 
 #' @docType package
-#' @name O2PLS
-#' @keywords O2PLS
+#' @name OmicsPLS
+#' @keywords OmicsPLS
 #' @import parallel ggplot2
 #' @importFrom graphics abline
 NULL

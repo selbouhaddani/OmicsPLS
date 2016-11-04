@@ -3,7 +3,7 @@
 #' This is based on work of (Trygg, Wold, 2003). 
 #' Includes some misc functions, the O2PLS fit function and some cross-validation tools.
 #' 
-#' @section O2PLS functions:
+#' @section OmicsPLS functions:
 #' The O2PLS fit is done with \code{\link{o2m}}. Cross-validation is done with \code{\link{loocv}} or \code{\link{adjR2}} which may depend on the \code{parallel} package.
 #' 
 #' List of functions:
@@ -13,6 +13,6 @@
 #' 
 #' Maintainer: Said el Bouhaddani \email{s.el_bouhaddani@@lumc.nl}
 #' @docType package
-#' @name O2PLS-package
-#' @keywords O2PLS-package
+#' @name OmicsPLS-package
+#' @keywords OmicsPLS-package
 #' @import parallel
