@@ -15,6 +15,8 @@ Imports:
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    gplots,
+    
 RoxygenNote: 5.0.1
 VignetteBuilder: knitr
