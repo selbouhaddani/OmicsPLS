@@ -1,5 +1,5 @@
-library(O2PLS)
-context("O2PLS main function checking")
+library(OmicsPLS)
+context("OmicsPLS main function checking")
 
 test_that("Normal input goes without error", {
   expect_error(o2m(1:10, 1:10, 1, 0, 0), NA)
@@ -10,12 +10,12 @@ test_that("Normal input goes without error", {
 })
 
 # test_that("Examples run", {
-#   expect_error(example("o2m",package = "O2PLS"), NA)
-#   expect_error(example("crossval_o2m",package = "O2PLS"), NA)
-#   expect_error(example("crossval_o2m_adjR2",package = "O2PLS"), NA)
-#   expect_error(example("orth",package = "O2PLS"), NA)
-#   expect_error(example("summary.o2m",package = "O2PLS"), NA)
-#   expect_error(example("loadings.o2m",package = "O2PLS"), NA)
+#   expect_error(example("o2m",package = "OmicsPLS"), NA)
+#   expect_error(example("crossval_o2m",package = "OmicsPLS"), NA)
+#   expect_error(example("crossval_o2m_adjR2",package = "OmicsPLS"), NA)
+#   expect_error(example("orth",package = "OmicsPLS"), NA)
+#   expect_error(example("summary.o2m",package = "OmicsPLS"), NA)
+#   expect_error(example("loadings.o2m",package = "OmicsPLS"), NA)
 # })
 
 test_that("Errors in o2m are thrown", {

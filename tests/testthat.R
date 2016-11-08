@@ -1,4 +1,4 @@
 library(testthat)
-library(O2PLS)
+library(OmicsPLS)
 
-test_check("O2PLS")
+test_check("OmicsPLS")
