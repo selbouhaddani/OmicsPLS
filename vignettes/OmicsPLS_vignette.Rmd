@@ -95,262 +95,262 @@ plot(fit0, "Xo")
 ```
 
 
-## Real data example
+<!-- ## Real data example -->
 
-First we define a function to pick only the top `100*prop` percent of the genes that have highest expression level, intersected with the top `100*prop` percent with highest Inter Quantile Range.
-```{r Function: filter genes}
-filter_rna <- function(rna=rna, prop = 0.75){
-  #first, calculate the maximum of gene expression per each gene and take the quantiles, we are interested in top 25% of the gene expressions
-  maxGE <- apply(rna, 2, max)
-  propGEmax <- quantile(maxGE, prop)
-  #next, take the IQR of each gene, to capture the variability and check the top 25% genes according to the size of IQR
-  IQRGE <- apply(rna, 2, IQR, na.rm=TRUE) 
-  propGEIQR <- quantile(IQRGE, prop)
-  #selected genes/probes is the intersection of the two previous sets
-  filter2 <- (intersect(which(maxGE> propGEmax), which(IQRGE> propGEIQR)))
-  return(filter2)
-}
-```
+<!-- First we define a function to pick only the top `100*prop` percent of the genes that have highest expression level, intersected with the top `100*prop` percent with highest Inter Quantile Range. -->
+<!-- ```{r Function: filter genes} -->
+<!-- filter_rna <- function(rna=rna, prop = 0.75){ -->
+<!--   #first, calculate the maximum of gene expression per each gene and take the quantiles, we are interested in top 25% of the gene expressions -->
+<!--   maxGE <- apply(rna, 2, max) -->
+<!--   propGEmax <- quantile(maxGE, prop) -->
+<!--   #next, take the IQR of each gene, to capture the variability and check the top 25% genes according to the size of IQR -->
+<!--   IQRGE <- apply(rna, 2, IQR, na.rm=TRUE)  -->
+<!--   propGEIQR <- quantile(IQRGE, prop) -->
+<!--   #selected genes/probes is the intersection of the two previous sets -->
+<!--   filter2 <- (intersect(which(maxGE> propGEmax), which(IQRGE> propGEIQR))) -->
+<!--   return(filter2) -->
+<!-- } -->
+<!-- ``` -->
 
-### Load in the data
-**Packages needed**
+<!-- ### Load in the data -->
+<!-- **Packages needed** -->
 
-* `install.packages("data.table")`
+<!-- * `install.packages("data.table")` -->
 
-Now we load in the data, assumed it is downloaded and stored on disk, and prepare it in the right format (samples as rows and genes as columns) and give the rows and columns the right names. We use the package `data.table` as this reads in large data sets much faster.
-```{r Load RNA data}
-set.seed(31*12*2016)
-rna0 <- data.table::fread("C:/Users/selbouhaddani/MEGANZ/Downloads/O2PLS_BiB/test.tab",header=T, sep='\t')
-rna1 <- t(as.data.frame.matrix(rna0[-1,-1,with=F]))
-rna2 <- matrix(as.numeric(rna1), nrow = nrow(rna1))
-dimnames(rna2) <- list(colnames(rna0)[-1],unlist(rna0[-1,1,with=F]))
-rna2 <- rna2[order(row.names(rna2)), ] # Order rows according to the participant ID
-rna3 <- rna2[,filter_rna(rna2)]
-rm(rna0)
-rm(rna1)
-```
-We removed unneeded copies of the expression data set.
+<!-- Now we load in the data, assumed it is downloaded and stored on disk, and prepare it in the right format (samples as rows and genes as columns) and give the rows and columns the right names. We use the package `data.table` as this reads in large data sets much faster. -->
+<!-- ```{r Load RNA data} -->
+<!-- set.seed(31*12*2016) -->
+<!-- rna0 <- data.table::fread("C:/Users/selbouhaddani/MEGANZ/Downloads/O2PLS_BiB/test.tab",header=T, sep='\t') -->
+<!-- rna1 <- t(as.data.frame.matrix(rna0[-1,-1,with=F])) -->
+<!-- rna2 <- matrix(as.numeric(rna1), nrow = nrow(rna1)) -->
+<!-- dimnames(rna2) <- list(colnames(rna0)[-1],unlist(rna0[-1,1,with=F])) -->
+<!-- rna2 <- rna2[order(row.names(rna2)), ] # Order rows according to the participant ID -->
+<!-- rna3 <- rna2[,filter_rna(rna2)] -->
+<!-- rm(rna0) -->
+<!-- rm(rna1) -->
+<!-- ``` -->
+<!-- We removed unneeded copies of the expression data set. -->
 
-We also load in the metabolite data and prepare it to have samples as rows and set the columns names.
-```{r Load metabolite data}
-metab0 <- read.table("C:/Users/selbouhaddani/MEGANZ/Downloads/O2PLS_BiB/metabonomic_data.txt",header=T, sep='\t')
-metab1 <- t(metab0[,-1])
-colnames(metab1) <- metab0$Metabolite
-```
+<!-- We also load in the metabolite data and prepare it to have samples as rows and set the columns names. -->
+<!-- ```{r Load metabolite data} -->
+<!-- metab0 <- read.table("C:/Users/selbouhaddani/MEGANZ/Downloads/O2PLS_BiB/metabonomic_data.txt",header=T, sep='\t') -->
+<!-- metab1 <- t(metab0[,-1]) -->
+<!-- colnames(metab1) <- metab0$Metabolite -->
+<!-- ``` -->
 
-### Missing data imputation
-**Packages needed**
+<!-- ### Missing data imputation -->
+<!-- **Packages needed** -->
 
-* `install.packages("VIM")`
-* `install.packages("missForest")`
+<!-- * `install.packages("VIM")` -->
+<!-- * `install.packages("missForest")` -->
 
-Note that we have missingness in the metabolite data. The functions in OmicsPLS currently cannot impute this, so we need to do some imputation ourselves.
-Some diagostics on the missingness in the metabolite data can be obtained. Firstly we plot a histogram of the missing data. We need the `VIM` package for this.
-```{r Visualize missingness}
-VIM::aggr(metab1, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, 
-     labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
-```
+<!-- Note that we have missingness in the metabolite data. The functions in OmicsPLS currently cannot impute this, so we need to do some imputation ourselves. -->
+<!-- Some diagostics on the missingness in the metabolite data can be obtained. Firstly we plot a histogram of the missing data. We need the `VIM` package for this. -->
+<!-- ```{r Visualize missingness} -->
+<!-- VIM::aggr(metab1, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,  -->
+<!--      labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern")) -->
+<!-- ``` -->
 
-We remove participants with 100\% missing metabolite measurements, i.e. missing rows.
-```{r Remove complete missings}
-NAs_in_metab1 <- which(apply(metab1, 1, function(e) sum(is.na(e))/length(e))==1)
-metab2 <- metab1[-NAs_in_metab1,]
-rna4 <- rna3[-NAs_in_metab1,]
-```
-
-
-Random Forests can be used to impute missing metabolites. We use the `missForest` package to do this. It takes some time, a couple of minutes on a modest second generation i5 laptop.
-```{r Impute metabolites, cache=TRUE}
-metab2.imp <- missForest::missForest(metab2, verbose = T)
-X2 <- scale(metab2.imp$ximp, scale=F)
-X1 <- scale(rna4, scale = F)
-```
-In the last two lines, we took one imputed instance of the metabolite data and centered the columns of the RNA and metabolite data to have zero mean.
-We denote them by `X1` (transcripts) and `X2` (metabolites).
-
-### Inspect the data: descriptives
-**Packages needed**
-
-* `install.packages("gplots")`
-
-A heatmap of metabolites, before and after imputation
-```{r Heatmap of correlations}
-try(
-  gplots::heatmap.2(cor(metab1,use = 'pair'), Rowv=F, Colv=F, 
-                    breaks=seq(-1,1,length.out = 25), col=gplots::bluered),
-  silent = TRUE)
-try(
-  gplots::heatmap.2(cor(X2,use = 'pair'), Rowv=F, Colv=F, 
-                    breaks=seq(-1,1,length.out = 25), col=gplots::bluered),
-  silent = TRUE)
-```
-They are almost the same, indicating that the correlation structure within metabolites hasn't changed much.
-
-To get an idea on the latent structure of the data one may look at eigenvalues of covariance matrix of `X1` and `X2`.
-```{r Eigenvalues plot}
-svd(X1, 0, 0)$d[1:10]^2 / sum(X1^2)
-svd(X2, 0, 0)$d[1:10]^2 / sum(X2^2)
-svd(crossprod(X1,X2),0,0)$d[1:20]
-```
-The first two lines contain relative variances explained by each principal component. Strong latent structure is indicated by a sharp decline of the relative variances at the first few components.
-
-Boxplots are a good summary to check the distribution of the variables relative to each other. Properties such as comparable means, variances and symmetry are often good to have. To reduce the number of boxplots we filter the transcriptomic data to include genes with 95\% highest expression and IQR. 
-```{r Boxplots}
-boxplot(X1[,filter_rna(X1, .95)])
-boxplot(X2)
-```
-
-## The OmicsPLS package
-### Cross-validation
-
-We load the OmicsPLS package and set a seed for the cross-validation. The strategy is to have a relatively large grid to search on and apply the faster alternative Cross-Validation (Cv) approach to find a solution. Then on a smaller grid containing these integers we do a full CV to determine the best choice for the number of components. The objective function to minimize is the sum of the two prediction errors $||X-\hat{X}||$ and $||Y-\hat{Y}||$.
-```{r Cross-Validation}
-library(OmicsPLS)
-set.seed(1+1+2016)
-#CV1 <- crossval_o2m_adjR2(X1, X2, 1:3, c(0,1,5,10), c(0,1,5,10), nr_folds = 2, nr_cores = 4)
-#CV2 <- crossval_o2m(X1, X2, 1:2, 0:2, 9:11, nr_folds = 10, nr_cores = 4)
-#CV1
-#CV2
-```
-Following the advice of the last CV output, we select two joint, one transcript-specific and ten metabolite-specific components. We fit the O2PLS model with default values as follows.
-```{r Fit O2PLS}
-fit = o2m(X1, X2, 2, 1, 10)
-fit
-```
-
-A summary of the variation modeled is obtained via
-```{r Summary of the fit}
-summary(fit)
-```
+<!-- We remove participants with 100\% missing metabolite measurements, i.e. missing rows. -->
+<!-- ```{r Remove complete missings} -->
+<!-- NAs_in_metab1 <- which(apply(metab1, 1, function(e) sum(is.na(e))/length(e))==1) -->
+<!-- metab2 <- metab1[-NAs_in_metab1,] -->
+<!-- rna4 <- rna3[-NAs_in_metab1,] -->
+<!-- ``` -->
 
 
-### Plotting
-**Packages needed**
+<!-- Random Forests can be used to impute missing metabolites. We use the `missForest` package to do this. It takes some time, a couple of minutes on a modest second generation i5 laptop. -->
+<!-- ```{r Impute metabolites, cache=TRUE} -->
+<!-- metab2.imp <- missForest::missForest(metab2, verbose = T) -->
+<!-- X2 <- scale(metab2.imp$ximp, scale=F) -->
+<!-- X1 <- scale(rna4, scale = F) -->
+<!-- ``` -->
+<!-- In the last two lines, we took one imputed instance of the metabolite data and centered the columns of the RNA and metabolite data to have zero mean. -->
+<!-- We denote them by `X1` (transcripts) and `X2` (metabolites). -->
 
-* `install.packages("magrittr")`
-* `install.packages("ggplot2")`
-* `install.packages("gridExtra")`
-* `install.packages("stringr")`
-* `install.packages("gplots")`
+<!-- ### Inspect the data: descriptives -->
+<!-- **Packages needed** -->
 
-We want to see which (groups of) metabolites and transcripts tend to correlate with each other. To do this we plot the loadings. The individual loading values per component indicate the relative importance of each variable to the corresponding component. We plot the two joint loadings against each other to see which metabolites are more important for each component. 
-To do this we need three packages for convenience: `magrittr` for the piping operator, `ggplot2` for plotting and `gridExtra` to put multiple ggplots in one figure. Also `stringr` will be needed to extract substrings of column names.
-```{r Loadings plot}
-require(magrittr)
-require(ggplot2)
-require(gridExtra)
-# Color names
-name_col = 1 + sapply( #First sapply loops over column names
-  X = colnames(X2),
-  FUN = function(arg){
-    crossprod(
-      c(1, 1, 3), # Weights to be used as categories
-      sapply(c("VLDL", "LDL", "HDL"), # metabolite classes
-             function(arg2){grepl(arg2, arg)} # compare class of metabolites
-      )
-    )
-    }
-  )
+<!-- * `install.packages("gplots")` -->
 
-alpX2 <- loadings(fit, "Yjoint", 1:2) %>%  # Retreive loadings
-  abs %>% # Absolute loading values for positive weights
-  rowSums %>% # Sum over the components
-  sqrt + (name_col>1) # Take square root
+<!-- A heatmap of metabolites, before and after imputation -->
+<!-- ```{r Heatmap of correlations} -->
+<!-- try( -->
+<!--   gplots::heatmap.2(cor(metab1,use = 'pair'), Rowv=F, Colv=F,  -->
+<!--                     breaks=seq(-1,1,length.out = 25), col=gplots::bluered), -->
+<!--   silent = TRUE) -->
+<!-- try( -->
+<!--   gplots::heatmap.2(cor(X2,use = 'pair'), Rowv=F, Colv=F,  -->
+<!--                     breaks=seq(-1,1,length.out = 25), col=gplots::bluered), -->
+<!--   silent = TRUE) -->
+<!-- ``` -->
+<!-- They are almost the same, indicating that the correlation structure within metabolites hasn't changed much. -->
 
-######### Plot loadings with OmicsPLS plot method ###
-p_X2 <- plot(fit, loading_name="Yj", i=1, j=2, label="c", # Plot the loadings
-             alpha=0) + # set points to be 100% transparant
-##################### Add all layers ###
-  theme_bw() + 
-  coord_fixed(ratio = 1, xlim=c(-.2,.2),ylim=c(-.2,.2)) +
-  geom_point( # Set color and size
-    aes(col=factor(name_col, levels = 4:1), size = I(1+(name_col>1)), shape = 
-          factor(name_col, levels = 4:1)),show.legend = T) +
-  theme(legend.position="right") + 
-  scale_color_discrete(name="Metabolite\nGroup", 
-                       labels=c("LDL","VLDL","HDL","Other")) +
-  guides(size=F) + scale_shape_discrete(name="Metabolite\nGroup", 
-                                        labels=c("LDL","VLDL","HDL","Other")) +
-labs(title = "Metabolite joint loadings", 
-     x = "First Joint Loadings", y = "Second Joint Loadings") +
-  theme(plot.title = element_text(face='bold'), 
-        legend.title=element_text(face='bold')) 
+<!-- To get an idea on the latent structure of the data one may look at eigenvalues of covariance matrix of `X1` and `X2`. -->
+<!-- ```{r Eigenvalues plot} -->
+<!-- svd(X1, 0, 0)$d[1:10]^2 / sum(X1^2) -->
+<!-- svd(X2, 0, 0)$d[1:10]^2 / sum(X2^2) -->
+<!-- svd(crossprod(X1,X2),0,0)$d[1:20] -->
+<!-- ``` -->
+<!-- The first two lines contain relative variances explained by each principal component. Strong latent structure is indicated by a sharp decline of the relative variances at the first few components. -->
 
-alpX1 <- loadings(fit, "Xjoint", 1:2) %>% raise_to_power(2) %>% rowSums
-alpX1[-(order(alpX1,decreasing=T)[1:10])] = 0
-alpX1 <- sign(alpX1)
-######### Plot loadings with OmicsPLS plot method ###
-p_X1 <- plot(fit, loading_name="Xj", i=1, j=2, label = "c", use_ggplot2 = TRUE,
-             alpha = alpX1, 
-             aes(label = stringr::str_sub(colnames(X1), start = 6)),
-             hjust = rep(c(0, 1), length.out = ncol(X1))) + 
-##################### Add all layers ###
-  theme_bw() + 
-  coord_fixed(.8, c(-.15,.15),c(-.15,.15)) +
-  geom_point(alpha = 0.5+0.5*alpX1, col = 'grey') + 
-  labs(title = "Transcript joint loadings", 
-       x = "First Joint Loadings", y = "Second Joint Loadings") +
-  theme(plot.title = element_text(face='bold'))
+<!-- Boxplots are a good summary to check the distribution of the variables relative to each other. Properties such as comparable means, variances and symmetry are often good to have. To reduce the number of boxplots we filter the transcriptomic data to include genes with 95\% highest expression and IQR.  -->
+<!-- ```{r Boxplots} -->
+<!-- boxplot(X1[,filter_rna(X1, .95)]) -->
+<!-- boxplot(X2) -->
+<!-- ``` -->
 
-## Finally plot both plots in one figure.
-grid.arrange(p_X2, p_X1, ncol=2)
-```
-Tweaking and adjusting the plots for publication can take some time, which also was here the case.
+<!-- ## The OmicsPLS package -->
+<!-- ### Cross-validation -->
 
-To visualize the decomposition, we will plot heatmaps of the correlation induced by the different parts. To do this we define a shortcut of the `gplots::heatmap.2` function. Here we need the `gplots` package.
-```{r Heatmap decomposition}
-library(gplots)
-hm.2 <- function(obj){
-  try(
-    heatmap.2(obj,Rowv=F,symm=T,col=colorRampPalette(c("blue","white","red"))(25),
-            dendrogram='none',trace='none',symkey=TRUE,breaks=seq(-1,1,length=26),
-            key = T),
-    silent = TRUE)
-}
-hm.2(cor(with(fit,U%*%t(C.))))
-hm.2(cor(with(fit,U_Xosc%*%t(P_Xosc.))))
-hm.2(cor(with(fit,Ff)))
-```
+<!-- We load the OmicsPLS package and set a seed for the cross-validation. The strategy is to have a relatively large grid to search on and apply the faster alternative Cross-Validation (Cv) approach to find a solution. Then on a smaller grid containing these integers we do a full CV to determine the best choice for the number of components. The objective function to minimize is the sum of the two prediction errors $||X-\hat{X}||$ and $||Y-\hat{Y}||$. -->
+<!-- ```{r Cross-Validation} -->
+<!-- library(OmicsPLS) -->
+<!-- set.seed(1+1+2016) -->
+<!-- #CV1 <- crossval_o2m_adjR2(X1, X2, 1:3, c(0,1,5,10), c(0,1,5,10), nr_folds = 2, nr_cores = 4) -->
+<!-- #CV2 <- crossval_o2m(X1, X2, 1:2, 0:2, 9:11, nr_folds = 10, nr_cores = 4) -->
+<!-- #CV1 -->
+<!-- #CV2 -->
+<!-- ``` -->
+<!-- Following the advice of the last CV output, we select two joint, one transcript-specific and ten metabolite-specific components. We fit the O2PLS model with default values as follows. -->
+<!-- ```{r Fit O2PLS} -->
+<!-- fit = o2m(X1, X2, 2, 1, 10) -->
+<!-- fit -->
+<!-- ``` -->
+
+<!-- A summary of the variation modeled is obtained via -->
+<!-- ```{r Summary of the fit} -->
+<!-- summary(fit) -->
+<!-- ``` -->
 
 
+<!-- ### Plotting -->
+<!-- **Packages needed** -->
 
-### CPU times 
-**Packages needed**
+<!-- * `install.packages("magrittr")` -->
+<!-- * `install.packages("ggplot2")` -->
+<!-- * `install.packages("gridExtra")` -->
+<!-- * `install.packages("stringr")` -->
+<!-- * `install.packages("gplots")` -->
 
-* `install.packages("microbenchmark")`
+<!-- We want to see which (groups of) metabolites and transcripts tend to correlate with each other. To do this we plot the loadings. The individual loading values per component indicate the relative importance of each variable to the corresponding component. We plot the two joint loadings against each other to see which metabolites are more important for each component.  -->
+<!-- To do this we need three packages for convenience: `magrittr` for the piping operator, `ggplot2` for plotting and `gridExtra` to put multiple ggplots in one figure. Also `stringr` will be needed to extract substrings of column names. -->
+<!-- ```{r Loadings plot} -->
+<!-- require(magrittr) -->
+<!-- require(ggplot2) -->
+<!-- require(gridExtra) -->
+<!-- # Color names -->
+<!-- name_col = 1 + sapply( #First sapply loops over column names -->
+<!--   X = colnames(X2), -->
+<!--   FUN = function(arg){ -->
+<!--     crossprod( -->
+<!--       c(1, 1, 3), # Weights to be used as categories -->
+<!--       sapply(c("VLDL", "LDL", "HDL"), # metabolite classes -->
+<!--              function(arg2){grepl(arg2, arg)} # compare class of metabolites -->
+<!--       ) -->
+<!--     ) -->
+<!--     } -->
+<!--   ) -->
 
-In OmicsPLS we added an alternative, memory-efficient, fitting algorithm (NIPALS) for high-dimensional data. This omits storing the whole covariance matrix of size $p$ times $q$. In case $p$ and $q$ are large, say larger than 3000 both, storing this becomes a memory intensive operation. To see how long `o2m` takes to fit, we consider three scenarios. They are timed with the `microbenchmark` function.
+<!-- alpX2 <- loadings(fit, "Yjoint", 1:2) %>%  # Retreive loadings -->
+<!--   abs %>% # Absolute loading values for positive weights -->
+<!--   rowSums %>% # Sum over the components -->
+<!--   sqrt + (name_col>1) # Take square root -->
 
-```{r CPU timings, cache=TRUE}
-set.seed(2016^2)
-fake_X <- scale(matrix(rnorm(1e2*1e4),1e2))
-fake_Y <- scale(matrix(rnorm(1e2*1e2),1e2))
-suppressMessages(
-  scenario1 <- microbenchmark::microbenchmark(
-    default=o2m(fake_X, fake_Y, 1, 1, 1),
-    stripped=o2m(fake_X, fake_Y, 1, 1, 1, stripped=T),
-    highD = o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1),
-    times = 5, unit = 's',control=list(warmup=1))
-)
+<!-- ######### Plot loadings with OmicsPLS plot method ### -->
+<!-- p_X2 <- plot(fit, loading_name="Yj", i=1, j=2, label="c", # Plot the loadings -->
+<!--              alpha=0) + # set points to be 100% transparant -->
+<!-- ##################### Add all layers ### -->
+<!--   theme_bw() +  -->
+<!--   coord_fixed(ratio = 1, xlim=c(-.2,.2),ylim=c(-.2,.2)) + -->
+<!--   geom_point( # Set color and size -->
+<!--     aes(col=factor(name_col, levels = 4:1), size = I(1+(name_col>1)), shape =  -->
+<!--           factor(name_col, levels = 4:1)),show.legend = T) + -->
+<!--   theme(legend.position="right") +  -->
+<!--   scale_color_discrete(name="Metabolite\nGroup",  -->
+<!--                        labels=c("LDL","VLDL","HDL","Other")) + -->
+<!--   guides(size=F) + scale_shape_discrete(name="Metabolite\nGroup",  -->
+<!--                                         labels=c("LDL","VLDL","HDL","Other")) + -->
+<!-- labs(title = "Metabolite joint loadings",  -->
+<!--      x = "First Joint Loadings", y = "Second Joint Loadings") + -->
+<!--   theme(plot.title = element_text(face='bold'),  -->
+<!--         legend.title=element_text(face='bold'))  -->
 
-fake_X <- scale(matrix(rnorm(1e2*2e3),1e2))
-fake_Y <- scale(matrix(rnorm(1e2*2e3),1e2))
-suppressMessages(
-  scenario2 <- microbenchmark::microbenchmark(
-    default=o2m(fake_X, fake_Y, 1, 1, 1),
-    stripped=o2m(fake_X, fake_Y, 1, 1, 1, stripped=T),
-    highD = o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1),
-    times = 5, unit = 's',control=list(warmup=1))
-)
+<!-- alpX1 <- loadings(fit, "Xjoint", 1:2) %>% raise_to_power(2) %>% rowSums -->
+<!-- alpX1[-(order(alpX1,decreasing=T)[1:10])] = 0 -->
+<!-- alpX1 <- sign(alpX1) -->
+<!-- ######### Plot loadings with OmicsPLS plot method ### -->
+<!-- p_X1 <- plot(fit, loading_name="Xj", i=1, j=2, label = "c", use_ggplot2 = TRUE, -->
+<!--              alpha = alpX1,  -->
+<!--              aes(label = stringr::str_sub(colnames(X1), start = 6)), -->
+<!--              hjust = rep(c(0, 1), length.out = ncol(X1))) +  -->
+<!-- ##################### Add all layers ### -->
+<!--   theme_bw() +  -->
+<!--   coord_fixed(.8, c(-.15,.15),c(-.15,.15)) + -->
+<!--   geom_point(alpha = 0.5+0.5*alpX1, col = 'grey') +  -->
+<!--   labs(title = "Transcript joint loadings",  -->
+<!--        x = "First Joint Loadings", y = "Second Joint Loadings") + -->
+<!--   theme(plot.title = element_text(face='bold')) -->
 
-fake_X <- scale(matrix(rnorm(1e2*5e4),1e2))
-fake_Y <- scale(matrix(rnorm(1e2*5e4),1e2))
-try(o2m(fake_X, fake_Y, 1, 1, 1, p_thresh=1e6))
-try(o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1e6))
-o2m(fake_X, fake_Y, 1, 1, 1, stripped=T)
-rm(fake_X)
-rm(fake_Y)
+<!-- ## Finally plot both plots in one figure. -->
+<!-- grid.arrange(p_X2, p_X1, ncol=2) -->
+<!-- ``` -->
+<!-- Tweaking and adjusting the plots for publication can take some time, which also was here the case. -->
 
-```
+<!-- To visualize the decomposition, we will plot heatmaps of the correlation induced by the different parts. To do this we define a shortcut of the `gplots::heatmap.2` function. Here we need the `gplots` package. -->
+<!-- ```{r Heatmap decomposition} -->
+<!-- library(gplots) -->
+<!-- hm.2 <- function(obj){ -->
+<!--   try( -->
+<!--     heatmap.2(obj,Rowv=F,symm=T,col=colorRampPalette(c("blue","white","red"))(25), -->
+<!--             dendrogram='none',trace='none',symkey=TRUE,breaks=seq(-1,1,length=26), -->
+<!--             key = T), -->
+<!--     silent = TRUE) -->
+<!-- } -->
+<!-- hm.2(cor(with(fit,U%*%t(C.)))) -->
+<!-- hm.2(cor(with(fit,U_Xosc%*%t(P_Xosc.)))) -->
+<!-- hm.2(cor(with(fit,Ff))) -->
+<!-- ``` -->
+
+
+
+<!-- ### CPU times  -->
+<!-- **Packages needed** -->
+
+<!-- * `install.packages("microbenchmark")` -->
+
+<!-- In OmicsPLS we added an alternative, memory-efficient, fitting algorithm (NIPALS) for high-dimensional data. This omits storing the whole covariance matrix of size $p$ times $q$. In case $p$ and $q$ are large, say larger than 3000 both, storing this becomes a memory intensive operation. To see how long `o2m` takes to fit, we consider three scenarios. They are timed with the `microbenchmark` function. -->
+
+<!-- ```{r CPU timings, cache=TRUE} -->
+<!-- set.seed(2016^2) -->
+<!-- fake_X <- scale(matrix(rnorm(1e2*1e4),1e2)) -->
+<!-- fake_Y <- scale(matrix(rnorm(1e2*1e2),1e2)) -->
+<!-- suppressMessages( -->
+<!--   scenario1 <- microbenchmark::microbenchmark( -->
+<!--     default=o2m(fake_X, fake_Y, 1, 1, 1), -->
+<!--     stripped=o2m(fake_X, fake_Y, 1, 1, 1, stripped=T), -->
+<!--     highD = o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1), -->
+<!--     times = 5, unit = 's',control=list(warmup=1)) -->
+<!-- ) -->
+
+<!-- fake_X <- scale(matrix(rnorm(1e2*2e3),1e2)) -->
+<!-- fake_Y <- scale(matrix(rnorm(1e2*2e3),1e2)) -->
+<!-- suppressMessages( -->
+<!--   scenario2 <- microbenchmark::microbenchmark( -->
+<!--     default=o2m(fake_X, fake_Y, 1, 1, 1), -->
+<!--     stripped=o2m(fake_X, fake_Y, 1, 1, 1, stripped=T), -->
+<!--     highD = o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1), -->
+<!--     times = 5, unit = 's',control=list(warmup=1)) -->
+<!-- ) -->
+
+<!-- fake_X <- scale(matrix(rnorm(1e2*5e4),1e2)) -->
+<!-- fake_Y <- scale(matrix(rnorm(1e2*5e4),1e2)) -->
+<!-- try(o2m(fake_X, fake_Y, 1, 1, 1, p_thresh=1e6)) -->
+<!-- try(o2m(fake_X, fake_Y, 1, 1, 1, stripped=T, p_thresh=1e6)) -->
+<!-- o2m(fake_X, fake_Y, 1, 1, 1, stripped=T) -->
+<!-- rm(fake_X) -->
+<!-- rm(fake_Y) -->
+
+<!-- ``` -->
 
 
