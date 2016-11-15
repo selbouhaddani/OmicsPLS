@@ -40,7 +40,7 @@ data.frame with four columns: MSE, n, nx and ny. Each row corresponds to an elem
 Combines CV with R2 optimization
 }
 \details{
-This is an alternative way of cross-validating. It is proposed in \code{citation(O2PLS)}. 
+This is an alternative way of cross-validating. It is proposed in \code{citation(OmicsPLS)}. 
 This approach is (much) faster than the standard \code{crossval_o2m} approach and works fine even with two folds.
 For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model. 
 This approach often yields similar integer as the standard approach. 

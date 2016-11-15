@@ -43,7 +43,7 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   
   if(Sys.info()[["sysname"]] == "Windows" && nr_cores > 1){
     cl_crossval_o2m <- makePSOCKcluster(nr_cores)
-    clusterEvalQ(cl_crossval_o2m, library(O2PLS))
+    clusterEvalQ(cl_crossval_o2m, library(OmicsPLS))
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
       suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
@@ -81,7 +81,7 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' 
 #' @inheritParams crossval_o2m
 #' 
-#' @details This is an alternative way of cross-validating. It is proposed in \code{citation(O2PLS)}. 
+#' @details This is an alternative way of cross-validating. It is proposed in \code{citation(OmicsPLS)}. 
 #' This approach is (much) faster than the standard \code{crossval_o2m} approach and works fine even with two folds.
 #' For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model. 
 #' This approach often yields similar integer as the standard approach. 
@@ -114,7 +114,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   
   if(Sys.info()[["sysname"]] == "Windows" && nr_cores > 1){
     cl_crossval_o2m <- makePSOCKcluster(nr_cores)
-    clusterEvalQ(cl_crossval_o2m, library(O2PLS))
+    clusterEvalQ(cl_crossval_o2m, library(OmicsPLS))
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
       parms = data.frame(nx = ax)

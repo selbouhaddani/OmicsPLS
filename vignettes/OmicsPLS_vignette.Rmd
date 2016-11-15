@@ -74,7 +74,7 @@ set.seed(1221L)
 crossval_o2m_adjR2(X, Y, 1:3, 0:3, 0:3, nr_folds = 2)
 crossval_o2m(X, Y, 1:3, 0:3, 0:3, nr_folds = 10)
 ```
-The alternative cross-validation suggests one component in all parts. The full cross-validation suggests one joint and one $X$-specific component. Although the full CV got it right, the alternative yielded similar answers in much less CPU time (a factor of ten faster). This is partly because we use more folds, but decreasing the number of folds to two yielded unreliable results for the full CV.
+The alternative cross-validation suggests one component in all parts. The full cross-validation suggests one joint and one $X$-specific component. Although the full CV got it right, the alternative yielded similar answers in much less CPU time. This is partly because we use more folds, but decreasing the number of folds to two yielded unreliable results for the full CV.
 
 We now fit the O2PLS model.
 ```{r}
@@ -104,7 +104,7 @@ plot(fit0, "Xo")
 <!--   maxGE <- apply(rna, 2, max) -->
 <!--   propGEmax <- quantile(maxGE, prop) -->
 <!--   #next, take the IQR of each gene, to capture the variability and check the top 25% genes according to the size of IQR -->
-<!--   IQRGE <- apply(rna, 2, IQR, na.rm=TRUE)  -->
+<!--   IQRGE <- apply(rna, 2, IQR, na.rm=TRUE) -->
 <!--   propGEIQR <- quantile(IQRGE, prop) -->
 <!--   #selected genes/probes is the intersection of the two previous sets -->
 <!--   filter2 <- (intersect(which(maxGE> propGEmax), which(IQRGE> propGEIQR))) -->
@@ -147,7 +147,7 @@ plot(fit0, "Xo")
 <!-- Note that we have missingness in the metabolite data. The functions in OmicsPLS currently cannot impute this, so we need to do some imputation ourselves. -->
 <!-- Some diagostics on the missingness in the metabolite data can be obtained. Firstly we plot a histogram of the missing data. We need the `VIM` package for this. -->
 <!-- ```{r Visualize missingness} -->
-<!-- VIM::aggr(metab1, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE,  -->
+<!-- VIM::aggr(metab1, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, -->
 <!--      labels=names(data), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern")) -->
 <!-- ``` -->
 
@@ -176,11 +176,11 @@ plot(fit0, "Xo")
 <!-- A heatmap of metabolites, before and after imputation -->
 <!-- ```{r Heatmap of correlations} -->
 <!-- try( -->
-<!--   gplots::heatmap.2(cor(metab1,use = 'pair'), Rowv=F, Colv=F,  -->
+<!--   gplots::heatmap.2(cor(metab1,use = 'pair'), Rowv=F, Colv=F, -->
 <!--                     breaks=seq(-1,1,length.out = 25), col=gplots::bluered), -->
 <!--   silent = TRUE) -->
 <!-- try( -->
-<!--   gplots::heatmap.2(cor(X2,use = 'pair'), Rowv=F, Colv=F,  -->
+<!--   gplots::heatmap.2(cor(X2,use = 'pair'), Rowv=F, Colv=F, -->
 <!--                     breaks=seq(-1,1,length.out = 25), col=gplots::bluered), -->
 <!--   silent = TRUE) -->
 <!-- ``` -->
@@ -194,7 +194,7 @@ plot(fit0, "Xo")
 <!-- ``` -->
 <!-- The first two lines contain relative variances explained by each principal component. Strong latent structure is indicated by a sharp decline of the relative variances at the first few components. -->
 
-<!-- Boxplots are a good summary to check the distribution of the variables relative to each other. Properties such as comparable means, variances and symmetry are often good to have. To reduce the number of boxplots we filter the transcriptomic data to include genes with 95\% highest expression and IQR.  -->
+<!-- Boxplots are a good summary to check the distribution of the variables relative to each other. Properties such as comparable means, variances and symmetry are often good to have. To reduce the number of boxplots we filter the transcriptomic data to include genes with 95\% highest expression and IQR. -->
 <!-- ```{r Boxplots} -->
 <!-- boxplot(X1[,filter_rna(X1, .95)]) -->
 <!-- boxplot(X2) -->
@@ -233,7 +233,7 @@ plot(fit0, "Xo")
 <!-- * `install.packages("stringr")` -->
 <!-- * `install.packages("gplots")` -->
 
-<!-- We want to see which (groups of) metabolites and transcripts tend to correlate with each other. To do this we plot the loadings. The individual loading values per component indicate the relative importance of each variable to the corresponding component. We plot the two joint loadings against each other to see which metabolites are more important for each component.  -->
+<!-- We want to see which (groups of) metabolites and transcripts tend to correlate with each other. To do this we plot the loadings. The individual loading values per component indicate the relative importance of each variable to the corresponding component. We plot the two joint loadings against each other to see which metabolites are more important for each component. -->
 <!-- To do this we need three packages for convenience: `magrittr` for the piping operator, `ggplot2` for plotting and `gridExtra` to put multiple ggplots in one figure. Also `stringr` will be needed to extract substrings of column names. -->
 <!-- ```{r Loadings plot} -->
 <!-- require(magrittr) -->
@@ -261,34 +261,34 @@ plot(fit0, "Xo")
 <!-- p_X2 <- plot(fit, loading_name="Yj", i=1, j=2, label="c", # Plot the loadings -->
 <!--              alpha=0) + # set points to be 100% transparant -->
 <!-- ##################### Add all layers ### -->
-<!--   theme_bw() +  -->
+<!--   theme_bw() + -->
 <!--   coord_fixed(ratio = 1, xlim=c(-.2,.2),ylim=c(-.2,.2)) + -->
 <!--   geom_point( # Set color and size -->
-<!--     aes(col=factor(name_col, levels = 4:1), size = I(1+(name_col>1)), shape =  -->
+<!--     aes(col=factor(name_col, levels = 4:1), size = I(1+(name_col>1)), shape = -->
 <!--           factor(name_col, levels = 4:1)),show.legend = T) + -->
-<!--   theme(legend.position="right") +  -->
-<!--   scale_color_discrete(name="Metabolite\nGroup",  -->
+<!--   theme(legend.position="right") + -->
+<!--   scale_color_discrete(name="Metabolite\nGroup", -->
 <!--                        labels=c("LDL","VLDL","HDL","Other")) + -->
-<!--   guides(size=F) + scale_shape_discrete(name="Metabolite\nGroup",  -->
+<!--   guides(size=F) + scale_shape_discrete(name="Metabolite\nGroup", -->
 <!--                                         labels=c("LDL","VLDL","HDL","Other")) + -->
-<!-- labs(title = "Metabolite joint loadings",  -->
+<!-- labs(title = "Metabolite joint loadings", -->
 <!--      x = "First Joint Loadings", y = "Second Joint Loadings") + -->
-<!--   theme(plot.title = element_text(face='bold'),  -->
-<!--         legend.title=element_text(face='bold'))  -->
+<!--   theme(plot.title = element_text(face='bold'), -->
+<!--         legend.title=element_text(face='bold')) -->
 
 <!-- alpX1 <- loadings(fit, "Xjoint", 1:2) %>% raise_to_power(2) %>% rowSums -->
 <!-- alpX1[-(order(alpX1,decreasing=T)[1:10])] = 0 -->
 <!-- alpX1 <- sign(alpX1) -->
 <!-- ######### Plot loadings with OmicsPLS plot method ### -->
 <!-- p_X1 <- plot(fit, loading_name="Xj", i=1, j=2, label = "c", use_ggplot2 = TRUE, -->
-<!--              alpha = alpX1,  -->
+<!--              alpha = alpX1, -->
 <!--              aes(label = stringr::str_sub(colnames(X1), start = 6)), -->
-<!--              hjust = rep(c(0, 1), length.out = ncol(X1))) +  -->
+<!--              hjust = rep(c(0, 1), length.out = ncol(X1))) + -->
 <!-- ##################### Add all layers ### -->
-<!--   theme_bw() +  -->
+<!--   theme_bw() + -->
 <!--   coord_fixed(.8, c(-.15,.15),c(-.15,.15)) + -->
-<!--   geom_point(alpha = 0.5+0.5*alpX1, col = 'grey') +  -->
-<!--   labs(title = "Transcript joint loadings",  -->
+<!--   geom_point(alpha = 0.5+0.5*alpX1, col = 'grey') + -->
+<!--   labs(title = "Transcript joint loadings", -->
 <!--        x = "First Joint Loadings", y = "Second Joint Loadings") + -->
 <!--   theme(plot.title = element_text(face='bold')) -->
 
@@ -314,7 +314,7 @@ plot(fit0, "Xo")
 
 
 
-<!-- ### CPU times  -->
+<!-- ### CPU times -->
 <!-- **Packages needed** -->
 
 <!-- * `install.packages("microbenchmark")` -->
