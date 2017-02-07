@@ -21,4 +21,3 @@ pow_o2m2(X, Y, n, tol = 1e-10, max_iterations = 100)
 Performs power method for PLS2 loadings.
 }
 \keyword{internal}
-

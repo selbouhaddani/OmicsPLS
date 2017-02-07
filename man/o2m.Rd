@@ -83,4 +83,3 @@ hist(replicate(1000,
 \seealso{
 \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
 }
-

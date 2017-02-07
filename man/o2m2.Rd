@@ -77,4 +77,3 @@ system.time(
 \code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}
 }
 \keyword{internal}
-

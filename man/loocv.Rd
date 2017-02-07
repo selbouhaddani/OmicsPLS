@@ -53,4 +53,3 @@ The resulting output is a list, which is more easy to interpret if you use \code
 The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
 Typing \code{example(loocv)} (hopefully) clarifies this function.
 }
-

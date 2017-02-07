@@ -16,4 +16,3 @@ Readable output is given in the form of percentages of variances explained.
 summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 }
 \keyword{internal}
-

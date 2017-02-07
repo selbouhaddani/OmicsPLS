@@ -26,4 +26,3 @@ This is a symmetrized version of \code{\link{rmsep}}, and is used by \code{\link
 Whether this is a good idea depends: If \eqn{X} and \eqn{Y} have similar meanings (LC-MS versus MALDI) this is a good thing to do. If the two matrices do not have similar meanings,
 (Metabolomics versus Transcriptomics) then you may want to not sum up the two prediction errors or include weights in the sum.
 }
-

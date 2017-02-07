@@ -51,4 +51,3 @@ In case of some error, don't forget to invoke \code{stopCluster(cl)} to end the 
 
 See \code{\link{loocv}} for more intuition.
 }
-

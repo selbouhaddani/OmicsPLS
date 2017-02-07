@@ -46,4 +46,3 @@ This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data an
 \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
 }
 \keyword{internal}
-

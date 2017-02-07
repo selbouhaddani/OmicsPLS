@@ -54,4 +54,3 @@ crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2,
              nr_folds = 5, nr_cores = 1)
 })
 }
-

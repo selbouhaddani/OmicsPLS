@@ -22,4 +22,3 @@ This is the Frobenius norm of \eqn{X}.
 ssq(tcrossprod(1:5))
 ssq(rnorm(1e5))/1e5
 }
-

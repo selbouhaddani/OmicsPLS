@@ -24,4 +24,3 @@ Predicts X or Y based on new data on Y or X
 \examples{
 predict(o2m(scale(1:10), scale(1:10), 1, 0, 0), newdata = scale(1:5), XorY = "X")
 }
-

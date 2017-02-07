@@ -14,4 +14,3 @@
 \description{
 This function is the print method for an O2PLS fit
 }
-

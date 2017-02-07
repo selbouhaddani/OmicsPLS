@@ -16,4 +16,3 @@
 \description{
 Cross-validate procedure for O2PLS
 }
-

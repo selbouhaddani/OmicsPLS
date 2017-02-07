@@ -24,4 +24,3 @@ Calculates the Root MSE of prediction on test data. Only tested to work inside \
 \details{
 This function is the building block for \code{\link{loocv}}, as it produced the prediction error for test (left out) data.
 }
-

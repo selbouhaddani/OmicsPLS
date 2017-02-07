@@ -87,6 +87,7 @@ The original paper proposing O2PLS is
 \emph{O2-PLS, a two-block (X-Y) latent variable regression (LVR) method with an integral OSC filter.} 
 Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 }
+
 \author{
 Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),
 Jeanine Houwing-Duistermaat (\email{J.J.Houwing@lumc.nl}),
@@ -97,4 +98,3 @@ Hae-Won Uh (\email{H.Uh@lumc.nl}).
 Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}).
 }
 \keyword{OmicsPLS}
-

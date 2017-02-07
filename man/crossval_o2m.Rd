@@ -54,4 +54,3 @@ crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2,
 })
 
 }
-

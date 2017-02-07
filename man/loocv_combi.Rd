@@ -49,4 +49,3 @@ The prediction error of both \code{X~Xhat} and \code{Y~Yhat} are summed. This pr
 Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 If there are NAs in the CVerr component, this is due to an error in the fitting.
 }
-
