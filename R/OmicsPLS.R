@@ -732,7 +732,7 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
   dimnames(loading_matrix) <- dim_names
   
   if(sorted){
-    order_load = order(loading_matrix[,1])
+    order_load = order(loading_matrix[,1]^2, decreasing = TRUE)
     if(is.null(dim_names[[1]])) dim_names[[1]] <- order_load
     loading_matrix = loading_matrix[order_load,]
   }
