@@ -1,7 +1,7 @@
 citHeader("To cite O2PLS in publications, please use:")
 
 citEntry(entry = "article",
-  author="Said el Bouhaddani and Jeanine Houwing-Duistermaat and Perttu Salo and Markus Perola and Geurt Jongbloed and {Hae-Won} Uh",
+  author="Said el Bouhaddani and Jeanine Houwing-Duistermaat and Perttu Salo and Markus Perola and Geurt Jongbloed and Hae-Won Uh",
 title="Evaluation of O2PLS in Omics data integration",
 journal="BMC Bioinformatics",
 year="2016",
