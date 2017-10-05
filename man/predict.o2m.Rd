@@ -21,6 +21,9 @@ Predicted Data
 \description{
 Predicts X or Y based on new data on Y or X
 }
+\details{
+Prediction is done after correcting for orthogonal parts.
+}
 \examples{
 predict(o2m(scale(1:10), scale(1:10), 1, 0, 0), newdata = scale(1:5), XorY = "X")
 }

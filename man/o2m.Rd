@@ -68,18 +68,21 @@ The squared error between iterands in the NIPALS approach can be adjusted with \
 The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
 }
 \examples{
-test.data <- scale(matrix(rnorm(100)))
-hist(replicate(1000,
-         o2m(test.data,scale(matrix(rnorm(100))),1,0,0)$B_T.
-     ),main='No joint variation',xlab='B_T',xlim=c(0,0.6));
-hist(replicate(1000,
-         o2m(test.data,scale(test.data+rnorm(100))/2,1,0,0)$B_T.
-    ),main='B_T = 0.5 \\n 25\% joint variation',xlab='B_T',xlim=c(0,0.6));
-hist(replicate(1000,
-         o2m(test.data,scale(test.data+rnorm(100,0,0.1))/2,1,0,0)$B_T.
-    ),main='B_T = 0.5 \\n 90\% joint variation',xlab='B_T',xlim=c(0,0.6));
+test_X <- scale(matrix(rnorm(100*10),100,10))
+test_Y <- scale(matrix(rnorm(100*11),100,11))
+#  --------- Default run ------------ 
+o2m(test_X, test_Y, 3, 2, 1)
+#  ---------- Stripped version ------------- 
+o2m(test_X, test_Y, 3, 2, 1, stripped = TRUE)
+#  ---------- High dimensional version ---------- 
+o2m(test_X, test_Y, 3, 2, 1, p_thresh = 1)
+#  ------ High D and stripped version --------- 
+o2m(test_X, test_Y, 3, 2, 1, stripped = TRUE, p_thresh = 1)
+#  ------ Now with more iterations -------- 
+o2m(test_X, test_Y, 3, 2, 1, stripped = TRUE, p_thresh = 1, max_iterations = 1e6)
+#  ---------------------------------- 
 
 }
 \seealso{
-\code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
+\code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
 }

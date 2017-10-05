@@ -29,3 +29,6 @@ If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
 \description{
 This function plots one or two loading vectors, by default with ggplot2.
 }
+\seealso{
+\code{\link{summary.o2m}}
+}
