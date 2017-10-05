@@ -544,6 +544,8 @@ print.o2m <- function (x, ...) {
 #' 
 #' @return If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
 #' 
+#' @seealso \code{\link{summary.o2m}}
+#' 
 #' @export
 plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
@@ -601,6 +603,9 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
 #' @return List with R2 values.
 #' @examples
 #' summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#' 
+#' @seealso \code{\link{plot.o2m}}
+#' 
 #' @export
 summary.o2m <- function(object, digits = 3, ...) {
   fit <- object
@@ -614,8 +619,8 @@ summary.o2m <- function(object, digits = 3, ...) {
     R2_Yjoint = R2Ycorr,
     R2_Xhat = R2Xhat,
     R2_Yhat = R2Yhat,
-    R2_Xpred = 1 - ssq(H_TU)/ssq(Tt),
-    R2_Ypred = 1 - ssq(H_UT)/ssq(U),
+    R2_Xpred = R2Xhat / R2Xcorr,
+    R2_Ypred = R2Yhat / R2Ycorr,
     B_T = B_T.,
     B_U = B_U,
     flags = flags,
@@ -706,6 +711,9 @@ print.summary.o2m <- function(x, ...){
 #' @return Loading matrix
 #' @examples
 #' loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#' 
+#' @seealso \code{\link{scores.o2m}}
+#' 
 #' @rdname loadings
 #' @export
 loadings <- function(x, ...) UseMethod("loadings")
@@ -739,6 +747,34 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
   return(loading_matrix)
 }
 
+#' Extract the scores from an O2PLS fit
+#'
+#' This function extracts score matrices from an O2PLS fit
+#' 
+#' @inheritParams loadings
+#' @param which_part character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param subset subset of scores vectors to be extracted.
+#' @param ... Ignored for now.
+#' 
+#' @seealso \code{\link{loadings}}
+#' 
+#' @export
+scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
+                         subset = 0, ...) {
+  if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
+  
+  which_part = match.arg(which_part)
+  which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc.", Yorth = "U_Xosc.")
+  scores_matrix = x[[which_scores]]
+  dim_names = dimnames(scores_matrix)
+  if(length(subset) == 1 && subset == 0) subset = 1:ncol(scores_matrix)
+  if(max(subset) > ncol(scores_matrix)) stop("Elements in subset exceed #components")
+  scores_matrix = as.matrix(scores_matrix[,subset])
+  dimnames(scores_matrix) <- dim_names
+  
+  return(scores_matrix)
+}
+
 #' Predicts X or Y
 #'
 #' Predicts X or Y based on new data on Y or X
@@ -748,6 +784,9 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 #' @param XorY Character specifying whether \code{newdata} is X or Y.
 #' 
 #' @return Predicted Data
+#' 
+#' @details Prediction is done after correcting for orthogonal parts.
+#' 
 #' @examples
 #' predict(o2m(scale(1:10), scale(1:10), 1, 0, 0), newdata = scale(1:5), XorY = "X")
 #' @export

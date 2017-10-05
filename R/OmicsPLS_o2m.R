@@ -48,18 +48,15 @@
 #' The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
 #'
 #' @examples
-#' test.data <- scale(matrix(rnorm(100)))
-#' hist(replicate(1000,
-#'          o2m(test.data,scale(matrix(rnorm(100))),1,0,0)$B_T.
-#'      ),main='No joint variation',xlab='B_T',xlim=c(0,0.6));
-#' hist(replicate(1000,
-#'          o2m(test.data,scale(test.data+rnorm(100))/2,1,0,0)$B_T.
-#'     ),main='B_T = 0.5 \n 25% joint variation',xlab='B_T',xlim=c(0,0.6));
-#' hist(replicate(1000,
-#'          o2m(test.data,scale(test.data+rnorm(100,0,0.1))/2,1,0,0)$B_T.
-#'     ),main='B_T = 0.5 \n 90% joint variation',xlab='B_T',xlim=c(0,0.6));
+#' test_X <- scale(matrix(rnorm(100*10,100,10)))
+#' test_Y <- scale(matrix(rnorm(100*11,100,11)))
+#' o2m(test_X, test_Y, 3, 2, 1)
+#' o2m(test_X, test_Y, 3, 2, 1, scaled = TRUE)
+#' o2m(test_X, test_Y, 3, 2, 1, p_thresh = 1)
+#' o2m(test_X, test_Y, 3, 2, 1, scaled = TRUE, p_thresh = 1)
+#' o2m(test_X, test_Y, 3, 2, 1, scaled = TRUE, p_thresh = 1, max_iterations = 1e6)
 #'
-#' @seealso \code{\link{ssq}}, \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
+#' @seealso \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
@@ -82,7 +79,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   
   ssqX = ssq(X)
   ssqY = ssq(Y)
-  
+  if(length(n)>1 | length(nx)>1 | length(ny)>1)
+    stop("Number of components should be scalars, not vectors")
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
     stop("n + max(nx, ny) =", n + max(nx, ny), " exceed # columns in X or Y")
   if(nx != round(abs(nx)) || ny != round(abs(ny))) 
@@ -106,7 +104,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   highd = FALSE
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
     highd = TRUE
-    message("Using Power Method with tolerance ",tol," and max iterations ",max_iterations)
+    message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
     model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)

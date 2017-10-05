@@ -45,4 +45,5 @@ test_that("S3 Methods are working OK", {
   expect_error(plot(fit), NA)
   expect_error(loadings(fit), NA)
   expect_error(predict(fit,t(1:3)), NA)
+  expect_error(scores.o2m(fit), NA)
 })
