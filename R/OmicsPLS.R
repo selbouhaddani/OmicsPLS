@@ -750,14 +750,27 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 #' Extract the scores from an O2PLS fit
 #'
 #' This function extracts score matrices from an O2PLS fit
+#'
+#' @param x Object of class \code{o2m}
+#' @param ... For consistency
 #' 
-#' @inheritParams loadings
+#' @return Scores matrix
+#' @examples
+#' scores(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
+#' 
+#' @seealso \code{\link{loadings.o2m}}
+#' 
+#' @rdname scores
+#' @export
+scores <- function(x, ...) UseMethod("scores")
+
+
+#' @inheritParams scores
 #' @param which_part character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
 #' @param subset subset of scores vectors to be extracted.
-#' @param ... Ignored for now.
 #' 
-#' @seealso \code{\link{loadings}}
 #' 
+#' @rdname scores
 #' @export
 scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
                          subset = 0, ...) {
