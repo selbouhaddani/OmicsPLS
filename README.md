@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/selbouhaddani/OmicsPLS.svg?branch=master)](https://travis-ci.org/selbouhaddani/OmicsPLS)
+[![Build Status](https://cranlogs.r-pkg.org/badges/last-month/OmicsPLS)](https://cran.r-project.org/package=OmicsPLS)
+
 # OmicsPLS
 
 Welcome to the OmicsPLS package page on Github! It contains an implementation of O2PLS.
