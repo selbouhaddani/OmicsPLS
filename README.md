@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/selbouhaddani/OmicsPLS.svg?branch=master)](https://travis-ci.org/selbouhaddani/OmicsPLS)
+[![codecov](https://codecov.io/gh/selbouhaddani/OmicsPLS/branch/master/graph/badge.svg)](https://codecov.io/gh/selbouhaddani/OmicsPLS)
 [![Build Status](https://cranlogs.r-pkg.org/badges/last-month/OmicsPLS)](https://cran.r-project.org/package=OmicsPLS)
 
 # OmicsPLS
