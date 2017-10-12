@@ -27,6 +27,9 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                          stripped = TRUE, p_thresh = 3000, 
                          q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
   tic = proc.time()
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
+  #input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
   stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
@@ -101,6 +104,8 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                                q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   tic = proc.time()
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
   stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)

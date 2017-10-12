@@ -7,6 +7,8 @@ test_that("Normal input goes without error", {
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, stripped = TRUE), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1, stripped = TRUE), NA)
+  expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
+  expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
 })
 
 # test_that("Examples run", {
@@ -18,7 +20,7 @@ test_that("Normal input goes without error", {
 #   expect_error(example("loadings.o2m",package = "OmicsPLS"), NA)
 # })
 
-test_that("Errors in o2m are thrown", {
+test_that("Errors in *o2m* are thrown", {
   expect_error(o2m(diag(3),diag(4),1,0,0),                   "rows")
   expect_error(o2m(matrix(1:9,3),matrix(1:9,3),0,1,1),       "n")
   expect_error(o2m(matrix(c(1:8,NA),3),matrix(1:9,3),1,1,1), "NA")
@@ -27,6 +29,20 @@ test_that("Errors in o2m are thrown", {
   expect_error(o2m(diag(4),diag(4),1.5,0,0),                 "n")
   expect_error(o2m(diag(4),diag(4),1,1.5,0),                 "nx")
   expect_error(o2m(diag(4),diag(4),1,0,1.5),                 "ny")
+  expect_error(crossval_o2m(diag(3),diag(4),1,0,0,2)                   )
+  expect_error(crossval_o2m(matrix(c(1:8,NA),3),matrix(1:9,3),1,1,1,2) )
+  expect_error(crossval_o2m(matrix(1:9,3),matrix(c(1:8,NaN),3),1,1,1,2))
+  expect_warning(crossval_o2m(matrix(1:9,3),matrix(c(1:8,Inf),3),1,1,1,2))
+  expect_error(crossval_o2m(diag(4),diag(4),1.5,0,0,2)                 )
+  expect_error(crossval_o2m(diag(4),diag(4),1,1.5,0,2)                 )
+  expect_error(crossval_o2m(diag(4),diag(4),1,0,1.5,2)                 )
+  expect_error(crossval_o2m_adjR2(diag(3),diag(4),1,0,0,2)                   )
+  expect_error(crossval_o2m_adjR2(matrix(c(1:8,NA),3),matrix(1:9,3),1,1,1,2))
+  expect_error(crossval_o2m_adjR2(matrix(1:9,3),matrix(c(1:8,NaN),3),1,1,1,2))
+  expect_error(crossval_o2m_adjR2(matrix(1:9,3),matrix(c(1:8,Inf),3),1,1,1,2))
+  expect_error(crossval_o2m_adjR2(diag(4),diag(4),1.5,0,0,2)                 )
+  expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,1.5,0,2)                 )
+  expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,0,1.5,2)                 )
 })
 
 test_that("size, ratios and names are correct", {
@@ -39,11 +55,22 @@ test_that("size, ratios and names are correct", {
 })
 
 test_that("S3 Methods are working OK", {
-  fit = o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),1,0,0)
+  fit = o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),2,0,0)
   expect_error(print(fit), NA)
   expect_error(summary(fit), NA)
+  expect_error(invisible(print(summary(fit))), NA)
   expect_error(plot(fit), NA)
+  expect_error(plot(fit, use_ggplot2=FALSE, i=1,j=2), NA)
   expect_error(loadings(fit), NA)
+  expect_error(loadings(fit,sorted=TRUE), NA)
   expect_error(predict(fit,t(1:3)), NA)
-  expect_error(scores.o2m(fit), NA)
+  expect_error(scores(fit), NA)
+  expect_error(rmsep(1:10%*%t(1:3), 1:10%*%t(1:3), fit), NA)
+  #expect_error(loocv(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, fit, app_err = TRUE, kcv=2), NA)
+})
+
+test_that("Misc functions are working", {
+  expect_error(orth(1:10), NA)
+  expect_error(orth(1:10, 1:10, type="SVD"), NA)
+  expect_error(adjR2(1:10, 1:10, 1, 0, 0), NA)
 })

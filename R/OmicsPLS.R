@@ -245,7 +245,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
     app_err <- F
-    warning("apparent error calculated with provided fit")
+    message("apparent error calculated with provided fit")
   }
   # determine type of model
   type <- 3  #ifelse(deparse(substitute(func))=='o2m',3,ifelse(deparse(substitute(func))=='oplsm',2,1))
@@ -328,6 +328,8 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NU
                   q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
+  X <- as.matrix(X)
+  Y <- as.matrix(Y)
   input_checker(X, Y)
   cl_was_null <- FALSE
   if (!parall) {
