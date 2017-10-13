@@ -1,3 +1,4 @@
+[![GPL-3](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 [![Build Status](https://travis-ci.org/selbouhaddani/OmicsPLS.svg?branch=master)](https://travis-ci.org/selbouhaddani/OmicsPLS)
 [![codecov](https://codecov.io/gh/selbouhaddani/OmicsPLS/branch/master/graph/badge.svg)](https://codecov.io/gh/selbouhaddani/OmicsPLS)
 [![Build Status](https://cranlogs.r-pkg.org/badges/last-month/OmicsPLS)](https://cran.r-project.org/package=OmicsPLS)
