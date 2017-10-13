@@ -9,6 +9,9 @@ test_that("Normal input goes without error", {
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1, stripped = TRUE), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
+  expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
+  expect_error(print(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2)), NA)
+  expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
 })
 
 # test_that("Examples run", {
@@ -66,7 +69,7 @@ test_that("S3 Methods are working OK", {
   expect_error(predict(fit,t(1:3)), NA)
   expect_error(scores(fit), NA)
   expect_error(rmsep(1:10%*%t(1:3), 1:10%*%t(1:3), fit), NA)
-  #expect_error(loocv(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, fit, app_err = TRUE, kcv=2), NA)
+  expect_error(loocv(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, fit, app_err = TRUE, kcv=2), NA)
 })
 
 test_that("Misc functions are working", {

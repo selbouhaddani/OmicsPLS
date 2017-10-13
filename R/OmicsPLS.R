@@ -278,7 +278,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
           # if(type==2){pars=list(X=X[-i,],Y=Y[-i,],ncomp=j,n_orth=j2)}
           # if(type==1){pars=list(X=X[-i,],Y=Y[-i,],ncomp=j)}
           fit <- try(do.call(func, pars), silent = T)
-          err[i] <- ifelse(class(fit) == "try-error", NA, rmsep(X[folds[ii], ], Y[folds[ii], ], 
+          err[i] <- ifelse(inherits(fit, "try-error"), NA, rmsep(X[folds[ii], ], Y[folds[ii], ], 
                                                                 fit))
         }
         mean_err[k] <- mean(err)
@@ -290,7 +290,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
           # if(class(fit)=='oplsm'){pars2=list(X=X,Y=Y,ncomp=j,n_orth=j2)}
           # if(class(fit)=='plsm'){pars2=list(X=X,Y=Y,ncomp=j)}
           fit2 <- try(do.call(func, pars2), F)
-          mean_fit[k] <- ifelse(class(fit) == "try-error", NA, rmsep(X, Y, fit2))
+          mean_fit[k] <- ifelse(inherits(fit, "try-error"), NA, rmsep(X, Y, fit2))
           # print('1e loop')
         }
         if (!is.null(fitted_model)) {
@@ -344,7 +344,7 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NU
     clusterExport(cl = cl, varlist = c("ssq", "o2m_stripped", "adjR2"))
   }
   if (parall & !is.null(cl)) {
-    stopifnot("cluster" %in% class(cl))
+    stopifnot(inherits(cl,'cluster'))
     S_apply <- parSapply
   }
   
@@ -435,7 +435,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   Y = as.matrix(Y)
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
-    if(class(fitted_model) != 'o2m'){stop("fitted_model should be of class 'o2m' or NULL")}
+    if(inherits(fitted_model,'o2m')){stop("fitted_model should be of class 'o2m' or NULL")}
     app_err <- F
     warning("apparent error calculated with provided fit")
   }
@@ -470,25 +470,25 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
           }
           fit <- try(do.call(func, pars), silent = T)
-          if("try-error" %in% class(fit)) warning(fit[1])
-          err[i] <- ifelse("try-error" %in% class(fit), 
+          if(inherits(fit,'try-error')) warning(fit[1])
+          err[i] <- ifelse(inherits(fit, 'try-error'), 
                            NA, 
                            rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
         }
         mean_err[k] <- mean(err)
         # calculate apparent error
         if (app_err && is.null(fitted_model)) {
-          if (class(fit) == "o2m") {
+          if (inherits(fit,'o2m')) {
             pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
           }
-          if (class(fit) == "oplsm") {
-            pars2 <- list(X = X, Y = Y, ncomp = j, n_orth = j2)
-          }
-          if (class(fit) == "plsm") {
-            pars2 <- list(X = X, Y = Y, ncomp = j)
-          }
+          # if (class(fit) == "oplsm") {
+          #   pars2 <- list(X = X, Y = Y, ncomp = j, n_orth = j2)
+          # }
+          # if (class(fit) == "plsm") {
+          #   pars2 <- list(X = X, Y = Y, ncomp = j)
+          # }
           fit2 <- try(do.call(func, pars2), F)
-          mean_fit[k] <- ifelse(class(fit) == "try-error", NA, rmsep_combi(X, Y, fit2))
+          mean_fit[k] <- ifelse(inherits(fit,"try-error"), NA, rmsep_combi(X, Y, fit2))
           print("1e loop")
         }
         if (!is.null(fitted_model)) {
