@@ -186,12 +186,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     Y_hat <- Tt %*% B_T %*% t(C)
     X_hat <- U %*% B_U %*% t(W)
     
-    R2Xcorr <- (ssq(Tt %*% t(W))/ssqX)
-    R2Ycorr <- (ssq(U %*% t(C))/ssqY)
-    R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
-    R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
-    R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true)/ssqX)
-    R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true)/ssqY)
+    R2Xcorr <- (ssq(Tt)/ssqX)
+    R2Ycorr <- (ssq(U)/ssqY)
+    R2X_YO <- (ssq(T_Yosc)/ssqX)
+    R2Y_XO <- (ssq(U_Xosc)/ssqY)
+    R2Xhat <- (ssq(U %*% B_U)/ssqX)
+    R2Yhat <- (ssq(Tt %*% B_T)/ssqY)
     R2X <- R2Xcorr + R2X_YO
     R2Y <- R2Ycorr + R2Y_XO
     
@@ -460,12 +460,12 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   H_UT <- U - Tt %*% B_T
   
   # R2
-  R2Xcorr <- (ssq(Tt %*% t(W))/ssq(X_true))
-  R2Ycorr <- (ssq(U %*% t(C))/ssq(Y_true))
-  R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssq(X_true))
-  R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssq(Y_true))
-  R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true)/ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true)/ssq(Y_true))
+  R2Xcorr <- (ssq(Tt)/ssq(X_true))
+  R2Ycorr <- (ssq(U)/ssq(Y_true))
+  R2X_YO <- (ssq(T_Yosc)/ssq(X_true))
+  R2Y_XO <- (ssq(U_Xosc)/ssq(Y_true))
+  R2Xhat <- (ssq(U %*% B_U)/ssq(X_true))
+  R2Yhat <- (ssq(Tt %*% B_T)/ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
@@ -582,10 +582,10 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   
   R2Xcorr <- ssq(Tt) / ssq(X_true)
   R2Ycorr <- ssq(U) / ssq(Y_true)
-  R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
-  R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
-  R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true) / ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true) / ssq(Y_true))
+  R2X_YO <- ssq(T_Yosc) / ssq(X_true)
+  R2Y_XO <- ssq(U_Xosc) / ssq(Y_true)
+  R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
+  R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
@@ -711,10 +711,10 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   
   R2Xcorr <- ssq(Tt) / ssq(X_true)
   R2Ycorr <- ssq(U) / ssq(Y_true)
-  R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
-  R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
-  R2Xhat <- 1 - (ssq(U %*% B_U %*% t(W) - X_true) / ssq(X_true))
-  R2Yhat <- 1 - (ssq(Tt %*% B_T %*% t(C) - Y_true) / ssq(Y_true))
+  R2X_YO <- ssq(T_Yosc) / ssq(X_true)
+  R2Y_XO <- ssq(U_Xosc) / ssq(Y_true)
+  R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
+  R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
