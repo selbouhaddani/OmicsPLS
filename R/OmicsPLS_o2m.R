@@ -641,9 +641,9 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   p <- dim(X)[2]
   q <- dim(Y)[2]
   
-  T_Yosc <- U_Xosc <- matrix(NA, N, 1)
-  P_Yosc <- W_Yosc <- matrix(NA, p, 1)
-  P_Xosc <- C_Xosc <- matrix(NA, q, 1)
+  T_Yosc <- U_Xosc <- matrix(0, N, 1)
+  P_Yosc <- W_Yosc <- matrix(0, p, 1)
+  P_Xosc <- C_Xosc <- matrix(0, q, 1)
   
   if (nx + ny > 0) {
     n2 <- n + max(nx, ny)
