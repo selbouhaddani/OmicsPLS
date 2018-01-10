@@ -807,6 +807,13 @@ scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
 #' @export
 predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
   XorY = match.arg(XorY)
+  Xnames = dimnames(newdata)
+  if(!is.matrix(newdata)){
+    message("newdata has class ",class(newdata),", trying to convert with as.matrix.",sep="")
+    newdata <- as.matrix(newdata)
+    dimnames(newdata) <- Xnames
+  }
+  input_checker(newdata)
   switch(XorY,
          X = if(ncol(newdata) != nrow(object$W.)) stop("Number of columns mismatch!"),
          Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!"))
