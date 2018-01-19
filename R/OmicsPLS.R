@@ -824,3 +824,25 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
   
   return(pred)
 }
+
+screeplot.o2m <- function(X, Y, npcs = 20, titleX = NULL, titleY = NULL, titleXY = NULL, ...){
+  par(mfrow=c(1,3))
+  crprodX <- ifelse(which.max(dim(X))==1, crossprod, tcrossprod)
+  crprodY <- ifelse(which.max(dim(Y))==1, crossprod, tcrossprod)
+  plot(svd(crprodX(X),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
+       type = 'b')
+  if(is.null(titleX)) title(main = "Scree plot of X", xlab = "Component", 
+                            ylab = "Proportion of variance explained")
+  else titleY
+  plot(svd(crprodY(Y),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
+       type = 'b')
+  if(is.null(titleY)) title(main = "Scree plot of Y", xlab = "Component", 
+                            ylab = "Proportion of variance explained")
+  else titleY
+  plot(svd(crossprod(X,Y),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
+       type = 'b')
+  if(is.null(titleXY)) title(main = "Scree plot of X", xlab = "Component", 
+                            ylab = "Proportion of variance explained")
+  else titleY
+  on.exit({par(mfrow=c(1,1))})
+}
