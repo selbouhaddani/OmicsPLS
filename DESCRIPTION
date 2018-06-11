@@ -1,7 +1,7 @@
 Package: OmicsPLS
 Type: Package
 Title: Perform Two-Way Orthogonal Partial Least Squares
-Version: 1.1.0
+Version: 1.1.1
 Date: 2017-10-05
 Author: Said el Bouhaddani, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
     Hae-Won Uh
@@ -14,7 +14,8 @@ Description: Performs the O2PLS data integration method for two datasets yieldin
 License: GPL-3
 Imports:
     ggplot2,
-    parallel
+    parallel,
+    magrittr
 Suggests:
     testthat,
     knitr,

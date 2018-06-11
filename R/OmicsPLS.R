@@ -83,7 +83,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2
+#' @import parallel ggplot2 magrittr
 #' @importFrom graphics abline
 NULL
 
@@ -825,24 +825,37 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
   return(pred)
 }
 
-screeplot.o2m <- function(X, Y, npcs = 20, titleX = NULL, titleY = NULL, titleXY = NULL, ...){
+
+#' Screeplot for OmicsPLS
+#'
+#' Plots singular values of X, X'Y and Y
+#'
+#' @inheritParams o2m
+#' @param npcs Positive integer. Number of singular values to plot
+#' @param ... Further arguments. Currently unused, but present for compatibility.
+#' 
+#' @return Predicted Data
+#' 
+#' 
+#' @examples
+#' screeplot_o2m(scale(matrix(rnorm(100*30),100)), scale(matrix(rnorm(100*30),100)), npcs=20)
+#' @export
+screeplot_o2m <- function(X, Y, npcs = 20, ...){
   par(mfrow=c(1,3))
   crprodX <- ifelse(which.max(dim(X))==1, crossprod, tcrossprod)
   crprodY <- ifelse(which.max(dim(Y))==1, crossprod, tcrossprod)
   plot(svd(crprodX(X),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
-       type = 'b')
-  if(is.null(titleX)) title(main = "Scree plot of X", xlab = "Component", 
-                            ylab = "Proportion of variance explained")
-  else titleY
+       type = 'b', xlab = NA, ylab = NA)
+  title(main = "Scree plot of X", xlab = "Component", 
+        ylab = "Proportion of variance explained")
+  
   plot(svd(crprodY(Y),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
-       type = 'b')
-  if(is.null(titleY)) title(main = "Scree plot of Y", xlab = "Component", 
+       type = 'b', xlab = NA, ylab = NA)
+  title(main = "Scree plot of Y", xlab = "Component", 
                             ylab = "Proportion of variance explained")
-  else titleY
   plot(svd(crossprod(X,Y),nu=0,nv=0)$d[1:npcs] %>% (function(e) e/sum(e)),
-       type = 'b')
-  if(is.null(titleXY)) title(main = "Scree plot of X", xlab = "Component", 
+       type = 'b', xlab = NA, ylab = NA)
+  title(main = "Scree plot of X'Y", xlab = "Component", 
                             ylab = "Proportion of variance explained")
-  else titleY
   on.exit({par(mfrow=c(1,1))})
 }
