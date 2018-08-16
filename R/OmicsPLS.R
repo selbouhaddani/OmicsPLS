@@ -83,7 +83,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2
+#' @import parallel ggplot2 ssvd
 #' @importFrom graphics abline
 NULL
 

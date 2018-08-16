@@ -12,6 +12,10 @@
 #' @param q_thresh Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
+#' @param sparsity Boolean. Set to TRUE for sparse loadings.
+#' @param method Either "theory" or "method". See \code{\link{ssvd}}.
+#' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
+#' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -66,10 +70,13 @@
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
-                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
+                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
+                sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, ...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
+  
+  method = match.arg(method)
   
   if(!is.matrix(X)){
     message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
@@ -168,7 +175,9 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
       }
     }
     # Re-estimate joint part in n-dimensional subspace
-    cdw <- svd(t(Y) %*% X, nu = n, nv = n)
+    if(sparsity) cdw <- ssvd::ssvd(t(Y) %*% X, r = n, method = method, 
+                                   non.orth = !orth_last_step, ...) 
+    else cdw <- svd(t(Y) %*% X, nu = n, nv = n)
     C <- cdw$u
     W <- cdw$v
     Tt <- X %*% W

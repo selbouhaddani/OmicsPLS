@@ -5,7 +5,9 @@
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
 o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
-  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
+  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100,
+  sparsity = FALSE, method = c("theory", "method"),
+  orth_last_step = FALSE, ...)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -27,6 +29,14 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
+
+\item{sparsity}{Boolean. Set to TRUE for sparse loadings.}
+
+\item{method}{Either "theory" or "method". See \code{\link{ssvd}}.}
+
+\item{orth_last_step}{Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.}
+
+\item{...}{Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}}
 }
 \value{
 A list containing

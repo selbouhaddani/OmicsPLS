@@ -14,7 +14,8 @@ Description: Performs the O2PLS data integration method for two datasets yieldin
 License: GPL-3
 Imports:
     ggplot2,
-    parallel
+    parallel,
+    ssvd
 Suggests:
     testthat,
     knitr,
