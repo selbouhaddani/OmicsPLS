@@ -484,27 +484,30 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     
     # Delta given lambda
     delta <- function(x, lambda){
-      x <- abs(x)
+      x <- sort(abs(x))
       total <- 0
       if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
       else{
-        for (i in 1: length(x)){
-          y <- thresh(x, min(x[x>0]))
-          if(sum(y/norm_vec(y) ) < lambda)  break
-          else{
-            total <- total + min(x[x>0])        
-            x <- thresh(x, min(x[x>0]))
+        index <- vector()
+        index[1] <- 0
+        index[2] <- as.integer(length(x)/2)
+        
+        for(i in 2: (log2(length(x)) + 100)){
+          y <- thresh(x, x[index[i]])
+          if(sum(y/norm_vec(y)) < lambda){
+            index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
+          }else{
+            index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
           }
+          if(abs(index[i+1]-index[i]) == 1) break
         }
-        return(total + quadr(x, lambda))
+        
+        a <- min(x[index[i]], x[index[i+1]])
+        x <- thresh(x, a)
+        return(a + quadr(x, lambda))
       }
     }
-    
-    # just for testing
-    #tol <- 0.000001
-    
-    #lambda_y <- 3
-    #lambda_x <- 3
+        
     W <- matrix(0, dim(X)[2], n)
     C <- matrix(0, dim(Y)[2], n)
     
