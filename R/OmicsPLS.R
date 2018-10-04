@@ -122,7 +122,7 @@ input_checker <- function(X, Y = NULL) {
 #' 
 #' @keywords internal
 #' @export
-lambda_checker <- function(lambda_x, lambda_y, x = X, y = Y) {
+lambda_checker <- function(lambda_x, lambda_y, x, y) {
   if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
     stop("lambda_x must between 1 and square root of the number of variables of X")
   }
