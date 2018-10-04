@@ -113,6 +113,24 @@ input_checker <- function(X, Y = NULL) {
   NULL
 }
 
+#' Check if penalization parameters satisfy input conditions
+#'
+#' @param lambda_x Should be between 1 and square root of the number of variables of X.
+#' @param lambda_y Should be between 1 and square root of the number of variables of Y.
+#' @return NULL
+#' @details This function throws an error if lambda is not within the range.
+#' 
+#' @keywords internal
+#' @export
+lambda_checker <- function(lambda_x, lambda_y, x = X, y = Y) {
+  if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
+    stop("lambda_x must between 1 and square root of the number of variables of X")
+  }
+  if(lambda_y < 1 | lambda_y > sqrt(dim(y)[2])) {
+    stop("lambda_y must between 1 and square root of the number of variables of Y")
+  }
+}
+
 #' Orthogonalize a matrix
 #'
 #' @param X Numeric vector or matrix.
