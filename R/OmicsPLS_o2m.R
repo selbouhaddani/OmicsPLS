@@ -13,6 +13,10 @@
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #' @param sparsity Boolean. Set to TRUE for sparse loadings.
+#' @param sparsity_it Boolean. Set to TRUE for sparse loadings for high-dimensional data.
+#' @param lambda_x double. Penalization parameter for X. Larger value will produce more sparse X-loadings.
+#' @param lambda_y double. Penalization parameter for Y. Larger value will produce more sparse Y-loadings.
+#' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param method Either "theory" or "method". See \code{\link{ssvd}}.
 #' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
 #' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
@@ -71,7 +75,8 @@
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
-                sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, ...) {
+                sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
+                sparsity_it = F, lambda_x = (dim(X)[2])^0.25, lambda_y = (dim(Y)[2])^0.25, max_iterations_sparsity = max_iterations,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -89,6 +94,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     dimnames(Y) <- Ynames
   }
   input_checker(X, Y)
+  lambda_checker(lambda_x, lambda_y, X, Y)
   
   ssqX = ssq(X)
   ssqY = ssq(Y)
@@ -118,7 +124,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
     highd = TRUE
     message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
-    model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
+    model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
+                 sparsity_it, lambda_y, lambda_x, max_iterations_sparsity)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)
   } else {
@@ -389,7 +396,8 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' 
 #' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100) {
+o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100, 
+                 sparsity_it = F, lambda_x, lambda_y,  max_iterations_sparsity) {
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -452,13 +460,103 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     }
   }
   # Re-estimate joint part in n-dimensional subspace if(N<p&N<q){ # When N is smaller than p and q
-  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-  W <- W_C$W
-  C <- W_C$C
-  Tt <- W_C$Tt
-  U <- W_C$U
+ 
+  
+   ####################################################################################
+  if(sparsity_it){
+    # Norm of vector
+    norm_vec <- function(x) sqrt(sum(x^2))
+    # Soft threshholding
+    thresh <- function(z,delta){
+      return(sign(z)*(abs(z)>=delta)*(abs(z)-delta))
+    }
+    # Solve quadratic
+    quadr <- function(x, lambda = lambda) {
+      x <- abs(x)
+      x <- x[x>0]   # absolute, filter out zero
+      a <- (length(x))^2 - length(x) * lambda^2
+      b <- 2 * sum(x) * (lambda^2 - length(x))
+      c <- (sum(x))^2 - lambda^2 * sum(x^2)
+      neg_root <- ((-b) - sqrt((b^2) - 4*a*c)) / (2*a)
+      return(neg_root)
+    }
+    
+    # Delta given lambda
+    delta <- function(x, lambda){
+      x <- sort(abs(x))
+      total <- 0
+      if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
+      else{
+        index <- vector()
+        index[1] <- 0
+        index[2] <- as.integer(length(x)/2)
+        
+        for(i in 2: (log2(length(x)) + 100)){
+          y <- thresh(x, x[index[i]])
+          if(sum(y/norm_vec(y)) < lambda){
+            index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
+          }else{
+            index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
+          }
+          if(abs(index[i+1]-index[i]) == 1) break
+        }
+        
+        a <- min(x[index[i]], x[index[i+1]])
+        x <- thresh(x, a)
+        return(a + quadr(x, lambda))
+      }
+    }
+        
+    W <- matrix(0, dim(X)[2], n)
+    C <- matrix(0, dim(Y)[2], n)
+    
+    # get u,v iteratively
+    for(j in 1: n){
+      v <- X[1,]/norm_vec(X[1,])
+      for (i in 1: max_iterations_sparsity){
+        v_old <- v
+        # get u (or c in my PLS summary)
+        a <- t(Y)%*% (X %*% v)  
+        del <- delta(a, lambda = lambda_y)
+        u <- thresh(a, del) / norm_vec(thresh(a, del))
+        
+        # get v
+        a <- t(X)%*% (Y %*% u)  
+        del <- delta(a, lambda = lambda_x)
+        v <- thresh(a, del) / norm_vec(thresh(a, del))
+        if (mse(v, v_old) < tol) {
+          break
+        }
+      }
+      
+      W[,j] <- v
+      C[,j] <- u
+      Tt[,j] <- X %*% W[,j]
+      U[,j] <- Y %*% C[,j]
+      
+      p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
+      q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
+      X <- X - Tt[,j] %*% t(p)
+      Y <- Y - U[,j] %*% t(q)
+    }
+    }
+    
+  
+  
+  
+  
+  
+  ######################################################################################
+  
+  if(!sparsity_it){
+    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+    W <- W_C$W
+    C <- W_C$C
+    Tt <- W_C$Tt
+    U <- W_C$U
   # } cdw = svd(t(Y)%*%X,nu=n,nv=n); # 3.2.1. 1 C=cdw$u;W=cdw$v Tt = X%*%W; # 3.2.1. 2 U = Y%*%C; #
   # 3.2.1. 4
+  }
   
   # Inner relation parameters
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt

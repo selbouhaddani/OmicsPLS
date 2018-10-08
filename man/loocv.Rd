@@ -4,8 +4,8 @@
 \alias{loocv}
 \title{K fold CV for O2PLS}
 \usage{
-loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m,
-  app_err = F, kcv, stripped = TRUE, p_thresh = 3000,
+loocv(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
+  func = o2m, app_err = F, kcv, stripped = TRUE, p_thresh = 3000,
   q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
