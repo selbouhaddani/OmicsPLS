@@ -76,7 +76,8 @@
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
                 sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
-                sparsity_it = F, lambda_x = 0.5 * (dim(X)[2])^0.5, lambda_y = 0.5 * (dim(Y)[2])^0.5, max_iterations_sparsity = max_iterations,...) {
+                sparsity_it = F, lambda_x = max(1,0.5 * (dim(X)[2])^0.5), 
+                lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), max_iterations_sparsity = max_iterations,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
