@@ -27,9 +27,9 @@ o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
 
 \item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data.}
 
-\item{lambda_x}{double. Penalization parameter for X. Larger value will produce more sparse X-loadings.}
+\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings.}
 
-\item{lambda_y}{double. Penalization parameter for Y. Larger value will produce more sparse Y-loadings.}
+\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 }

@@ -7,8 +7,8 @@
 o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
   q_thresh = p_thresh, tol = 1e-10, max_iterations = 100,
   sparsity = FALSE, method = c("theory", "method"),
-  orth_last_step = FALSE, sparsity_it = F,
-  lambda_x = (dim(X)[2])^0.25, lambda_y = (dim(Y)[2])^0.25,
+  orth_last_step = FALSE, sparsity_it = F, lambda_x = max(1, 0.5 *
+  (dim(X)[2])^0.5), lambda_y = max(1, 0.5 * (dim(Y)[2])^0.5),
   max_iterations_sparsity = max_iterations, ...)
 }
 \arguments{
@@ -40,9 +40,9 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data.}
 
-\item{lambda_x}{double. Penalization parameter for X. Larger value will produce more sparse X-loadings.}
+\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings.}
 
-\item{lambda_y}{double. Penalization parameter for Y. Larger value will produce more sparse Y-loadings.}
+\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 
