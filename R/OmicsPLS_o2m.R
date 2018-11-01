@@ -14,8 +14,8 @@
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #' @param sparsity Boolean. Set to TRUE for sparse loadings.
 #' @param sparsity_it Boolean. Set to TRUE for sparse loadings for high-dimensional data.
-#' @param lambda_x double. Penalization parameter for X. Larger value will produce more sparse X-loadings.
-#' @param lambda_y double. Penalization parameter for Y. Larger value will produce more sparse Y-loadings.
+#' @param lambda_x double. Penalization parameter for X. Smaller value will produce more sparse X-loadings.
+#' @param lambda_y double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param method Either "theory" or "method". See \code{\link{ssvd}}.
 #' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
@@ -76,7 +76,8 @@
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
                 sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
-                sparsity_it = F, lambda_x = (dim(X)[2])^0.25, lambda_y = (dim(Y)[2])^0.25, max_iterations_sparsity = max_iterations,...) {
+                sparsity_it = F, lambda_x = max(1,0.5 * (dim(X)[2])^0.5), 
+                lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), max_iterations_sparsity = max_iterations,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -125,7 +126,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     highd = TRUE
     message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
     model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                 sparsity_it, lambda_y, lambda_x, max_iterations_sparsity)
+                 sparsity_it, lambda_x, lambda_y, max_iterations_sparsity)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)
   } else {
@@ -509,6 +510,8 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
         
     W <- matrix(0, dim(X)[2], n)
     C <- matrix(0, dim(Y)[2], n)
+    Tt <- matrix(0, dim(X)[1], n)
+    U <- matrix(0, dim(Y)[1], n)
     
     # get u,v iteratively
     for(j in 1: n){
