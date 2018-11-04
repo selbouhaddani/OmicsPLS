@@ -123,11 +123,17 @@ input_checker <- function(X, Y = NULL) {
 #' @keywords internal
 #' @export
 lambda_checker <- function(lambda_x, lambda_y, x, y) {
-  if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
-    stop("lambda_x must between 1 and square root of the number of variables of X")
-  }
-  if(lambda_y < 1 | lambda_y > sqrt(dim(y)[2])) {
-    stop("lambda_y must between 1 and square root of the number of variables of Y")
+  if(is.numeric(lambda_x) & is.numeric(lambda_y)){
+    if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
+      stop("lambda_x must between 1 and square root of the number of variables of X")
+    }
+    if(lambda_y < 1 | lambda_y > sqrt(dim(y)[2])) {
+      stop("lambda_y must between 1 and square root of the number of variables of Y")
+    }
+  }else{
+    if(lambda_x != "cv" | lambda_y != "cv"){
+      stop("lambda_x and lambda_y much be both \"cv\" or numeric")
+    }
   }
 }
 
@@ -414,6 +420,7 @@ vnorm <- function(x)
 #' (Metabolomics versus Transcriptomics) then you may want to not sum up the two prediction errors or include weights in the sum.
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
+
 rmsep_combi <- function(Xtst, Ytst, fit)
 {
   if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
@@ -519,6 +526,85 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   return(list(CVerr = mean_err, Fiterr = mean_fit))
 } 
 
+
+#' K-fold CV based on symmetrized prediction error to find lambda
+#'
+#' Search for the combination of lambdas which minimise the symmetrical prediction error (\code{\link{loocv_combi}})
+#' 
+#' @inheritParams o2m
+#' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
+#' If there are NAs in the CVerr component, this is due to an error in the fitting.
+#' @return List with the best values of lambda_x and lambda_y, as well as a table containing the mean error of every combination calculated. 
+#' \item{x}{Contains the best lambda_x value}
+#' \item{y}{Contains the best lambda_y value}
+#' \item{grid}{Contains all the mean error calculated for each combination}
+#'
+#' @export
+best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iterations = 100){
+  
+  # Check format
+  stopifnot(all(n == round(n)), lambda_kcv == round(lambda_kcv))
+  X = as.matrix(X)
+  Y = as.matrix(Y)
+  input_checker(X, Y)   
+  
+  # Initiating variables
+  N <- length(X[, 1])
+  if (N != length(Y[, 1])) {
+    stop("N not the same")
+  }
+  mean_err <- matrix(NA, nrow = n_lambda, ncol = n_lambda)
+  rownames(mean_err) <- seq(1, dim(X)[2]^0.5, length.out = n_lambda)
+  colnames(mean_err) <- seq(1, dim(Y)[2]^0.5, length.out = n_lambda)
+  
+  kx <- 0
+  
+  # Creating blocks and folds
+  blocks <- cut(seq(1:N), breaks=lambda_kcv, labels=F)
+  folds <- sample(N)
+  
+  # Loop through a grid of n_lambda * n_lambda
+  for (lx in seq(1, dim(X)[2]^0.5, length.out = n_lambda)) {
+    kx <- kx +1
+    ky <- 0
+    for (ly in seq(1, dim(Y)[2]^0.5, length.out = n_lambda)) {
+      ky <- ky + 1
+      err <- NA * 1:lambda_kcv
+      
+      # loop through number of folds
+      for (i in 1:lambda_kcv) {
+        ii <- which(blocks==i)
+        
+        pars <- list(X = X[-folds[ii], ], Y = Y[-folds[ii], ], n = n, nx = 0, ny = 0, 
+                     stripped = FALSE, tol = tol, max_iterations = max_iterations, 
+                     sparsity_it = T, lambda_x = lx, lambda_y = ly, lambda_kcv = lambda_kcv, 
+                     n_lambda = n_lambda, max_iterations_sparsity = max_iterations)
+        
+        fit <- try(do.call(o2m2, pars), silent = T)
+        if(inherits(fit,'try-error')) warning(fit[1])
+        err[i] <- ifelse(inherits(fit, 'try-error'), 
+                         NA, 
+                         # Change standards here
+                         rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
+      }
+      mean_err[kx,ky] <- mean(err)
+    }
+  }
+  
+  # Output
+  bestlambda <- list()
+  bestlambda$x <- as.numeric(rownames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[1]])
+  bestlambda$y <- as.numeric(colnames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[2]])
+  bestlambda$grid <- mean_err
+  
+  sparx <- bestlambda$x / sqrt(dim(X)[2])
+  spary <- bestlambda$y / sqrt(dim(Y)[2])
+  
+  print(paste("lambda x = ", bestlambda$x, "=", sparx, "* sqrt(p)"))
+  print(paste("lambda y = ", bestlambda$y, "=", spary, "* sqrt(q)"))
+  
+  return(bestlambda)
+}
 
 # Generic Methods ---------------------------------------------------------
 

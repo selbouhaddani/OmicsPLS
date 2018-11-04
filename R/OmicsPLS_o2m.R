@@ -12,10 +12,12 @@
 #' @param q_thresh Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
-#' @param sparsity Boolean. Set to TRUE for sparse loadings.
-#' @param sparsity_it Boolean. Set to TRUE for sparse loadings for high-dimensional data.
-#' @param lambda_x double. Penalization parameter for X. Smaller value will produce more sparse X-loadings.
-#' @param lambda_y double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings.
+#' @param sparsity Boolean. Set to TRUE for sparse loadings
+#' @param sparsity_it Boolean. Set to TRUE for sparse loadings for high-dimensional data
+#' @param lambda_x double. Penalization parameter for X. Smaller value will produce more sparse X-loadings
+#' @param lambda_y double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings
+#' @param lambda_kcv Integer. k-fold cross-validation for lambda_x and lambda_y
+#' @param n_lambda Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param method Either "theory" or "method". See \code{\link{ssvd}}.
 #' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
@@ -77,7 +79,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
                 sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
                 sparsity_it = F, lambda_x = max(1,0.5 * (dim(X)[2])^0.5), 
-                lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), max_iterations_sparsity = max_iterations,...) {
+                lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), lambda_kcv = 2, n_lambda = 6, max_iterations_sparsity = max_iterations,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -126,7 +128,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     highd = TRUE
     message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
     model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                 sparsity_it, lambda_x, lambda_y, max_iterations_sparsity)
+                 sparsity_it, lambda_x, lambda_y, lambda_kcv, n_lambda, max_iterations_sparsity)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)
   } else {
@@ -398,7 +400,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' @keywords internal
 #' @export
 o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100, 
-                 sparsity_it = F, lambda_x, lambda_y,  max_iterations_sparsity) {
+                 sparsity_it = F, lambda_x, lambda_y, lambda_kcv, n_lambda, max_iterations_sparsity){
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -506,6 +508,13 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
         x <- thresh(x, a)
         return(a + quadr(x, lambda))
       }
+    }
+    
+    if(lambda_x == "cv" | lambda_y == "cv"){
+      bestlambda <- best_lambda(X, Y, n = n, lambda_kcv = lambda_kcv, 
+                                n_lambda = n_lambda, tol = 1e-10, max_iterations = 100)
+      lambda_x <- bestlambda$x
+      lambda_y <- bestlambda$y
     }
         
     W <- matrix(0, dim(X)[2], n)

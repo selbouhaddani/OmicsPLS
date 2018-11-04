@@ -9,6 +9,7 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
   sparsity = FALSE, method = c("theory", "method"),
   orth_last_step = FALSE, sparsity_it = F, lambda_x = max(1, 0.5 *
   (dim(X)[2])^0.5), lambda_y = max(1, 0.5 * (dim(Y)[2])^0.5),
+  lambda_kcv = 2, n_lambda = 6,
   max_iterations_sparsity = max_iterations, ...)
 }
 \arguments{
@@ -32,17 +33,21 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 
-\item{sparsity}{Boolean. Set to TRUE for sparse loadings.}
+\item{sparsity}{Boolean. Set to TRUE for sparse loadings}
 
 \item{method}{Either "theory" or "method". See \code{\link{ssvd}}.}
 
 \item{orth_last_step}{Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.}
 
-\item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data.}
+\item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data}
 
-\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings.}
+\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings}
 
-\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings.}
+\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings}
+
+\item{lambda_kcv}{Integer. k-fold cross-validation for lambda_x and lambda_y}
+
+\item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 
