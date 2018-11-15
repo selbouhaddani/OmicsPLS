@@ -434,8 +434,60 @@ rmsep_combi <- function(Xtst, Ytst, fit)
   Yhat <- (Xtst - Xtst %*% fit$W_Yosc %*% t(fit$W_Yosc)) %*% fit$W. %*% fit$B_T %*% t(fit$C.)
   Xhat <- (Ytst - Ytst %*% fit$C_Xosc %*% t(fit$C_Xosc)) %*% fit$C. %*% fit$B_U %*% t(fit$W.)
   
+#  sum_R2 <- ssq(Ytst - Yhat)/ssq(Ytst - mean(Ytst)) + ssq(Xtst - Xhat)/ssq(Xtst - mean(Xtst))
+  
+#  return(sum_R2)
   return(sqrt(mse(Yhat, Ytst)) + sqrt(mse(Xhat, Xtst)))
 }
+
+
+#' Symmetrized sum of prediction R^2
+#'
+#' Calculates the symmetrized sum of prediction R^2.
+#'
+#' @param Xtst Numeric vector or matrix.
+#' @param Ytst Numeric vector or matrix.
+#' @param fit \code{\link{o2m}} fit (on data without \code{Xtst} and \code{Ytst}).
+#' @details This function is the building block for \code{\link{best_lambda}}, as it produced the prediction error for test (left out) data.
+#'
+#' The predicion error R^2 of both \code{Xtst} and \code{Ytst} are calculated and summed.
+#' @return Sum of the R^2 for \code{Xtst} and \code{Ytst}
+#' @export
+
+sumR2_combi <- function(Xtst, Ytst, fit)
+{
+  if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
+  
+  if (!is.matrix(Xtst)) Xtst <- t(Xtst)
+  
+  if (!is.matrix(Ytst)) Ytst <- t(Ytst)
+  
+  input_checker(Xtst, Ytst)
+
+  # predict x and y  
+  Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
+  Xhat <- Ytst %*% fit$C. %*% fit$B_U %*% t(fit$W.)
+  SSE_y <- ssq(Ytst - Yhat)/ssq(scale(Ytst, scale = F))
+  SSE_x <- ssq(Xtst - Xhat)/ssq(scale(Xtst, scale = F))
+  
+  # predict scores t and u
+  SSE_u <- ssq(Ytst %*% fit$C. - Xtst %*% fit$W. %*% fit$B_T)/ssq(scale(Ytst %*% fit$C., scale = F))
+  SSE_t <- ssq(Xtst %*% fit$W. - Ytst %*% fit$C. %*% fit$B_U)/ssq(scale(Xtst %*% fit$W., scale = F))
+  # uncentered t and u
+  SSE_u1 <- ssq(Ytst %*% fit$C. - Xtst %*% fit$W. %*% fit$B_T)/ssq(Ytst %*% fit$C.)
+  SSE_t1 <- ssq(Xtst %*% fit$W. - Ytst %*% fit$C. %*% fit$B_U)/ssq(Xtst %*% fit$W.)
+  
+  sum_R2 <- list()
+  sum_R2$SSE_x <- SSE_x
+  sum_R2$SSE_y <- SSE_y
+  sum_R2$SSE_u <- SSE_u
+  sum_R2$SSE_t <- SSE_t
+  sum_R2$SSE_u1 <- SSE_u1
+  sum_R2$SSE_t1 <- SSE_t1
+  
+  return(sum_R2)
+}
+
 
 #' K-fold CV based on symmetrized prediction error
 #'
@@ -553,9 +605,25 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
   if (N != length(Y[, 1])) {
     stop("N not the same")
   }
-  mean_err <- matrix(NA, nrow = n_lambda, ncol = n_lambda)
-  rownames(mean_err) <- seq(1, dim(X)[2]^0.5, length.out = n_lambda)
-  colnames(mean_err) <- seq(1, dim(Y)[2]^0.5, length.out = n_lambda)
+  
+  # initiate
+  mean_err_x <- mean_err_y <- mean_err_t <- mean_err_u <- mean_err_t1 <- mean_err_u1 <- matrix(NA, nrow = n_lambda, ncol = n_lambda)
+  mean_err_tr_x <- mean_err_tr_y <- mean_err_tr_t <- mean_err_tr_u <- mean_err_tr_t1 <- mean_err_tr_u1 <-  matrix(NA, nrow = n_lambda, ncol = n_lambda)
+  rownames(mean_err_x) <- rownames(mean_err_y) <- rownames(mean_err_t) <- rownames(mean_err_u) <- rownames(mean_err_t1) <- rownames(mean_err_u1) <- rownames(mean_err_tr_x) <- rownames(mean_err_tr_y) <- rownames(mean_err_tr_t) <- rownames(mean_err_tr_u) <- rownames(mean_err_tr_t1) <- rownames(mean_err_tr_u1) <-  format(seq(1, dim(X)[2]^0.5, length.out = n_lambda), digits = 2)
+  colnames(mean_err_x) <- colnames(mean_err_y) <- colnames(mean_err_t) <- colnames(mean_err_u) <- colnames(mean_err_t1) <- colnames(mean_err_u1) <- colnames(mean_err_tr_x) <- colnames(mean_err_tr_y) <- colnames(mean_err_tr_t) <- colnames(mean_err_tr_u) <- colnames(mean_err_tr_t1) <- colnames(mean_err_tr_u1) <-  format(seq(1, dim(Y)[2]^0.5, length.out = n_lambda), digits = 2)
+  
+  err_x <- NA * 1: lambda_kcv
+  err_y <- NA * 1: lambda_kcv
+  err_t <- NA * 1: lambda_kcv
+  err_u <- NA * 1: lambda_kcv
+  err_t1 <- NA * 1: lambda_kcv
+  err_u1 <- NA * 1: lambda_kcv
+  err_tr_x <- NA * 1: lambda_kcv
+  err_tr_y <- NA * 1: lambda_kcv
+  err_tr_t <- NA * 1: lambda_kcv
+  err_tr_u <- NA * 1: lambda_kcv
+  err_tr_t1 <- NA * 1: lambda_kcv
+  err_tr_u1 <- NA * 1: lambda_kcv
   
   kx <- 0
   
@@ -569,7 +637,8 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
     ky <- 0
     for (ly in seq(1, dim(Y)[2]^0.5, length.out = n_lambda)) {
       ky <- ky + 1
-      err <- NA * 1:lambda_kcv
+
+      
       
       # loop through number of folds
       for (i in 1:lambda_kcv) {
@@ -582,26 +651,101 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
         
         fit <- try(do.call(o2m2, pars), silent = T)
         if(inherits(fit,'try-error')) warning(fit[1])
-        err[i] <- ifelse(inherits(fit, 'try-error'), 
-                         NA, 
-                         # Change standards here
-                         rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
+        
+        # Test error
+        if(inherits(fit, 'try-error')){
+          err_x[i] <- NA
+          err_y[i] <- NA
+          err_t[i] <- NA
+          err_u[i] <- NA
+          err_t1[i] <- NA
+          err_u1[i] <- NA
+        }else{
+          sum_R2 <- sumR2_combi(X[folds[ii], ], Y[folds[ii], ], fit)
+          err_x[i] <- sum_R2$SSE_x
+          err_y[i] <- sum_R2$SSE_y
+          err_t[i] <- sum_R2$SSE_t
+          err_u[i] <- sum_R2$SSE_u
+          err_t1[i] <- sum_R2$SSE_t1
+          err_u1[i] <- sum_R2$SSE_u1
+        }
+        
+        # Training error
+        if(inherits(fit, 'try-error')){
+          err_tr_x[i] <- NA
+          err_tr_y[i] <- NA
+          err_tr_t[i] <- NA
+          err_tr_u[i] <- NA
+          err_tr_t1[i] <- NA
+          err_tr_u1[i] <- NA
+        }else{
+          sum_R2 <- sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit)
+          err_tr_x[i] <- sum_R2$SSE_x
+          err_tr_y[i] <- sum_R2$SSE_y
+          err_tr_t[i] <- sum_R2$SSE_t
+          err_tr_u[i] <- sum_R2$SSE_u
+          err_tr_t1[i] <- sum_R2$SSE_t1
+          err_tr_u1[i] <- sum_R2$SSE_u1
+          
+          #err_tr[,i] <- sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit)
+        }
+        
+        # err_tr[i] <- ifelse(inherits(fit, 'try-error'), 
+        #                  NA, 
+        #                  # Change standards here
+        #                  sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit))
       }
-      mean_err[kx,ky] <- mean(err)
+      mean_err_x[kx,ky] <- mean(err_x)
+      mean_err_y[kx,ky] <- mean(err_y)      
+      mean_err_t[kx,ky] <- mean(err_t)
+      mean_err_u[kx,ky] <- mean(err_u)
+      mean_err_t1[kx,ky] <- mean(err_t1)
+      mean_err_u1[kx,ky] <- mean(err_u1)
+      mean_err_tr_x[kx,ky] <- mean(err_tr_x)
+      mean_err_tr_y[kx,ky] <- mean(err_tr_y)
+      mean_err_tr_t[kx,ky] <- mean(err_tr_t)
+      mean_err_tr_u[kx,ky] <- mean(err_tr_u)
+      mean_err_tr_t1[kx,ky] <- mean(err_tr_t1)
+      mean_err_tr_u1[kx,ky] <- mean(err_tr_u1)
     }
   }
   
   # Output
   bestlambda <- list()
-  bestlambda$x <- as.numeric(rownames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[1]])
-  bestlambda$y <- as.numeric(colnames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[2]])
-  bestlambda$grid <- mean_err
+  bestlambda$x <- as.numeric(rownames(mean_err_y)[which(mean_err_y == min(mean_err_y), arr.ind = T)[1]])
+  bestlambda$y <- as.numeric(colnames(mean_err_y)[which(mean_err_y == min(mean_err_y), arr.ind = T)[2]])
+#  bestlambda$grid <- mean_err
+#  bestlambda$grid_tr <- mean_err_tr
   
   sparx <- bestlambda$x / sqrt(dim(X)[2])
   spary <- bestlambda$y / sqrt(dim(Y)[2])
   
   print(paste("lambda x = ", bestlambda$x, "=", sparx, "* sqrt(p)"))
   print(paste("lambda y = ", bestlambda$y, "=", spary, "* sqrt(q)"))
+  
+  print("x")
+  print(mean_err_x)
+  print(mean_err_tr_x)
+  
+  print("y")
+  print(mean_err_y)
+  print(mean_err_tr_y)
+  
+  print("t")
+  print(mean_err_t)
+  print(mean_err_tr_t)
+  
+  print("u")
+  print(mean_err_u)
+  print(mean_err_tr_u)
+  
+  print("t1")
+  print(mean_err_t1)
+  print(mean_err_tr_t1)
+  
+  print("u1")
+  print(mean_err_u1)
+  print(mean_err_tr_u1)
   
   return(bestlambda)
 }
