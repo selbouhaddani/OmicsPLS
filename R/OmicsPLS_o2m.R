@@ -467,49 +467,6 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   
    ####################################################################################
   if(sparsity_it){
-    # Norm of vector
-    norm_vec <- function(x) sqrt(sum(x^2))
-    # Soft threshholding
-    thresh <- function(z,delta){
-      return(sign(z)*(abs(z)>=delta)*(abs(z)-delta))
-    }
-    # Solve quadratic
-    quadr <- function(x, lambda = lambda) {
-      x <- abs(x)
-      x <- x[x>0]   # absolute, filter out zero
-      a <- (length(x))^2 - length(x) * lambda^2
-      b <- 2 * sum(x) * (lambda^2 - length(x))
-      c <- (sum(x))^2 - lambda^2 * sum(x^2)
-      neg_root <- ((-b) - sqrt((b^2) - 4*a*c)) / (2*a)
-      return(neg_root)
-    }
-    
-    # Delta given lambda
-    delta <- function(x, lambda){
-      x <- sort(abs(x))
-      total <- 0
-      if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
-      else{
-        index <- vector()
-        index[1] <- 0
-        index[2] <- as.integer(length(x)/2)
-        
-        for(i in 2: (log2(length(x)) + 100)){
-          y <- thresh(x, x[index[i]])
-          if(sum(y/norm_vec(y)) < lambda){
-            index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
-          }else{
-            index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
-          }
-          if(abs(index[i+1]-index[i]) == 1) break
-        }
-        
-        a <- min(x[index[i]], x[index[i+1]])
-        x <- thresh(x, a)
-        return(a + quadr(x, lambda))
-      }
-    }
-    
     if(lambda_x == "cv" | lambda_y == "cv"){
       bestlambda <- best_lambda(X, Y, n = n, lambda_kcv = lambda_kcv, 
                                 n_lambda = n_lambda, tol = 1e-10, max_iterations = 100)
@@ -553,11 +510,6 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     }
     }
     
-  
-  
-  
-  
-  
   ######################################################################################
   
   if(!sparsity_it){

@@ -420,7 +420,6 @@ vnorm <- function(x)
 #' (Metabolomics versus Transcriptomics) then you may want to not sum up the two prediction errors or include weights in the sum.
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
-
 rmsep_combi <- function(Xtst, Ytst, fit)
 {
   if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
@@ -430,15 +429,13 @@ rmsep_combi <- function(Xtst, Ytst, fit)
   if (!is.matrix(Ytst)) Ytst <- t(Ytst)
   
   input_checker(Xtst, Ytst)
-
+  
   Yhat <- (Xtst - Xtst %*% fit$W_Yosc %*% t(fit$W_Yosc)) %*% fit$W. %*% fit$B_T %*% t(fit$C.)
   Xhat <- (Ytst - Ytst %*% fit$C_Xosc %*% t(fit$C_Xosc)) %*% fit$C. %*% fit$B_U %*% t(fit$W.)
   
-#  sum_R2 <- ssq(Ytst - Yhat)/ssq(Ytst - mean(Ytst)) + ssq(Xtst - Xhat)/ssq(Xtst - mean(Xtst))
-  
-#  return(sum_R2)
   return(sqrt(mse(Yhat, Ytst)) + sqrt(mse(Xhat, Xtst)))
 }
+
 
 
 #' Symmetrized sum of prediction R^2
@@ -477,6 +474,14 @@ sumR2_combi <- function(Xtst, Ytst, fit)
   SSE_u1 <- ssq(Ytst %*% fit$C. - Xtst %*% fit$W. %*% fit$B_T)/ssq(Ytst %*% fit$C.)
   SSE_t1 <- ssq(Xtst %*% fit$W. - Ytst %*% fit$C. %*% fit$B_U)/ssq(Xtst %*% fit$W.)
   
+  # predict covariance matrix
+  Xc <- scale(Xtst, scale = F)
+  Yc <- scale(Ytst, scale = F)
+  Xhatc <- scale(Xhat, scale = F)
+  Yhatc <- scale(Yhat, scale = F)
+  SSE_covy <- (norm(t(Xc) %*% (Yc - Yhatc)) / norm(t(Xc) %*% Yc))^2
+  SSE_covx <- (norm(t(Yc) %*% (Xc - Xhatc)) / norm(t(Yc) %*% Xc))^2 
+  
   sum_R2 <- list()
   sum_R2$SSE_x <- SSE_x
   sum_R2$SSE_y <- SSE_y
@@ -484,6 +489,8 @@ sumR2_combi <- function(Xtst, Ytst, fit)
   sum_R2$SSE_t <- SSE_t
   sum_R2$SSE_u1 <- SSE_u1
   sum_R2$SSE_t1 <- SSE_t1
+  sum_R2$SSE_covx <- SSE_covx
+  sum_R2$SSE_covy <- SSE_covy
   
   return(sum_R2)
 }
@@ -605,25 +612,9 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
   if (N != length(Y[, 1])) {
     stop("N not the same")
   }
-  
-  # initiate
-  mean_err_x <- mean_err_y <- mean_err_t <- mean_err_u <- mean_err_t1 <- mean_err_u1 <- matrix(NA, nrow = n_lambda, ncol = n_lambda)
-  mean_err_tr_x <- mean_err_tr_y <- mean_err_tr_t <- mean_err_tr_u <- mean_err_tr_t1 <- mean_err_tr_u1 <-  matrix(NA, nrow = n_lambda, ncol = n_lambda)
-  rownames(mean_err_x) <- rownames(mean_err_y) <- rownames(mean_err_t) <- rownames(mean_err_u) <- rownames(mean_err_t1) <- rownames(mean_err_u1) <- rownames(mean_err_tr_x) <- rownames(mean_err_tr_y) <- rownames(mean_err_tr_t) <- rownames(mean_err_tr_u) <- rownames(mean_err_tr_t1) <- rownames(mean_err_tr_u1) <-  format(seq(1, dim(X)[2]^0.5, length.out = n_lambda), digits = 2)
-  colnames(mean_err_x) <- colnames(mean_err_y) <- colnames(mean_err_t) <- colnames(mean_err_u) <- colnames(mean_err_t1) <- colnames(mean_err_u1) <- colnames(mean_err_tr_x) <- colnames(mean_err_tr_y) <- colnames(mean_err_tr_t) <- colnames(mean_err_tr_u) <- colnames(mean_err_tr_t1) <- colnames(mean_err_tr_u1) <-  format(seq(1, dim(Y)[2]^0.5, length.out = n_lambda), digits = 2)
-  
-  err_x <- NA * 1: lambda_kcv
-  err_y <- NA * 1: lambda_kcv
-  err_t <- NA * 1: lambda_kcv
-  err_u <- NA * 1: lambda_kcv
-  err_t1 <- NA * 1: lambda_kcv
-  err_u1 <- NA * 1: lambda_kcv
-  err_tr_x <- NA * 1: lambda_kcv
-  err_tr_y <- NA * 1: lambda_kcv
-  err_tr_t <- NA * 1: lambda_kcv
-  err_tr_u <- NA * 1: lambda_kcv
-  err_tr_t1 <- NA * 1: lambda_kcv
-  err_tr_u1 <- NA * 1: lambda_kcv
+  mean_err <- matrix(NA, nrow = n_lambda, ncol = n_lambda)
+  rownames(mean_err) <- seq(1, dim(X)[2]^0.5, length.out = n_lambda)
+  colnames(mean_err) <- seq(1, dim(Y)[2]^0.5, length.out = n_lambda)
   
   kx <- 0
   
@@ -637,8 +628,7 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
     ky <- 0
     for (ly in seq(1, dim(Y)[2]^0.5, length.out = n_lambda)) {
       ky <- ky + 1
-
-      
+      err <- NA * 1:lambda_kcv
       
       # loop through number of folds
       for (i in 1:lambda_kcv) {
@@ -651,104 +641,108 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
         
         fit <- try(do.call(o2m2, pars), silent = T)
         if(inherits(fit,'try-error')) warning(fit[1])
-        
-        # Test error
-        if(inherits(fit, 'try-error')){
-          err_x[i] <- NA
-          err_y[i] <- NA
-          err_t[i] <- NA
-          err_u[i] <- NA
-          err_t1[i] <- NA
-          err_u1[i] <- NA
-        }else{
-          sum_R2 <- sumR2_combi(X[folds[ii], ], Y[folds[ii], ], fit)
-          err_x[i] <- sum_R2$SSE_x
-          err_y[i] <- sum_R2$SSE_y
-          err_t[i] <- sum_R2$SSE_t
-          err_u[i] <- sum_R2$SSE_u
-          err_t1[i] <- sum_R2$SSE_t1
-          err_u1[i] <- sum_R2$SSE_u1
-        }
-        
-        # Training error
-        if(inherits(fit, 'try-error')){
-          err_tr_x[i] <- NA
-          err_tr_y[i] <- NA
-          err_tr_t[i] <- NA
-          err_tr_u[i] <- NA
-          err_tr_t1[i] <- NA
-          err_tr_u1[i] <- NA
-        }else{
-          sum_R2 <- sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit)
-          err_tr_x[i] <- sum_R2$SSE_x
-          err_tr_y[i] <- sum_R2$SSE_y
-          err_tr_t[i] <- sum_R2$SSE_t
-          err_tr_u[i] <- sum_R2$SSE_u
-          err_tr_t1[i] <- sum_R2$SSE_t1
-          err_tr_u1[i] <- sum_R2$SSE_u1
-          
-          #err_tr[,i] <- sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit)
-        }
-        
-        # err_tr[i] <- ifelse(inherits(fit, 'try-error'), 
-        #                  NA, 
-        #                  # Change standards here
-        #                  sumR2_combi(X[-folds[ii], ], Y[-folds[ii], ], fit))
+        err[i] <- ifelse(inherits(fit, 'try-error'), 
+                         NA, 
+                         # Change standards here
+                         rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
       }
-      mean_err_x[kx,ky] <- mean(err_x)
-      mean_err_y[kx,ky] <- mean(err_y)      
-      mean_err_t[kx,ky] <- mean(err_t)
-      mean_err_u[kx,ky] <- mean(err_u)
-      mean_err_t1[kx,ky] <- mean(err_t1)
-      mean_err_u1[kx,ky] <- mean(err_u1)
-      mean_err_tr_x[kx,ky] <- mean(err_tr_x)
-      mean_err_tr_y[kx,ky] <- mean(err_tr_y)
-      mean_err_tr_t[kx,ky] <- mean(err_tr_t)
-      mean_err_tr_u[kx,ky] <- mean(err_tr_u)
-      mean_err_tr_t1[kx,ky] <- mean(err_tr_t1)
-      mean_err_tr_u1[kx,ky] <- mean(err_tr_u1)
+      mean_err[kx,ky] <- mean(err)
     }
   }
   
   # Output
   bestlambda <- list()
-  bestlambda$x <- as.numeric(rownames(mean_err_y)[which(mean_err_y == min(mean_err_y), arr.ind = T)[1]])
-  bestlambda$y <- as.numeric(colnames(mean_err_y)[which(mean_err_y == min(mean_err_y), arr.ind = T)[2]])
-#  bestlambda$grid <- mean_err
-#  bestlambda$grid_tr <- mean_err_tr
+  bestlambda$x <- as.numeric(rownames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[1]])
+  bestlambda$y <- as.numeric(colnames(mean_err)[which(mean_err == min(mean_err), arr.ind = T)[2]])
+  bestlambda$grid <- mean_err
   
-  sparx <- bestlambda$x / sqrt(dim(X)[2])
-  spary <- bestlambda$y / sqrt(dim(Y)[2])
+  sparx <- format(bestlambda$x / sqrt(dim(X)[2]), digits = 1, nsmall = 2)
+  spary <- format(bestlambda$y / sqrt(dim(Y)[2]), digits = 3, nsmall = 2)
   
-  print(paste("lambda x = ", bestlambda$x, "=", sparx, "* sqrt(p)"))
-  print(paste("lambda y = ", bestlambda$y, "=", spary, "* sqrt(q)"))
-  
-  print("x")
-  print(mean_err_x)
-  print(mean_err_tr_x)
-  
-  print("y")
-  print(mean_err_y)
-  print(mean_err_tr_y)
-  
-  print("t")
-  print(mean_err_t)
-  print(mean_err_tr_t)
-  
-  print("u")
-  print(mean_err_u)
-  print(mean_err_tr_u)
-  
-  print("t1")
-  print(mean_err_t1)
-  print(mean_err_tr_t1)
-  
-  print("u1")
-  print(mean_err_u1)
-  print(mean_err_tr_u1)
+  print(paste("lambda x = ", format(bestlambda$x, digits = 1, nsmall = 2), "=", sparx, "* sqrt(p)"))
+  print(paste("lambda y = ", format(bestlambda$y, digits = 1, nsmall = 2), "=", spary, "* sqrt(q)"))
   
   return(bestlambda)
 }
+
+
+#' Find the delta to make the L1 norm equal to the lambda
+#'
+#' 
+#' @inheritParams o2m
+#' @param lambda L1 norm constraint
+#' @return Delta value
+#' \item{del}{If delta = 0 results in the L1 norm of x less than lambda, return 0; otherwise return the value which make the L1 norm of x equal to lambda}
+#'
+#' @export
+delta <- function(x, lambda){
+  x <- sort(abs(x))
+  total <- 0
+  if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
+  else{
+    index <- vector()
+    index[1] <- 0
+    index[2] <- as.integer(length(x)/2)
+    
+    for(i in 2: (log2(length(x)) + 100)){
+      y <- thresh(x, x[index[i]])
+      if(sum(y/norm_vec(y)) < lambda){
+        index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
+      }else{
+        index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
+      }
+      if(abs(index[i+1]-index[i]) == 1) break
+    }
+    
+    a <- min(x[index[i]], x[index[i+1]])
+    x <- thresh(x, a)
+    del <- a + quadr(x, lambda)
+    return(del)
+  }
+}
+
+
+#' Solve quadratic
+#'
+#' 
+#' @inheritParams o2m
+#' @inheritParams delta
+#' @return Solution to a quadratic function
+#' \item{neg_root}{The smaller root of the two real positive solutions}
+#'
+#' @export
+quadr <- function(x, lambda = lambda) {
+  x <- abs(x)
+  x <- x[x>0]   # absolute, filter out zero
+  a <- (length(x))^2 - length(x) * lambda^2
+  b <- 2 * sum(x) * (lambda^2 - length(x))
+  c <- (sum(x))^2 - lambda^2 * sum(x^2)
+  neg_root <- ((-b) - sqrt((b^2) - 4*a*c)) / (2*a)
+  return(neg_root)
+}
+
+
+#' Soft threshholding a vector
+#'
+#' @param z Numerical vector
+#' @param delta Soft-thresholding parameter
+#' @return Soft-thresholded vector
+#'
+#' @export
+#' 
+thresh <- function(z,delta){
+  return(sign(z)*(abs(z)>=delta)*(abs(z)-delta))
+}
+
+
+#' Norm of vector
+#'
+#' @param x Numerical vector
+#' @return L2 norm of a vector
+#' @export
+norm_vec <- function(x) sqrt(
+  sum(x^2))
+
 
 # Generic Methods ---------------------------------------------------------
 
