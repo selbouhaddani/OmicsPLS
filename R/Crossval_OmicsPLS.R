@@ -50,14 +50,14 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
       suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
-                  stripped = stripped, p_thresh = p_thresh, 
-                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+                                   stripped = stripped, p_thresh = p_thresh, 
+                                   q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   } else {
     outp=mclapply(mc.cores=nr_cores,parms,function(e){
       suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
-                  stripped = stripped, p_thresh = p_thresh, 
-                  q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+                                   stripped = stripped, p_thresh = p_thresh, 
+                                   q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   }
   dnams = list(paste("ax=",ax,sep=""),paste("ay=",ay,sep=""),paste("a=",a,sep=""))
@@ -131,8 +131,8 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                       nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
       a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                          stripped = stripped, p_thresh = p_thresh, 
-                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+                                           stripped = stripped, p_thresh = p_thresh, 
+                                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })
   } else {
@@ -141,13 +141,13 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
       parms = merge(parms,data.frame(ny = ay))
       parms = apply(parms,1,as.list)
       R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
-                                     stripped = stripped, p_thresh = p_thresh, 
-                                     q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
+                                                      stripped = stripped, p_thresh = p_thresh, 
+                                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
                       nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
       a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                          stripped = stripped, p_thresh = p_thresh, 
-                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+                                           stripped = stripped, p_thresh = p_thresh, 
+                                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })
   }
