@@ -735,7 +735,6 @@ delta <- function(x, lambda){
       }
       a <- x[index_f]
       x <- thresh(x, a)
-       print(paste(index, index_f))
       del <- a + quadr(x, lambda)
   }
   }
