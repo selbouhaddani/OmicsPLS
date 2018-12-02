@@ -676,29 +676,71 @@ best_lambda <- function(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10, max_iter
 #'
 #' @export
 delta <- function(x, lambda){
-  x <- sort(abs(x))
-  total <- 0
-  if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
-  else{
-    index <- vector()
-    index[1] <- 0
-    index[2] <- as.integer(length(x)/2)
-    
-    for(i in 2: (log2(length(x)) + 100)){
-      y <- thresh(x, x[index[i]])
-      if(sum(y/norm_vec(y)) < lambda){
-        index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
-      }else{
-        index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
+  del <- NA
+  if(lambda == 1){
+    del <- sort(abs(x), decreasing = T)[2]
+  }else{
+    x <- sort(abs(x))
+    total <- 0
+    if (sum(x/norm_vec(x)) < lambda) return(0)    #del=0 if it results in L1 norm of x < lambda
+    else{
+      index <- vector()
+      index[1] <- 1
+      index[2] <- as.integer(length(x)/2)
+      
+      for(i in 2: (log2(length(x)) + 100)){
+        y <- thresh(x, x[index[i]])
+        if(sum(y/norm_vec(y)) < lambda){
+          index[i+1] <- index[i] - abs(as.integer((index[i] - index[i-1])/2))
+        }else{
+          index[i+1] <- index[i] + abs(as.integer((index[i] - index[i-1])/2))
+        }
+        if(abs(index[i+1]-index[i]) == 1) { # two situations
+          if(index[i+1] > index[i]){   # S1
+            temp_index <- index[i+1]
+            temp_y <- thresh(x, x[temp_index])
+            if(sum(temp_y/norm_vec(temp_y)) < lambda){
+              index_f <- temp_index - 1
+              break
+            }else{
+              temp_index <- temp_index + 1
+              temp_y <- thresh(x, x[temp_index])
+              if(sum(temp_y/norm_vec(temp_y)) < lambda){
+                index_f <- temp_index - 1
+                break
+              }else{
+                index_f <- temp_index
+                break
+              }
+            }
+          }else{ # S2
+            temp_index <- index[i+1] - 1
+            temp_y <- thresh(x, x[temp_index])
+            if(sum(temp_y/norm_vec(temp_y)) < lambda){
+              index_f <- temp_index - 1
+              break
+            }else{
+              temp_index <- temp_index + 1
+              temp_y <- thresh(x, x[temp_index])
+              if(sum(temp_y/norm_vec(temp_y)) < lambda){
+                index_f <- temp_index - 1
+                break
+              }else{
+                index_f <- temp_index
+                break
+              }
+            }
+          }
+        }
       }
-      if(abs(index[i+1]-index[i]) == 1) break
-    }
-    
-    a <- min(x[index[i]], x[index[i+1]])
-    x <- thresh(x, a)
-    del <- a + quadr(x, lambda)
-    return(del)
+      a <- x[index_f]
+      x <- thresh(x, a)
+       print(paste(index, index_f))
+      del <- a + quadr(x, lambda)
   }
+  }
+  if(is.na(del)) solve(0)
+    return(del)
 }
 
 
@@ -717,7 +759,10 @@ quadr <- function(x, lambda = lambda) {
   a <- (length(x))^2 - length(x) * lambda^2
   b <- 2 * sum(x) * (lambda^2 - length(x))
   c <- (sum(x))^2 - lambda^2 * sum(x^2)
+  # if((b^2 - 4*a*c)<0) {print(x)
+  # solve(0)}
   neg_root <- ((-b) - sqrt((b^2) - 4*a*c)) / (2*a)
+  if( is.na(neg_root)) print(x)
   return(neg_root)
 }
 
