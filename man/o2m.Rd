@@ -9,7 +9,7 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
   sparsity = FALSE, method = c("theory", "method"),
   orth_last_step = FALSE, sparsity_it = F, lambda_x = max(1, 0.5 *
   (dim(X)[2])^0.5), lambda_y = max(1, 0.5 * (dim(Y)[2])^0.5),
-  lambda_kcv = 2, n_lambda = 6,
+  lambda_kcv = 2, n_lambda = 6, keepx = NULL, keepy = NULL,
   max_iterations_sparsity = max_iterations, ...)
 }
 \arguments{
@@ -48,6 +48,10 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 \item{lambda_kcv}{Integer. k-fold cross-validation for lambda_x and lambda_y}
 
 \item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
+
+\item{keepx}{Integer. Number of non-zero loadings for \code{X} in each joint component desired.}
+
+\item{keepy}{Integer. Number of non-zero loadings for \code{Y} in each joint component desired.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 

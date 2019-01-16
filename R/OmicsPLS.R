@@ -779,6 +779,28 @@ thresh <- function(z,delta){
 }
 
 
+#' Soft threshholding to n non-zero
+#'
+#' @param x Numerical vector
+#' @param keepx How many non-zero
+#' @return Soft-thresholded vector
+#'
+#' @export
+#' 
+thresh_n <- function (x, keepx){
+  nx <- length(x) - keepx
+  if (nx != 0) {
+    absa = abs(x)
+    if (any(rank(absa, ties.method = "max") <= nx)) {
+      x = ifelse(rank(absa, ties.method = "max") <= nx, 
+                 0, sign(x) * (absa - max(absa[rank(absa, ties.method = "max") <= 
+                                                 nx])))
+    }
+  }
+  x
+}
+
+
 #' Norm of vector
 #'
 #' @param x Numerical vector
