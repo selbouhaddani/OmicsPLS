@@ -49,9 +49,9 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
 
-\item{keepx}{Integer. Number of non-zero loadings for \code{X} in each joint component desired.}
+\item{keepx}{Vector. Number of non-zero loadings for \code{X} in each joint component desired.}
 
-\item{keepy}{Integer. Number of non-zero loadings for \code{Y} in each joint component desired.}
+\item{keepy}{Vector. Number of non-zero loadings for \code{Y} in each joint component desired.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 

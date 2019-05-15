@@ -18,8 +18,8 @@
 #' @param lambda_y double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings
 #' @param lambda_kcv Integer. k-fold cross-validation for lambda_x and lambda_y
 #' @param n_lambda Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid
-#' @param keepx Integer. Number of non-zero loadings for \code{X} in each joint component desired.
-#' @param keepy Integer. Number of non-zero loadings for \code{Y} in each joint component desired.
+#' @param keepx Vector. Number of non-zero loadings for \code{X} in each joint component desired.
+#' @param keepy Vector. Number of non-zero loadings for \code{Y} in each joint component desired.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param method Either "theory" or "method". See \code{\link{ssvd}}.
 #' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
@@ -502,14 +502,16 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
           }
         }
       }else{
+        if(length(keepx)==1){keepx <- rep(keepx,n)}
+        if(length(keepy)==1){keepy <- rep(keepy,n)}
         v <- X[1,]/norm_vec(X[1,])
         for (i in 1: max_iterations_sparsity){
           v_old <- v
           u <- t(Y) %*% (X %*% v)
-          u <- thresh_n(u, keepy)
+          u <- thresh_n(u, keepy[j])
           u <- u/norm_vec(u)
           v <- t(X) %*% (Y %*% u)
-          v <- thresh_n(v, keepx)
+          v <- thresh_n(v, keepx[j])
           v <- v/norm_vec(v)
           if (mse(v, v_old) < tol) {
             break
