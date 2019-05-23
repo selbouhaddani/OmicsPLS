@@ -340,10 +340,8 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
     message("Power Method (comp ", indx, ") stopped after ", indx2, " iterations.\n")
     Tt <- cbind(Tt, X %*% Wi)
     U <- cbind(U, Y %*% Ci)
-    P <- t(X) %*% (X %*% Wi) / as.numeric(crossprod(X %*% Wi))
-    Q <- t(Y) %*% (Y %*% Ci) / as.numeric(crossprod(Y %*% Ci))
-    X <- X - (X %*% Wi) %*% t(P)
-    Y <- Y - (Y %*% Ci) %*% t(Q)
+    X <- X - (X %*% Wi) %*% t(Wi)
+    Y <- Y - (Y %*% Ci) %*% t(Ci)
     W <- cbind(W, Wi)
     C <- cbind(C, Ci)
   }
