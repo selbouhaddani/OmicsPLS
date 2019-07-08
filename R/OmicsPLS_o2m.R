@@ -210,8 +210,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     
     R2Xcorr <- (ssq(Tt)/ssqX)
     R2Ycorr <- (ssq(U)/ssqY)
-    R2X_YO <- (ssq(T_Yosc)/ssqX)
-    R2Y_XO <- (ssq(U_Xosc)/ssqY)
+    R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
+    R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
     R2Xhat <- (ssq(U %*% B_U)/ssqX)
     R2Yhat <- (ssq(Tt %*% B_T)/ssqY)
     R2X <- R2Xcorr + R2X_YO
@@ -557,8 +557,8 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   # R2
   R2Xcorr <- (ssq(Tt)/ssq(X_true))
   R2Ycorr <- (ssq(U)/ssq(Y_true))
-  R2X_YO <- (ssq(T_Yosc)/ssq(X_true))
-  R2Y_XO <- (ssq(U_Xosc)/ssq(Y_true))
+  R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssq(X_true))
+  R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssq(Y_true))
   R2Xhat <- (ssq(U %*% B_U)/ssq(X_true))
   R2Yhat <- (ssq(Tt %*% B_T)/ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
