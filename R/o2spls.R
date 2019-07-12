@@ -19,7 +19,7 @@ spo2m <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100, lambda_kcv
   
   fit <- o2m(x,y,n,0,0,p_thresh=1,sparsity_it = T, keepx = keepx, keepy = keepy)
   
-  
   model <- list(Tt = fit$Tt, W. = fit$W., U = fit$U, C. = fit$C., E = Ee, Ff = Ff, T_Yosc = Tosc, P_Yosc. = Posc, W_Yosc = Wosc, 
-                U_Xosc = Uosc, P_Xosc. = Qosc, C_Xosc = Cosc)
+                U_Xosc = Uosc, P_Xosc. = Qosc, C_Xosc = Cosc, B_U = fit$B_U, B_T. = fit$B_T.)
+  return(model)
 }
