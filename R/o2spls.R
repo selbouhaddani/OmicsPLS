@@ -1,8 +1,9 @@
 #' @export
 spo2m <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100, lambda_kcv = 2, 
                 keepx = NULL, keepy = NULL) {
-  fitini <- o2m(X,Y,n+max(nx,ny),0,0,p_thresh=1,sparsity_it = T, keepx = keepx, keepy = keepy)
-  fito2m <- o2m(X,Y,n+max(nx,ny),0,0,p_thresh=1)
+#  nn <- n+max(nx,ny)
+  fitini <- o2m(X,Y,n,0,0,p_thresh=1,sparsity_it = T, keepx = keepx, keepy = keepy)
+  fito2m <- o2m(X,Y,n,0,0,p_thresh=1)
   Ee <- X - fito2m$Tt %*% t(fito2m$W.)
   Ff <- Y - fito2m$U %*% t(fito2m$C.)
   
