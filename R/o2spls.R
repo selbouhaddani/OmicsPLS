@@ -18,9 +18,16 @@ spo2m <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100, lambda_kcv
   x <- X - Tosc %*% t(Posc)
   y <- Y - Uosc %*% t(Qosc)
   
-  fit <- o2m(x,y,n,0,0,p_thresh=1,sparsity_it = T, keepx = keepx, keepy = keepy)
+  # update loadings
+  # fit <- o2m(x,y,n,0,0,p_thresh=1,sparsity_it = T, keepx = keepx, keepy = keepy)
   
-  model <- list(Tt = fit$Tt, W. = fit$W., U = fit$U, C. = fit$C., E = Ee, Ff = Ff, T_Yosc = Tosc, P_Yosc. = Posc, W_Yosc = Wosc, 
-                U_Xosc = Uosc, P_Xosc. = Qosc, C_Xosc = Cosc, B_U = fit$B_U, B_T. = fit$B_T.)
+  Tt <- x %*% fitini$W.
+  U <- y %*% fitini$C.
+  
+  B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
+  B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
+  
+  model <- list(Tt = Tt, W. = fitini$W., U = U, C. = fitini$C., T_Yosc = Tosc, P_Yosc. = Posc, W_Yosc = Wosc, 
+                U_Xosc = Uosc, P_Xosc. = Qosc, C_Xosc = Cosc, B_U = B_U, B_T. = B_T)
   return(model)
 }
