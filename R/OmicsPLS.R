@@ -83,7 +83,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2
+#' @import parallel ggplot2 tibble magrittr
 #' @importFrom graphics abline
 NULL
 
