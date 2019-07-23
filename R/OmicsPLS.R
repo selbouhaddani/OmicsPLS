@@ -571,11 +571,11 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
     colnames(fit$load) = c(paste(loading_name,"loadings",i),paste(loading_name,"loadings",j))
   }
   
-  label = match.arg(label)
-  if(label == "colnames" & !is.null(rownames(x[which_load][[1]]))) {
+  label2 = match.arg(label)
+  if(label2 == "colnames" && !is.null(rownames(x[which_load][[1]]))) {
     label = rownames(x[which_load][[1]])
     } else label = 1:p
-  if(label == "colnames" & is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
+  if(label2 == "colnames" && is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
   
   if (use_ggplot2) {
     plt = with(fit, {
