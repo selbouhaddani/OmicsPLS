@@ -1,24 +1,27 @@
 Package: OmicsPLS
 Type: Package
-Title: Perform Two-Way Orthogonal Partial Least Squares
-Version: 1.1.0
-Date: 2018-01-22
-Author: Said el Bouhaddani, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
+Title: Data integration with Two-Way Orthogonal Partial Least Squares
+Version: 1.2.0
+Date: 2017-07-23
+Author: Said el Bouhaddani (Twitter: @selbouhaddani), Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
     Hae-Won Uh
-Maintainer: Said el Bouhaddani <s.el_bouhaddani@lumc.nl>
+Maintainer: Said el Bouhaddani <s.elbouhaddani@umcutrecht.nl>
 Description: Performs the O2PLS data integration method for two datasets yielding joint and data-specific parts for each dataset.
     The algorithm automatically switches to a memory-efficient approach to fit O2PLS to high dimensional data.
     It provides a rigorous and a faster alternative cross-validation method to select the number of components,
     as well as functions to report proportions of explained variation and to construct plots of the results.
     See Trygg and Wold (2003) <doi:10.1002/cem.775> and el Bouhaddani et al (2016) <doi:10.1186/s12859-015-0854-z>.
 License: GPL-3
+Encoding: UTF-8
 Imports:
     ggplot2,
-    parallel
+    parallel,
+    magrittr,
+    tibble
 Suggests:
     testthat,
     knitr,
     rmarkdown,
-    gplots,
-RoxygenNote: 6.0.1
+    gplots
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr

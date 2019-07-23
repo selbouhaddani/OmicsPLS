@@ -4,9 +4,10 @@
 \name{OmicsPLS}
 \alias{OmicsPLS}
 \alias{OmicsPLS-package}
-\title{O2PLS: Two-Way Orthogonal Partial Least Squares}
+\title{Data integration with O2PLS: Two-Way Orthogonal Partial Least Squares}
 \description{
-This is based on work of (Trygg, Wold, 2003).
+OmicsPLS software is described in (el Bouhaddani et al, 2018, BMC Bioinformatics).
+This is based on work of (Trygg & Wold, 2003).
 Includes the O2PLS fit, some misc functions and some cross-validation tools.
 }
 \section{Model and assumptions}{
@@ -21,7 +22,7 @@ The O2PLS model (Trygg & Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y}
  \item{3.} A noise part capturing all residual variation.
 }
 
-See also the corresponding paper for interpretation (el Bouhaddani et al, 2016).
+See also the corresponding paper (el Bouhaddani et al, 2018).
 }
 
 \section{Fitting}{
@@ -72,11 +73,11 @@ Also some handy tools are available
 
 \section{Citation}{
 
-If you use the OmicsPLS R package in your research, please cite the corresponding paper:
+If you use the OmicsPLS R package in your research, please cite the corresponding software paper:
 
-\strong{Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W.} (2016).
-\emph{Evaluation of O2PLS in Omics data integration.}
-BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
+\strong{el Bouhaddani, S., Uh, H. W., Jongbloed, G., Hayward, C., Klarić, L., Kiełbasa, S. M., & Houwing-Duistermaat, J.} (2018).
+\emph{Integrating omics datasets with the OmicsPLS package.}
+ BMC Bioinformatics, 19(1). \url{https://doi.org/10.1186/s12859-018-2371-3}
 
 The bibtex entry can be obtained with command \code{citation("OmicsPLS")}.
 Thank You!
@@ -89,12 +90,12 @@ Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 }
 
 \author{
-Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}),
-Jeanine Houwing-Duistermaat (\email{J.J.Houwing@lumc.nl}),
+Said el Bouhaddani (\email{s.elbouhaddani@umcutrecht.nl}, Twitter: @selbouhaddani),
+Jeanine Houwing-Duistermaat (\email{J.Duistermaat@leeds.ac.uk}),
 Geurt Jongbloed (\email{G.Jongbloed@tudelft.nl}),
 Szymon Kielbasa (\email{S.M.Kielbasa@lumc.nl}),
-Hae-Won Uh (\email{H.Uh@lumc.nl}).
+Hae-Won Uh (\email{H.W.Uh@umcutrecht.nl}).
 
-Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@lumc.nl}).
+Maintainer: Said el Bouhaddani (\email{s.elbouhaddani@umcutrecht.nl}).
 }
 \keyword{OmicsPLS}

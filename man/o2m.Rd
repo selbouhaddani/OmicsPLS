@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS_o2m.R
 \name{o2m}
 \alias{o2m}
-\title{Perform O2-PLS with two-way orthogonal corrections}
+\title{Perform O2-PLS data integration with two-way orthogonal corrections}
 \usage{
 o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
   q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)

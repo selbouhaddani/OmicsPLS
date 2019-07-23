@@ -1,16 +1,17 @@
-#' O2PLS: Two-Way Orthogonal Partial Least Squares
+#' Data integration with O2PLS: Two-Way Orthogonal Partial Least Squares
 #'
-#' This is based on work of (Trygg, Wold, 2003).
+#' OmicsPLS software is described in (el Bouhaddani et al, 2018, BMC Bioinformatics).
+#' This is based on work of (Trygg & Wold, 2003).
 #' Includes the O2PLS fit, some misc functions and some cross-validation tools.
 #' 
 #' @author
-#' Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}),
-#' Jeanine Houwing-Duistermaat (\email{J.J.Houwing@@lumc.nl}),
+#' Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}, Twitter: @@selbouhaddani),
+#' Jeanine Houwing-Duistermaat (\email{J.Duistermaat@@leeds.ac.uk}),
 #' Geurt Jongbloed (\email{G.Jongbloed@@tudelft.nl}),
 #' Szymon Kielbasa (\email{S.M.Kielbasa@@lumc.nl}),
-#' Hae-Won Uh (\email{H.Uh@@lumc.nl}).
+#' Hae-Won Uh (\email{H.W.Uh@@umcutrecht.nl}).
 #'
-#' Maintainer: Said el Bouhaddani (\email{s.el_bouhaddani@@lumc.nl}).
+#' Maintainer: Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}).
 #' 
 #' @section Model and assumptions:
 #' \strong{Note that the rows of \code{X} and \code{Y} are the subjects and columns are variables.}
@@ -23,7 +24,7 @@
 #'  \item{3.} A noise part capturing all residual variation.
 #' }
 #' 
-#' See also the corresponding paper for interpretation (el Bouhaddani et al, 2016).
+#' See also the corresponding paper (el Bouhaddani et al, 2018).
 #' 
 #' 
 #' @section Fitting:
@@ -65,11 +66,11 @@
 #' }
 #' 
 #' @section Citation:
-#' If you use the OmicsPLS R package in your research, please cite the corresponding paper:
+#' If you use the OmicsPLS R package in your research, please cite the corresponding software paper:
 #' 
-#' \strong{Bouhaddani, S., Houwing-duistermaat, J., Jongbloed, G., Salo, P., Perola, M., & Uh, H.-W.} (2016).
-#' \emph{Evaluation of O2PLS in Omics data integration.}
-#' BMC Bioinformatics BMTL Supplement. doi:10.1186/s12859-015-0854-z
+#' \strong{el Bouhaddani, S., Uh, H. W., Jongbloed, G., Hayward, C., Klarić, L., Kiełbasa, S. M., & Houwing-Duistermaat, J.} (2018).
+#' \emph{Integrating omics datasets with the OmicsPLS package.}
+#'  BMC Bioinformatics, 19(1). \url{https://doi.org/10.1186/s12859-018-2371-3}
 #' 
 #' The bibtex entry can be obtained with command \code{citation("OmicsPLS")}.
 #' Thank You!
@@ -83,7 +84,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2
+#' @import parallel ggplot2 tibble magrittr
 #' @importFrom graphics abline
 NULL
 
@@ -571,10 +572,10 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   }
   
   label = match.arg(label)
-  if(label == "colnames" && !is.null(rownames(x[which_load][[1]]))) {
+  if(label == "colnames" & !is.null(rownames(x[which_load][[1]]))) {
     label = rownames(x[which_load][[1]])
     } else label = 1:p
-  if(label == "colnames" && is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
+  if(label == "colnames" & is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
   
   if (use_ggplot2) {
     plt = with(fit, {

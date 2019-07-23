@@ -1,4 +1,4 @@
-#' Perform O2-PLS with two-way orthogonal corrections
+#' Perform O2-PLS data integration with two-way orthogonal corrections
 #'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #'
