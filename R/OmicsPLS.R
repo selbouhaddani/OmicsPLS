@@ -780,7 +780,7 @@ scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
   
   which_part = match.arg(which_part)
-  which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc.", Yorth = "U_Xosc.")
+  which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc", Yorth = "U_Xosc")
   scores_matrix = x[[which_scores]]
   dim_names = dimnames(scores_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(scores_matrix)
