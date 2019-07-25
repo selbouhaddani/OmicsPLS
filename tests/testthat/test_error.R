@@ -10,7 +10,6 @@ test_that("Normal input goes without error", {
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
-  expect_error(print(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2)), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
 })
 
@@ -59,8 +58,8 @@ test_that("size, ratios and names are correct", {
 
 test_that("S3 Methods are working OK", {
   fit = o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),2,0,0)
-  expect_error(print(fit), NA)
-  expect_error(summary(fit), NA)
+  expect_error(invisible(print(fit)), NA)
+  expect_error(invisible(summary(fit)), NA)
   expect_error(invisible(print(summary(fit))), NA)
   expect_error(plot(fit), NA)
   expect_error(plot(fit, use_ggplot2=FALSE, i=1,j=2), NA)
@@ -68,6 +67,7 @@ test_that("S3 Methods are working OK", {
   expect_error(loadings(fit,sorted=TRUE), NA)
   expect_error(predict(fit,t(1:3)), NA)
   expect_error(scores(fit), NA)
+  expect_error(scores(fit, "Yo"), NA)
   expect_error(rmsep(1:10%*%t(1:3), 1:10%*%t(1:3), fit), NA)
   expect_error(loocv(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, fit, app_err = TRUE, kcv=2), NA)
 })

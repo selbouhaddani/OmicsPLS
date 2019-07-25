@@ -22,7 +22,7 @@ Otherwise try the development version on this GitHub repo:
     require(devtools)
     devtools::install_github("selbouhaddani/OmicsPLS")
     
-Or download the source .tar.gz or the Windows binaries .zip at my ZippedPackages repo. 
+Also, it is likely that in the GitHub version, bug fixes have been incorporated that are found in the CRAN version.
 
 ### Loading OmicsPLS
 
