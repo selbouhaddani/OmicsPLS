@@ -38,6 +38,7 @@ test_that("Errors in *o2m* are thrown", {
   expect_error(crossval_o2m(diag(4),diag(4),1.5,0,0,2)                 )
   expect_error(crossval_o2m(diag(4),diag(4),1,1.5,0,2)                 )
   expect_error(crossval_o2m(diag(4),diag(4),1,0,1.5,2)                 )
+  expect_error(crossval_o2m(diag(4),diag(4),1,0,0,2,nr_folds = 1)      )
   expect_error(crossval_o2m_adjR2(diag(3),diag(4),1,0,0,2)                   )
   expect_error(crossval_o2m_adjR2(matrix(c(1:8,NA),3),matrix(1:9,3),1,1,1,2))
   expect_error(crossval_o2m_adjR2(matrix(1:9,3),matrix(c(1:8,NaN),3),1,1,1,2))
@@ -58,7 +59,9 @@ test_that("size, ratios and names are correct", {
 
 test_that("S3 Methods are working OK", {
   fit = o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),2,0,0)
+  cvfit = crossval_o2m(data.frame(a=1:10,b=2:11,c=3:12),data.frame(d=1:10,e=2:11,f=3:12),1:2,0,0,2)
   expect_error(invisible(print(fit)), NA)
+  expect_error(invisible(print(cvfit)), NA)
   expect_error(invisible(summary(fit)), NA)
   expect_error(invisible(print(summary(fit))), NA)
   expect_error(plot(fit), NA)

@@ -361,7 +361,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m2} is equivalent to PLS2 with orthonormal loadings.
-#' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#' For cross-validation purposes, consider using \code{stripped = TRUE}.
 #' Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
 #'
 #' @examples
@@ -380,14 +380,10 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' 
 #' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100) {
+o2m2 <- function(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10, max_iterations = 100) {
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
-  
-  if(stripped){
-    return(o2m_stripped2(X, Y, n, nx, ny, tol, max_iterations))
-  }
   
   X_true <- X
   Y_true <- Y
@@ -456,6 +452,14 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
   
   # Residuals and R2's
+  if(stripped){
+    E <- Ff <- X_hat <- Y_hat <- as.matrix(0)
+  } else {
+    E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+    Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
+    Y_hat <- Tt %*% B_T %*% t(C)
+    X_hat <- U %*% B_U %*% t(W)
+  }
   H_TU <- Tt - U %*% B_U
   H_UT <- U - Tt %*% B_T
   
@@ -474,11 +478,11 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
   rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
   
-  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = 0, Ff = 0, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
-                X_hat = 0, Y_hat = 0, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
                 R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
-  class(model) <- "o2m"
+  class(model) <- "pre.o2m"
   return(model)
 }
 
@@ -599,7 +603,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)
-  class(model) <- c("o2m","o2m_stripped")
+  class(model) <- c("pre.o2m","o2m_stripped")
   return(model)
 }
 
@@ -729,6 +733,6 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)
   
-  class(model) <- c("o2m","o2m_stripped")
+  class(model) <- c("pre.o2m","o2m_stripped")
   return(model)
 }

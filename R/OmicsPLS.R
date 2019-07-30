@@ -200,7 +200,7 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
 rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
-  if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
+  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit")
   
   if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
@@ -399,7 +399,7 @@ vnorm <- function(x)
 #' @export
 rmsep_combi <- function(Xtst, Ytst, fit)
 {
-  if(!inherits(fit,"o2m")) stop("fit should be an O2PLS fit")
+  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit")
   
   if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
@@ -436,7 +436,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   Y = as.matrix(Y)
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
-    if(inherits(fitted_model,'o2m')){stop("fitted_model should be of class 'o2m' or NULL")}
+    if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL")}
     app_err <- F
     warning("apparent error calculated with provided fit")
   }
@@ -479,7 +479,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
         mean_err[k] <- mean(err)
         # calculate apparent error
         if (app_err && is.null(fitted_model)) {
-          if (inherits(fit,'o2m')) {
+          if (inherits(fit,c("o2m","pre.o2m"))) {
             pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
           }
           # if (class(fit) == "oplsm") {
@@ -531,6 +531,21 @@ print.o2m <- function (x, ...) {
   cat("and  ",ny," orthogonal components in Y \n",sep='')
   cat("Elapsed time: ",x$flags$time, " sec", sep='')
 }
+
+#' Print function for O2PLS.
+#' 
+#' This function is the print method for an O2PLS fit
+#' 
+#' @param x An O2PLS fit (an object of class o2m)
+#' @param ... For consistency
+#' @return NULL
+#'
+#'
+#' @export
+print.pre.o2m <- function (x, ...) {
+  cat("\n Internal function used to fit O2PLS, use o2m to enable print, plot, etc \n")
+}
+
 
 
 #' Plot one or two loading vectors for class o2m
