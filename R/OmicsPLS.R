@@ -809,6 +809,37 @@ thresh_n <- function (x, keepx){
 norm_vec <- function(x) sqrt(
   sum(x^2))
 
+#' Post-orthogonalization of a sparse loading vector with regard to a matrix
+#'
+#' @param x sparse loading vector to be orthogonalized
+#' @param W sparse loading matrix of the previous loading vectors
+#' @return A sparse loading vector
+#' @export
+orth_vec <- function(x, W){
+  # get non-zero positions in x and subset W
+  pos <- which(x!=0)
+  x <- x[pos]
+  W <- W[pos, ]
+  # First check if W is already 0
+  # Step1: delete row i if ith row in W contain all 0
+  # Step2: delete column j in W if it contains all 0
+  # this makes sure W'W is invertible
+  if(all(W == 0)){
+    x_orth <- x
+  }else{
+    # Step1
+    rowi <- sapply(1:nrow(W), function(i) all(W[i, ]!=0)) %>% which
+    W <- W[rowi, ]
+    x <- x[rowi]
+    # Step2
+    colj <- sapply(1:ncol(W), function(j) all(W[ ,j]!=0)) %>% which
+    W <- W[,colj]
+  }
+  do the projection here
+}
+
+
+
 
 # Generic Methods ---------------------------------------------------------
 
