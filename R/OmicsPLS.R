@@ -800,6 +800,43 @@ thresh_n <- function (x, keepx){
   x
 }
 
+#' Soft threshholding to n non-zero groups
+#'
+#' @param w Numerical loading vector 
+#' @param keep_gr How many groups to retain
+#' @param index_gr List of index and size. index are the index of variables belongs to the group in the original vector, size is the group size
+#' @return A list containing sparse loading vector and names of the selected groups
+#'
+#' @export
+#' 
+thresh_n_gr <- function (w, keep_gr, index_gr){
+  nr <- length(index_gr)
+  # each group l2 norm
+  gr_norm <- sapply(1:nr, function(j){
+    wj <- w[index_gr[[j]]$index] 
+    normj <- norm_vec(wj)
+    return(normj)
+  })
+  
+  # find weights for each group
+  # first sorted critical lambda value for each group
+  size <- sapply(index_gr, function(e) e$size)
+  lambda_seq <- (gr_norm/sqrt(size)) %>% sort(decreasing = T)
+  if(keep_gr == nr){
+    lambda <- 0
+  }else{
+    lambda <- lambda_seq[keep_gr+1]
+  }
+  coef_seq <- (gr_norm - sqrt(size)*lambda)/gr_norm
+  coef_seq[coef_seq < 0] <- 0
+  
+  for(j in 1:nr){
+    w[index_gr[[j]]$index] <- coef_seq[j] * w[index_gr[[j]]$index]
+  }
+  select_gr <- names(index_gr)[which(coef_seq > 0)]
+  return(list(w = w, select_gr = select_gr))
+}
+
 
 #' Norm of vector
 #'

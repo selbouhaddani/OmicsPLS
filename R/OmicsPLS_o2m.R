@@ -832,3 +832,203 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   class(model) <- c("o2m","o2m_stripped")
   return(model)
 }
+
+
+#' Perform group lasso SpO2PLS 
+#'#'
+#' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param n Integer. Number of joint PLS components. Must be positive!
+#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
+#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
+#' @param tol double. Threshold for power method iteration
+#' @param max_iterations Integer, Maximum number of iterations for power method
+#' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
+#'
+#' @return A list containing
+#'    \item{Tt}{Joint \eqn{X} scores}
+#'    \item{W.}{Joint \eqn{X} loadings}
+#'    \item{U}{Joint \eqn{Y} scores}
+#'    \item{C.}{Joint \eqn{Y} loadings}
+#'    \item{E}{Residuals in \eqn{X}}
+#'    \item{Ff}{Residuals in \eqn{Y}}
+#'    \item{T_Yosc}{Orthogonal \eqn{X} scores}
+#'    \item{P_Yosc.}{Orthogonal \eqn{X} loadings}
+#'    \item{W_Yosc}{Orthogonal \eqn{X} weights}
+#'    \item{U_Xosc}{Orthogonal \eqn{Y} scores}
+#'    \item{P_Xosc.}{Orthogonal \eqn{Y} loadings}
+#'    \item{C_Xosc}{Orthogonal \eqn{Y} weights}
+#'    \item{B_U}{Regression coefficient in \code{Tt} ~ \code{U}}
+#'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
+#'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
+#'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
+#'    \item{X_hat}{Prediction of \eqn{X} with \eqn{Y}}
+#'    \item{Y_hat}{Prediction of \eqn{Y} with \eqn{X}}
+#'    \item{R2X}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{X} (defined by joint + orthogonal variation) as proportion of variation in \eqn{X}}
+#'    \item{R2Y}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{Y} (defined by joint + orthogonal variation) as proportion of variation in \eqn{Y}}
+#'    \item{R2Xcorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Ycorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    \item{R2X_YO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
+#'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
+#'
+#' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
+#' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
+#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (NIPALS) which does not store the entire covariance matrix.
+#' The squared error between iterands in the NIPALS approach can be adjusted with \code{tol}.
+#' The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
+#' 
+#' @seealso \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
+#'
+#' @export
+so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol = 1e-10, max_iterations=100){
+
+
+  # Check input here
+  input_checker(X, Y)
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+ #############################################################
+  # Orthogonal filtering
+  Xnames = dimnames(X)
+  Ynames = dimnames(Y)
+  
+  X_true <- X
+  Y_true <- Y
+  
+  N <- nrow(X)
+  p <- ncol(X)
+  q <- ncol(Y)
+  
+  T_Yosc <- U_Xosc <- matrix(0, N, n)
+  W_Yosc <- P_Yosc <- matrix(0, p, n)
+  C_Xosc <- P_Xosc <- matrix(0, q, n)
+  
+  if (nx + ny > 0) {
+    # larger principal subspace
+    n2 <- n + max(nx, ny)
+    
+    # if(N<p&N<q){ # When N is smaller than p and q
+    W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
+    W <- W_C$W
+    C <- W_C$C
+    Tt <- W_C$Tt
+    U <- W_C$U
+    # } cdw = svd(t(Y)%*%X,nu=n2,nv=n2); C=cdw$uW=cdw$v
+    
+    # Tt = X%*%W;
+    
+    if (nx > 0) {
+      # Orthogonal components in Y
+      E_XY <- X - Tt %*% t(W)
+      
+      udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
+      W_Yosc <- udv$u
+      T_Yosc <- X %*% W_Yosc
+      P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
+      X <- X - T_Yosc %*% t(P_Yosc)
+      
+      # Update T again Tt = X%*%W;
+    }
+    
+    # U = Y%*%C; # 3.2.1. 4
+    
+    if (ny > 0) {
+      # Orthogonal components in Y
+      F_XY <- Y - U %*% t(C)
+      
+      udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
+      C_Xosc <- udv$u
+      U_Xosc <- Y %*% C_Xosc
+      P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
+      Y <- Y - U_Xosc %*% t(P_Xosc)
+      
+      # Update U again U = Y%*%C;
+    }
+  } 
+  #############################################################
+  
+  W <- matrix(0, dim(X)[2], n)
+  C <- matrix(0, dim(Y)[2], n)
+  Tt <- matrix(0, dim(X)[1], n)
+  U <- matrix(0, dim(Y)[1], n)
+  
+  names_grx <- groupx %>% unique # names of groups
+  names_gry <- groupy %>% unique  
+  nr_grx <- names_grx %>% length # number of groups
+  nr_gry <- names_gry %>% length
+  index_grx <- lapply(1:nr_grx, function(j){
+    index <- which(groupx == names_grx[j])
+    size <- length(index)
+    return(list(index=index, size=size))
+  })
+  index_gry <- lapply(1:nr_gry, function(j){
+    index <- which(groupy == names_gry[j])
+    size <- length(index)
+    return(list(index=index, size=size))
+  })
+  names(index_grx) <- names_grx
+  names(index_gry) <- names_gry 
+  
+  select_grx <- select_gry <- list()
+  
+  # get u,v iteratively
+  for(j in 1: n){
+    if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
+    if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
+    v <- X[1,]/norm_vec(X[1,])
+    # for (i in 1: max_iterations){
+      for (i in 1: 3){
+      v_old <- v
+      u <- t(Y) %*% (X %*% v)
+      ul <- thresh_n_gr(u, keepy_gr[j], index_gry); print(ul$select_gr)
+      u <- ul$w
+      u <- u/norm_vec(u)
+      v <- t(X) %*% (Y %*% u)
+      vl <- thresh_n_gr(v, keepx_gr[j], index_grx)
+      v <- vl$w
+      v <- v/norm_vec(v)
+      if (mse(v, v_old) < tol) {
+        break
+      }
+    }
+    
+    select_grx[[j]] <- vl$select_gr
+    select_gry[[j]] <- ul$select_gr
+    # # post-orthogonalizing
+    # if(j>1){
+    #   # print('W')
+    #   v <- orth_vec(v, W[,1:j-1])
+    #   # print('C')
+    #   u <- orth_vec(u, C[,1:j-1])
+    # }
+    
+    W[,j] <- v
+    C[,j] <- u
+    Tt[,j] <- X %*% W[,j]
+    U[,j] <- Y %*% C[,j]
+    
+    p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
+    q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
+    X <- X - Tt[,j] %*% t(p)
+    Y <- Y - U[,j] %*% t(q)
+  }
+  
+  # Inner relation parameters
+  B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
+  B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
+  
+  # Residuals and R2's
+  H_TU <- Tt - U %*% B_U
+  H_UT <- U - Tt %*% B_T
+  
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(H_UT) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
+  
+  model <- list(Tt = Tt, W. = W, U = U, C. = C, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+                U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
+                sel_grx = select_grx, sel_gry = select_gry)
+  return(model)
+}
