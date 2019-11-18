@@ -519,8 +519,13 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
         }
       }
       
-      
-
+      # post-orthogonalizing
+      if(j>1){
+        # print('W')
+        v <- orth_vec(v, W[,1:j-1])
+        # print('C')
+        u <- orth_vec(u, C[,1:j-1])
+      }
       
       W[,j] <- v
       C[,j] <- u

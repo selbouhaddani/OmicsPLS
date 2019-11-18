@@ -83,7 +83,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2 ssvd
+#' @import parallel ggplot2 ssvd magrittr
 #' @importFrom graphics abline
 NULL
 
@@ -817,29 +817,48 @@ norm_vec <- function(x) sqrt(
 #' @export
 orth_vec <- function(x, W){
   # get non-zero positions in x and subset W
+  W %<>% as.matrix
+  l <- length(x)
   pos <- which(x!=0)
   x <- x[pos]
-  W <- W[pos, ]
+  W <- W[pos, ,drop = F]
   # First check if W is already 0
   # Step1: delete row i if ith row in W contain all 0
   # Step2: delete column j in W if it contains all 0
-  # this makes sure W'W is invertible
+  # this makes sure W'W is invertible (expect when W ncol > nrow)
   if(all(W == 0)){
     x_orth <- x
+    # print('all 0')
   }else{
     # Step1
-    rowi <- sapply(1:nrow(W), function(i) all(W[i, ]!=0)) %>% which
-    W <- W[rowi, ]
-    x <- x[rowi]
+    #print(W)
+    rowi <- sapply(1:nrow(W), function(i) any(W[i, ]!=0)) %>% which
+    W <- W[rowi, ,drop = F]
+    x_sub <- x[rowi]  # x_sub = x_original[pos[rowi]]
     # Step2
-    colj <- sapply(1:ncol(W), function(j) all(W[ ,j]!=0)) %>% which
-    W <- W[,colj]
+    colj <- sapply(1:ncol(W), function(j) any(W[ ,j]!=0)) %>% which
+    W <- W[,colj,drop = F]
+    
+    # when W ncol > nrow, W is singular
+    if(ncol(W)>nrow(W)){
+      x_sub <- rep(0, length(x_sub))
+      #print("ncol > nrow")
+    }else{
+      # Orthogonal projection
+      n <- nrow(W)
+      I <- diag(1, n)
+      #print(W)
+      x_sub <- (I - W %*% solve(t(W)%*%W) %*% t(W)) %*% x_sub
+    }
+    
+  x[rowi] <- x_sub
+  x_orth <- x
   }
-  do the projection here
+  x_orth <- x_orth/norm_vec(x_orth)
+  final <- rep(0, l)
+  final[pos] <- x_orth
+  return(final)
 }
-
-
-
 
 # Generic Methods ---------------------------------------------------------
 
