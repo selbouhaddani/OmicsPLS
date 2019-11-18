@@ -977,11 +977,10 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
     if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
     if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
     v <- X[1,]/norm_vec(X[1,])
-    # for (i in 1: max_iterations){
-      for (i in 1: 3){
+    for (i in 1: max_iterations){
       v_old <- v
       u <- t(Y) %*% (X %*% v)
-      ul <- thresh_n_gr(u, keepy_gr[j], index_gry); print(ul$select_gr)
+      ul <- thresh_n_gr(u, keepy_gr[j], index_gry)
       u <- ul$w
       u <- u/norm_vec(u)
       v <- t(X) %*% (Y %*% u)
