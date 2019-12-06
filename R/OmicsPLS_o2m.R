@@ -841,17 +841,18 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
+#' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X.
+#' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y.
+#' @param keepx_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of X. If the input is a integer, all the components will have the same amount of groups retained
+#' @param keepy_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of Y. If the input is a integer, all the components will have the same amount of groups retained
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
-#' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
 #'    \item{W.}{Joint \eqn{X} loadings}
 #'    \item{U}{Joint \eqn{Y} scores}
 #'    \item{C.}{Joint \eqn{Y} loadings}
-#'    \item{E}{Residuals in \eqn{X}}
-#'    \item{Ff}{Residuals in \eqn{Y}}
 #'    \item{T_Yosc}{Orthogonal \eqn{X} scores}
 #'    \item{P_Yosc.}{Orthogonal \eqn{X} loadings}
 #'    \item{W_Yosc}{Orthogonal \eqn{X} weights}
@@ -862,24 +863,9 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    \item{X_hat}{Prediction of \eqn{X} with \eqn{Y}}
-#'    \item{Y_hat}{Prediction of \eqn{Y} with \eqn{X}}
-#'    \item{R2X}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{X} (defined by joint + orthogonal variation) as proportion of variation in \eqn{X}}
-#'    \item{R2Y}{Variation (measured with \code{\link{ssq}}) of the modeled part in \eqn{Y} (defined by joint + orthogonal variation) as proportion of variation in \eqn{Y}}
-#'    \item{R2Xcorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{X} as proportion of variation in \eqn{X}}
-#'    \item{R2Ycorr}{Variation (measured with \code{\link{ssq}}) of the joint part in \eqn{Y} as proportion of variation in \eqn{Y}}
-#'    \item{R2X_YO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{X} as proportion of variation in \eqn{X}}
-#'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
-#'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
-#'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
-#'
-#' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
-#' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
-#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (NIPALS) which does not store the entire covariance matrix.
-#' The squared error between iterands in the NIPALS approach can be adjusted with \code{tol}.
-#' The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
+#'    \item{sel_grx}{Selected groups of \eqn{X}-variables}
+#'    \item{sel_gry}{Selected groups of \eqn{Y}-variables}
 #' 
-#' @seealso \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
 #'
 #' @export
 so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol = 1e-10, max_iterations=100){
