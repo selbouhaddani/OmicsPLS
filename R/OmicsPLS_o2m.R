@@ -863,8 +863,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    \item{sel_grx}{Selected groups of \eqn{X}-variables}
-#'    \item{sel_gry}{Selected groups of \eqn{Y}-variables}
+#'    \item{sel_grx}{Selected groups of \eqn{X}-variables with scaled group norms}
+#'    \item{sel_gry}{Selected groups of \eqn{Y}-variables with scaled group norms}
 #' 
 #'
 #' @export
@@ -974,12 +974,24 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
       v <- vl$w
       v <- v/norm_vec(v)
       if (mse(v, v_old) < tol) {
+        select_grx[[j]] <- sapply(1:length(index_grx), function(k){
+          wj <- v[index_grx[[k]]$index] 
+          normj <- norm_vec(wj)
+          return(normj)
+        })
+        select_gry[[j]] <- sapply(1:length(index_gry), function(k){
+          wj <- u[index_gry[[k]]$index] 
+          normj <- norm_vec(wj)
+          return(normj)
+        })
+        
+        names(select_grx[[j]]) <- names(index_grx)
+        names(select_gry[[j]]) <- names(index_gry)
+        
         break
       }
     }
-    
-    select_grx[[j]] <- vl$select_gr
-    select_gry[[j]] <- ul$select_gr
+
     # # post-orthogonalizing
     # if(j>1){
     #   # print('W')
@@ -998,6 +1010,9 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
     X <- X - Tt[,j] %*% t(p)
     Y <- Y - U[,j] %*% t(q)
   }
+  
+  select_grx <- do.call(cbind,select_grx)
+  select_gry <- do.call(cbind,select_gry)
   
   # Inner relation parameters
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt

@@ -833,6 +833,7 @@ thresh_n_gr <- function (w, keep_gr, index_gr){
   for(j in 1:nr){
     w[index_gr[[j]]$index] <- coef_seq[j] * w[index_gr[[j]]$index]
   }
+  
   select_gr <- names(index_gr)[which(coef_seq > 0)]
   return(list(w = w, select_gr = select_gr))
 }

@@ -1,5 +1,18 @@
+#' Different sparsity for comps
+#'
+#' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
+#' @param n Integer. Number of joint PLS components. Must be positive!
+#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
+#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
+#' @param lambda_kcv Integer. Number of folds of CV
+#' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X.
+#' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y.
+#' @param keepx_seq Vector. A vector indicating how many groups to keep for CV in each of the joint component of X.
+#' @param keepy_gr Vector. A vector indicating how many groups to keep for CV in each of the joint component of Y.
+#' @param tol double. Threshold for power method iteration
+#' @param max_iterations Integer, Maximum number of iterations for power method
 #' @export
-# Different sparsity for comps
 best_keepgr_srr <- function(X, Y, n, nx, ny, lambda_kcv, groupx, groupy, keepx_seq, keepy_seq, tol = 1e-10, max_iterations = 100){
   
   # Check format
