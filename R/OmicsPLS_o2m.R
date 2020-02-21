@@ -78,7 +78,7 @@
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
-                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, 
+                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000, 
                 sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
                 sparsity_it = F, lambda_x = max(1,0.5 * (dim(X)[2])^0.5), 
                 lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), lambda_kcv = 2, n_lambda = 6, 
@@ -247,7 +247,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
 #' 
 #' @keywords internal
 #' @export
-pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
+pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
   input_checker(X, Y)
   stopifnot(n == round(n))
   #  message("High dimensional problem: switching to power method.\n")
@@ -402,7 +402,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' 
 #' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 100, 
+o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 1000, 
                  sparsity_it = F, lambda_x, lambda_y, lambda_kcv, n_lambda, keepx, keepy, max_iterations_sparsity){
   
   Xnames = dimnames(X)
@@ -472,7 +472,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   if(sparsity_it){
     if(lambda_x == "cv" | lambda_y == "cv"){
       bestlambda <- best_lambda(X, Y, n = n, lambda_kcv = lambda_kcv, 
-                                n_lambda = n_lambda, tol = 1e-10, max_iterations = 100)
+                                n_lambda = n_lambda, tol = 1e-10, max_iterations = 1000)
       lambda_x <- bestlambda$x
       lambda_y <- bestlambda$y
     }
@@ -481,6 +481,9 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     C <- matrix(0, dim(Y)[2], n)
     Tt <- matrix(0, dim(X)[1], n)
     U <- matrix(0, dim(Y)[1], n)
+    
+    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+    w_ini <- W_C$W
     
     # get u,v iteratively
     for(j in 1: n){
@@ -504,7 +507,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
       }else{
         if(length(keepx)==1){keepx <- rep(keepx,n)}
         if(length(keepy)==1){keepy <- rep(keepy,n)}
-        v <- X[1,]/norm_vec(X[1,])
+        v <- w_ini[,j]
         for (i in 1: max_iterations_sparsity){
           v_old <- v
           u <- t(Y) %*% (X %*% v)
@@ -868,7 +871,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' 
 #'
 #' @export
-so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol = 1e-10, max_iterations=100){
+so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol = 1e-10, max_iterations=1000){
 
 
   # Check input here
@@ -958,11 +961,14 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
   
   select_grx <- select_gry <- list()
   
+  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+  w_ini <- W_C$W
+  
   # get u,v iteratively
   for(j in 1: n){
     if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
     if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
-    v <- X[1,]/norm_vec(X[1,])
+    v <- w_ini[,j]
     for (i in 1: max_iterations){
       v_old <- v
       u <- t(Y) %*% (X %*% v)
