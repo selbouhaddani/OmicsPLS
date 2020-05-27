@@ -5,7 +5,7 @@
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
 o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
-  max_iterations = 100, sparsity_it = F, lambda_x, lambda_y,
+  max_iterations = 1000, sparsity_it = F, lambda_x, lambda_y,
   lambda_kcv, n_lambda, keepx, keepy, max_iterations_sparsity)
 }
 \arguments{

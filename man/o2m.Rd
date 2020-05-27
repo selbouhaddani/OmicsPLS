@@ -5,7 +5,7 @@
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
 o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
-  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100,
+  q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
   sparsity = FALSE, method = c("theory", "method"),
   orth_last_step = FALSE, sparsity_it = F, lambda_x = max(1, 0.5 *
   (dim(X)[2])^0.5), lambda_y = max(1, 0.5 * (dim(Y)[2])^0.5),

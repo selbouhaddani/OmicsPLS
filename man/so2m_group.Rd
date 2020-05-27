@@ -6,7 +6,7 @@
 #'}
 \usage{
 so2m_group(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr,
-  tol = 1e-10, max_iterations = 100)
+  tol = 1e-10, max_iterations = 1000)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -47,8 +47,8 @@ A list containing
    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-   \item{sel_grx}{Selected groups of \eqn{X}-variables with scaled group norms}
-   \item{sel_gry}{Selected groups of \eqn{Y}-variables with scaled group norms}
+   \item{sel_grx}{Joint weights of X variables at group level. They are the norms of the X-joint loadings per group}
+   \item{sel_gry}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 }
 \description{
 Perform group lasso SpO2PLS 

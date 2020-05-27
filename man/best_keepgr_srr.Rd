@@ -2,7 +2,7 @@
 % Please edit documentation in R/cv_TU_sparsity_auto.R
 \name{best_keepgr_srr}
 \alias{best_keepgr_srr}
-\title{Different sparsity for comps}
+\title{Perform cross-validation to find the optimal number of groups to keep for each joint component}
 \usage{
 best_keepgr_srr(X, Y, n, nx, ny, lambda_kcv, groupx, groupy, keepx_seq,
   keepy_seq, tol = 1e-10, max_iterations = 100)
@@ -32,6 +32,13 @@ best_keepgr_srr(X, Y, n, nx, ny, lambda_kcv, groupx, groupy, keepx_seq,
 
 \item{keepy_gr}{Vector. A vector indicating how many groups to keep for CV in each of the joint component of Y.}
 }
+\value{
+A list containing
+   \item{x}{A vector with length n, giving the optimal number of groups to keep for each X-joint compoent. One standard error rule is applied}
+   \item{y}{A vector with length n, giving the optimal number of groups to keep for each Y-joint compoent. One standard error rule is applied}
+   \item{x_max}{A vector with length n, giving the optimal number of groups to keep for each X-joint compoent, without applying the one standard error rule}
+   \item{y_max}{A vector with length n, giving the optimal number of groups to keep for each Y-joint compoent, without applying the one standard error rule}
+}
 \description{
-Different sparsity for comps
+Perform cross-validation to find the optimal number of groups to keep for each joint component
 }

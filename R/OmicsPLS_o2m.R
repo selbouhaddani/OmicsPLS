@@ -866,8 +866,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    \item{sel_grx}{Selected groups of \eqn{X}-variables with scaled group norms}
-#'    \item{sel_gry}{Selected groups of \eqn{Y}-variables with scaled group norms}
+#'    \item{sel_grx}{Joint weights of X variables at group level. They are the norms of the X-joint loadings per group}
+#'    \item{sel_gry}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 #' 
 #'
 #' @export
