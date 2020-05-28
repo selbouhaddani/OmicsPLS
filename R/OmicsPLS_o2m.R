@@ -13,16 +13,9 @@
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #' @param sparsity Boolean. Set to TRUE for sparse loadings
-#' @param sparsity_it Boolean. Set to TRUE for sparse loadings for high-dimensional data
-#' @param lambda_x double. Penalization parameter for X. Smaller value will produce more sparse X-loadings
-#' @param lambda_y double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings
-#' @param lambda_kcv Integer. k-fold cross-validation for lambda_x and lambda_y
-#' @param n_lambda Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid
-#' @param keepx Vector. Number of non-zero loadings for \code{X} in each joint component desired.
-#' @param keepy Vector. Number of non-zero loadings for \code{Y} in each joint component desired.
+#' @param keepx Vector. Number of variables with non-zero loading values for \code{X} in each joint component.
+#' @param keepy Vector. Number of variables with non-zero loading values for \code{Y} in each joint component.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
-#' @param method Either "theory" or "method". See \code{\link{ssvd}}.
-#' @param orth_last_step Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.
 #' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
 #' @return A list containing
@@ -78,16 +71,11 @@
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
-                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000, 
-                sparsity = FALSE, method = c("theory", "method"), orth_last_step = FALSE, 
-                sparsity_it = F, lambda_x = max(1,0.5 * (dim(X)[2])^0.5), 
-                lambda_y = max(1,0.5 * (dim(Y)[2])^0.5), lambda_kcv = 2, n_lambda = 6, 
-                keepx = NULL, keepy = NULL, max_iterations_sparsity = max_iterations,...) {
+                p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
+                sparsity = F, keepx = NULL, keepy = NULL, max_iterations_sparsity = max_iterations,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
-  
-  method = match.arg(method)
   
   if(!is.matrix(X)){
     message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
@@ -100,7 +88,11 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     dimnames(Y) <- Ynames
   }
   input_checker(X, Y)
-  lambda_checker(lambda_x, lambda_y, X, Y)
+  if(sparsity){
+    if(length(keepx)==1){keepx <- rep(keepx,n)}
+    if(length(keepy)==1){keepy <- rep(keepy,n)}
+    lambda_checker(keepx, keepy, X, Y)
+  }
   
   ssqX = ssq(X)
   ssqY = ssq(Y)
@@ -127,11 +119,11 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   
   highd = FALSE
-  if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
+  if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
     highd = TRUE
     message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
     model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                 sparsity_it, lambda_x, lambda_y, lambda_kcv, n_lambda, keepx, keepy, max_iterations_sparsity)
+                 sparsity, keepx, keepy, max_iterations_sparsity)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)
   } else {
@@ -188,9 +180,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
       }
     }
     # Re-estimate joint part in n-dimensional subspace
-    if(sparsity) cdw <- ssvd::ssvd(t(Y) %*% X, r = n, method = method, 
-                                   non.orth = !orth_last_step, ...) 
-    else cdw <- svd(t(Y) %*% X, nu = n, nv = n)
+    cdw <- svd(t(Y) %*% X, nu = n, nv = n)
     C <- cdw$u
     W <- cdw$v
     Tt <- X %*% W
@@ -403,7 +393,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' @keywords internal
 #' @export
 o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 1000, 
-                 sparsity_it = F, lambda_x, lambda_y, lambda_kcv, n_lambda, keepx, keepy, max_iterations_sparsity){
+                 sparsity = F, keepx, keepy, max_iterations_sparsity){
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -469,14 +459,8 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
  
   
    ####################################################################################
-  if(sparsity_it){
-    if(lambda_x == "cv" | lambda_y == "cv"){
-      bestlambda <- best_lambda(X, Y, n = n, lambda_kcv = lambda_kcv, 
-                                n_lambda = n_lambda, tol = 1e-10, max_iterations = 1000)
-      lambda_x <- bestlambda$x
-      lambda_y <- bestlambda$y
-    }
-        
+  if(sparsity){
+
     W <- matrix(0, dim(X)[2], n)
     C <- matrix(0, dim(Y)[2], n)
     Tt <- matrix(0, dim(X)[1], n)
@@ -487,26 +471,24 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     
     # get u,v iteratively
     for(j in 1: n){
-      if(is.null(keepx)){
-        v <- X[1,]/norm_vec(X[1,])
-        for (i in 1: max_iterations_sparsity){
-          v_old <- v
-          # get u (or c in my PLS summary)
-          a <- t(Y)%*% (X %*% v)  
-          del <- delta(a, lambda = lambda_y)
-          u <- thresh(a, del) / norm_vec(thresh(a, del))
-          
-          # get v
-          a <- t(X)%*% (Y %*% u)  
-          del <- delta(a, lambda = lambda_x)
-          v <- thresh(a, del) / norm_vec(thresh(a, del))
-          if (mse(v, v_old) < tol) {
-            break
-          }
-        }
-      }else{
-        if(length(keepx)==1){keepx <- rep(keepx,n)}
-        if(length(keepy)==1){keepy <- rep(keepy,n)}
+      # if(is.null(keepx)){
+      #   v <- X[1,]/norm_vec(X[1,])
+      #   for (i in 1: max_iterations_sparsity){
+      #     v_old <- v
+      #     # get u (or c in my PLS summary)
+      #     a <- t(Y)%*% (X %*% v)  
+      #     del <- delta(a, lambda = lambda_y)
+      #     u <- thresh(a, del) / norm_vec(thresh(a, del))
+      #     
+      #     # get v
+      #     a <- t(X)%*% (Y %*% u)  
+      #     del <- delta(a, lambda = lambda_x)
+      #     v <- thresh(a, del) / norm_vec(thresh(a, del))
+      #     if (mse(v, v_old) < tol) {
+      #       break
+      #     }
+      #   }
+      # }else{
         v <- w_ini[,j]
         for (i in 1: max_iterations_sparsity){
           v_old <- v
@@ -520,7 +502,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
             break
           }
         }
-      }
+      
       
       # post-orthogonalizing
       if(j>1){
@@ -540,11 +522,11 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
       X <- X - Tt[,j] %*% t(p)
       Y <- Y - U[,j] %*% t(q)
     }
-    }
+  }
     
   ######################################################################################
   
-  if(!sparsity_it){
+  if(!sparsity){
     W_C <- pow_o2m(X, Y, n, tol, max_iterations)
     W <- W_C$W
     C <- W_C$C

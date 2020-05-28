@@ -115,26 +115,17 @@ input_checker <- function(X, Y = NULL) {
 
 #' Check if penalization parameters satisfy input conditions
 #'
-#' @param lambda_x Should be between 1 and square root of the number of variables of X.
-#' @param lambda_y Should be between 1 and square root of the number of variables of Y.
 #' @return NULL
 #' @details This function throws an error if lambda is not within the range.
 #' 
 #' @keywords internal
 #' @export
-lambda_checker <- function(lambda_x, lambda_y, x, y) {
-  if(is.numeric(lambda_x) & is.numeric(lambda_y)){
-    if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
-      stop("lambda_x must between 1 and square root of the number of variables of X")
-    }
-    if(lambda_y < 1 | lambda_y > sqrt(dim(y)[2])) {
-      stop("lambda_y must between 1 and square root of the number of variables of Y")
-    }
-  }else{
-    if(lambda_x != "cv" | lambda_y != "cv"){
-      stop("lambda_x and lambda_y much be both \"cv\" or numeric")
-    }
-  }
+lambda_checker <- function(keepx, keepy, x, y) {
+  bl_x <- !sapply(keepx, is.numeric)
+  bl_y <- !sapply(keepy, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
+  if(max(keepx) > dim(x)[2])  stop("keepx must be less then the number of column of X")
+  if(max(keepy) > dim(y)[2])  stop("keepx must be less then the number of column of Y")
 }
 
 #' Orthogonalize a matrix

@@ -4,12 +4,7 @@
 \alias{lambda_checker}
 \title{Check if penalization parameters satisfy input conditions}
 \usage{
-lambda_checker(lambda_x, lambda_y, x, y)
-}
-\arguments{
-\item{lambda_x}{Should be between 1 and square root of the number of variables of X.}
-
-\item{lambda_y}{Should be between 1 and square root of the number of variables of Y.}
+lambda_checker(keepx, keepy, x, y)
 }
 \description{
 Check if penalization parameters satisfy input conditions
