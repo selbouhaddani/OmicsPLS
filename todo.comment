@@ -1,0 +1,6 @@
+Bug fixes
+
+- add newline at summary, print
+
+- replace t(W_Yosc) with t(P_Yosc.) in predict
+
