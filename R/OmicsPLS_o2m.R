@@ -680,7 +680,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
   
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
-                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
+                T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)
@@ -809,7 +809,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
   
   model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
-                T_Yosc. = T_Yosc, U_Xosc. = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
+                T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat)
@@ -826,10 +826,10 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' @param n Integer. Number of joint PLS components. Must be positive!
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X.
-#' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y.
-#' @param keepx_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of X. If the input is a integer, all the components will have the same amount of groups retained
-#' @param keepy_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of Y. If the input is a integer, all the components will have the same amount of groups retained
+#' @param groupx Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.
+#' @param groupy Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
+#' @param keepx_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.
+#' @param keepy_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #'
@@ -859,8 +859,11 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
   # Check input here
   input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
- #############################################################
+  
+  #############################################################
   # Orthogonal filtering
+  #############################################################
+  # setup
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
   
@@ -875,18 +878,17 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
   W_Yosc <- P_Yosc <- matrix(0, p, n)
   C_Xosc <- P_Xosc <- matrix(0, q, n)
   
+  # filtering
   if (nx + ny > 0) {
     # larger principal subspace
     n2 <- n + max(nx, ny)
     
-    # if(N<p&N<q){ # When N is smaller than p and q
     W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
     W <- W_C$W
     C <- W_C$C
     Tt <- W_C$Tt
     U <- W_C$U
-    # } cdw = svd(t(Y)%*%X,nu=n2,nv=n2); C=cdw$uW=cdw$v
-    
+
     # Tt = X%*%W;
     
     if (nx > 0) {
