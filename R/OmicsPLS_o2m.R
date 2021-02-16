@@ -12,9 +12,11 @@
 #' @param q_thresh Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
-#' @param sparsity Boolean. Set to TRUE for sparse loadings
-#' @param keepx Vector. Number of variables with non-zero loading values for \code{X} in each joint component.
-#' @param keepy Vector. Number of variables with non-zero loading values for \code{Y} in each joint component.
+#' @param sparsity Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS
+#' @param groupx Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.
+#' @param groupy Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
+#' @param keepx Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of variables or groups retained.
+#' @param keepy Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of variables or groups retained.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
@@ -72,7 +74,8 @@
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
-                sparsity = F, keepx = NULL, keepy = NULL, max_iterations_sparsity = max_iterations,...) {
+                sparsity = F, groupx = NULL, groupy = NULL, keepx = NULL, keepy = NULL, 
+                max_iterations_sparsity = 1000,...) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -87,12 +90,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     Y <- as.matrix(Y)
     dimnames(Y) <- Ynames
   }
+  
   input_checker(X, Y)
-  if(sparsity){
-    if(length(keepx)==1){keepx <- rep(keepx,n)}
-    if(length(keepy)==1){keepy <- rep(keepy,n)}
-    lambda_checker(keepx, keepy, X, Y)
-  }
   
   ssqX = ssq(X)
   ssqY = ssq(Y)
@@ -118,115 +117,120 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   
-  highd = FALSE
-  if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
-    highd = TRUE
-    message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
-    model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                 sparsity, keepx, keepy, max_iterations_sparsity)
-  } else if(stripped){
-    model = o2m_stripped(X, Y, n, nx, ny)
-  } else {
-    
-    X_true <- X
-    Y_true <- Y
-    
-    N <- nrow(X)
-    p <- ncol(X)
-    q <- ncol(Y)
-    
-    T_Yosc <- U_Xosc <- matrix(0, N, n)
-    W_Yosc <- P_Yosc <- matrix(0, p, n)
-    C_Xosc <- P_Xosc <- matrix(0, q, n)
-    
-    if (nx + ny > 0) {
-      # larger principal subspace
-      n2 <- n + max(nx, ny)
+  if(sparsity){
+     return("insert GO2PLS here")
+  }else{
+    highd = FALSE
+    if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
+      highd = TRUE
+      message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
+      model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
+                   sparsity, keepx, keepy, max_iterations_sparsity)
+    } else if(stripped){
+      model = o2m_stripped(X, Y, n, nx, ny)
+    } else {
       
-      cdw <- svd(t(Y) %*% X, nu = n2, nv = n2)
+      X_true <- X
+      Y_true <- Y
+      
+      N <- nrow(X)
+      p <- ncol(X)
+      q <- ncol(Y)
+      
+      T_Yosc <- U_Xosc <- matrix(0, N, n)
+      W_Yosc <- P_Yosc <- matrix(0, p, n)
+      C_Xosc <- P_Xosc <- matrix(0, q, n)
+      
+      if (nx + ny > 0) {
+        # larger principal subspace
+        n2 <- n + max(nx, ny)
+        
+        cdw <- svd(t(Y) %*% X, nu = n2, nv = n2)
+        C <- cdw$u
+        W <- cdw$v
+        
+        Tt <- X %*% W
+        
+        if (nx > 0) {
+          # Orthogonal components in Y
+          E_XY <- X - Tt %*% t(W)
+          
+          udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
+          W_Yosc <- udv$u
+          T_Yosc <- X %*% W_Yosc
+          P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
+          X <- X - T_Yosc %*% t(P_Yosc)
+          
+          # Update T again
+          Tt <- X %*% W
+        }
+        
+        U <- Y %*% C
+        
+        if (ny > 0) {
+          # Orthogonal components in Y
+          F_XY <- Y - U %*% t(C)
+          
+          udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
+          C_Xosc <- udv$u
+          U_Xosc <- Y %*% C_Xosc
+          P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
+          Y <- Y - U_Xosc %*% t(P_Xosc)
+          
+          # Update U again
+          U <- Y %*% C
+        }
+      }
+      # Re-estimate joint part in n-dimensional subspace
+      cdw <- svd(t(Y) %*% X, nu = n, nv = n)
       C <- cdw$u
       W <- cdw$v
-      
       Tt <- X %*% W
-      
-      if (nx > 0) {
-        # Orthogonal components in Y
-        E_XY <- X - Tt %*% t(W)
-        
-        udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
-        W_Yosc <- udv$u
-        T_Yosc <- X %*% W_Yosc
-        P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
-        X <- X - T_Yosc %*% t(P_Yosc)
-        
-        # Update T again
-        Tt <- X %*% W
-      }
-      
       U <- Y %*% C
       
-      if (ny > 0) {
-        # Orthogonal components in Y
-        F_XY <- Y - U %*% t(C)
-        
-        udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
-        C_Xosc <- udv$u
-        U_Xosc <- Y %*% C_Xosc
-        P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
-        Y <- Y - U_Xosc %*% t(P_Xosc)
-        
-        # Update U again
-        U <- Y %*% C
-      }
+      # Inner relation parameters
+      B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
+      B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
+      
+      # Residuals and R2's
+      E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+      Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
+      H_TU <- Tt - U %*% B_U
+      H_UT <- U - Tt %*% B_T
+      Y_hat <- Tt %*% B_T %*% t(C)
+      X_hat <- U %*% B_U %*% t(W)
+      
+      R2Xcorr <- (ssq(Tt)/ssqX)
+      R2Ycorr <- (ssq(U)/ssqY)
+      R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
+      R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
+      R2Xhat <- (ssq(U %*% B_U)/ssqX)
+      R2Yhat <- (ssq(Tt %*% B_T)/ssqY)
+      R2X <- R2Xcorr + R2X_YO
+      R2Y <- R2Ycorr + R2Y_XO
+      
+      rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
+      rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_UT) <- Ynames[[1]]
+      rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
+      rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
+      model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+                    U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
+                    X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                    R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+      class(model) <- "o2m"
     }
-    # Re-estimate joint part in n-dimensional subspace
-    cdw <- svd(t(Y) %*% X, nu = n, nv = n)
-    C <- cdw$u
-    W <- cdw$v
-    Tt <- X %*% W
-    U <- Y %*% C
-    
-    # Inner relation parameters
-    B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
-    B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
-    
-    # Residuals and R2's
-    E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
-    Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
-    H_TU <- Tt - U %*% B_U
-    H_UT <- U - Tt %*% B_T
-    Y_hat <- Tt %*% B_T %*% t(C)
-    X_hat <- U %*% B_U %*% t(W)
-    
-    R2Xcorr <- (ssq(Tt)/ssqX)
-    R2Ycorr <- (ssq(U)/ssqY)
-    R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
-    R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
-    R2Xhat <- (ssq(U %*% B_U)/ssqX)
-    R2Yhat <- (ssq(Tt %*% B_T)/ssqY)
-    R2X <- R2Xcorr + R2X_YO
-    R2Y <- R2Ycorr + R2Y_XO
-    
-    rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
-    rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_UT) <- Ynames[[1]]
-    rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
-    rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
-    model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
-                  U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
-                  X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
-                  R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
-    class(model) <- "o2m"
+    toc <- proc.time() - tic
+    model$flags = c(time = toc[3], 
+                    list(n = n, nx = nx, ny = ny, 
+                         stripped = stripped, highd = highd, 
+                         call = match.call(), ssqX = ssqX, ssqY = ssqY,
+                         varXjoint = apply(model$Tt,2,ssq),
+                         varYjoint = apply(model$U,2,ssq),
+                         varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
+                         varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq),
+                         method = "O2PLS"))
+    return(model)
   }
-  toc <- proc.time() - tic
-  model$flags = c(time = toc[3], 
-                  list(n = n, nx = nx, ny = ny, 
-                       stripped = stripped, highd = highd, 
-                       call = match.call(), ssqX = ssqX, ssqY = ssqY,
-                       varXjoint = apply(model$Tt,2,ssq),
-                       varYjoint = apply(model$U,2,ssq),
-                       varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
-                       varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq)))
-  return(model)
 }
 
 #' Power method for PLS2
@@ -392,8 +396,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' 
 #' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 1000, 
-                 sparsity = F, keepx, keepy, max_iterations_sparsity){
+o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 1000){
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -456,77 +459,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     }
   }
   # Re-estimate joint part in n-dimensional subspace if(N<p&N<q){ # When N is smaller than p and q
- 
   
-   ####################################################################################
-  if(sparsity){
-
-    W <- matrix(0, dim(X)[2], n)
-    C <- matrix(0, dim(Y)[2], n)
-    Tt <- matrix(0, dim(X)[1], n)
-    U <- matrix(0, dim(Y)[1], n)
-    
-    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-    w_ini <- W_C$W
-    
-    # get u,v iteratively
-    for(j in 1: n){
-      # if(is.null(keepx)){
-      #   v <- X[1,]/norm_vec(X[1,])
-      #   for (i in 1: max_iterations_sparsity){
-      #     v_old <- v
-      #     # get u (or c in my PLS summary)
-      #     a <- t(Y)%*% (X %*% v)  
-      #     del <- delta(a, lambda = lambda_y)
-      #     u <- thresh(a, del) / norm_vec(thresh(a, del))
-      #     
-      #     # get v
-      #     a <- t(X)%*% (Y %*% u)  
-      #     del <- delta(a, lambda = lambda_x)
-      #     v <- thresh(a, del) / norm_vec(thresh(a, del))
-      #     if (mse(v, v_old) < tol) {
-      #       break
-      #     }
-      #   }
-      # }else{
-        v <- w_ini[,j]
-        for (i in 1: max_iterations_sparsity){
-          v_old <- v
-          u <- t(Y) %*% (X %*% v)
-          u <- thresh_n(u, keepy[j])
-          u <- u/norm_vec(u)
-          v <- t(X) %*% (Y %*% u)
-          v <- thresh_n(v, keepx[j])
-          v <- v/norm_vec(v)
-          if (mse(v, v_old) < tol) {
-            break
-          }
-        }
-      
-      
-      # post-orthogonalizing
-      if(j>1){
-        # print('W')
-        v <- orth_vec(v, W[,1:j-1])
-        # print('C')
-        u <- orth_vec(u, C[,1:j-1])
-      }
-      
-      W[,j] <- v
-      C[,j] <- u
-      Tt[,j] <- X %*% W[,j]
-      U[,j] <- Y %*% C[,j]
-      
-      p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
-      q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
-      X <- X - Tt[,j] %*% t(p)
-      Y <- Y - U[,j] %*% t(q)
-    }
-  }
-    
-  ######################################################################################
-  
-  if(!sparsity){
     W_C <- pow_o2m(X, Y, n, tol, max_iterations)
     W <- W_C$W
     C <- W_C$C
@@ -534,7 +467,6 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     U <- W_C$U
   # } cdw = svd(t(Y)%*%X,nu=n,nv=n); # 3.2.1. 1 C=cdw$u;W=cdw$v Tt = X%*%W; # 3.2.1. 2 U = Y%*%C; #
   # 3.2.1. 4
-  }
   
   # Inner relation parameters
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
@@ -853,13 +785,20 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' 
 #'
 #' @export
-so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol = 1e-10, max_iterations=1000){
+so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-10, max_iterations=1000){
 
-
-  # Check input here
-  input_checker(X, Y)
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  if(is.null(groupx) & is.null(groupy)){
+    method = "SO2PLS"
+    print("Group information not provided, using SO2PLS")
+  }else{
+    method = "GO2PLS"
+    print("Group information provided, using GO2PLS")
+  }
   
+  
+  if(length(keepx)==1){keepx <- rep(keepx,n)}
+  if(length(keepy)==1){keepy <- rep(keepy,n)}
+  lambda_checker(groupx, groupy, keepx_gr, keepy_gr)
   #############################################################
   # Orthogonal filtering
   #############################################################
@@ -920,89 +859,154 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx_gr, keepy_gr, tol 
     }
   } 
   #############################################################
-  
   W <- matrix(0, dim(X)[2], n)
   C <- matrix(0, dim(Y)[2], n)
   Tt <- matrix(0, dim(X)[1], n)
   U <- matrix(0, dim(Y)[1], n)
   
-  names_grx <- groupx %>% unique # names of groups
-  names_gry <- groupy %>% unique  
-  nr_grx <- names_grx %>% length # number of groups
-  nr_gry <- names_gry %>% length
-  index_grx <- lapply(1:nr_grx, function(j){
-    index <- which(groupx == names_grx[j])
-    size <- length(index)
-    return(list(index=index, size=size))
-  })
-  index_gry <- lapply(1:nr_gry, function(j){
-    index <- which(groupy == names_gry[j])
-    size <- length(index)
-    return(list(index=index, size=size))
-  })
-  names(index_grx) <- names_grx
-  names(index_gry) <- names_gry 
-  
-  select_grx <- select_gry <- list()
-  
-  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-  w_ini <- W_C$W
-  
-  # get u,v iteratively
-  for(j in 1: n){
-    if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
-    if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
-    v <- w_ini[,j]
-    for (i in 1: max_iterations){
-      v_old <- v
-      u <- t(Y) %*% (X %*% v)
-      ul <- thresh_n_gr(u, keepy_gr[j], index_gry)
-      u <- ul$w
-      u <- u/norm_vec(u)
-      v <- t(X) %*% (Y %*% u)
-      vl <- thresh_n_gr(v, keepx_gr[j], index_grx)
-      v <- vl$w
-      v <- v/norm_vec(v)
-      if (mse(v, v_old) < tol) {
-        select_grx[[j]] <- sapply(1:length(index_grx), function(k){
-          wj <- v[index_grx[[k]]$index] 
-          normj <- norm_vec(wj)
-          return(normj)
-        })
-        select_gry[[j]] <- sapply(1:length(index_gry), function(k){
-          wj <- u[index_gry[[k]]$index] 
-          normj <- norm_vec(wj)
-          return(normj)
-        })
+  if(method == "SO2PLS"){
+    if(sparsity){
+      W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+      w_ini <- W_C$W
+      
+      # get u,v iteratively
+      for(j in 1: n){
+        # if(is.null(keepx)){
+        #   v <- X[1,]/norm_vec(X[1,])
+        #   for (i in 1: max_iterations_sparsity){
+        #     v_old <- v
+        #     # get u (or c in my PLS summary)
+        #     a <- t(Y)%*% (X %*% v)  
+        #     del <- delta(a, lambda = lambda_y)
+        #     u <- thresh(a, del) / norm_vec(thresh(a, del))
+        #     
+        #     # get v
+        #     a <- t(X)%*% (Y %*% u)  
+        #     del <- delta(a, lambda = lambda_x)
+        #     v <- thresh(a, del) / norm_vec(thresh(a, del))
+        #     if (mse(v, v_old) < tol) {
+        #       break
+        #     }
+        #   }
+        # }else{
+        v <- w_ini[,j]
+        for (i in 1: max_iterations_sparsity){
+          v_old <- v
+          u <- t(Y) %*% (X %*% v)
+          u <- thresh_n(u, keepy[j])
+          u <- u/norm_vec(u)
+          v <- t(X) %*% (Y %*% u)
+          v <- thresh_n(v, keepx[j])
+          v <- v/norm_vec(v)
+          if (mse(v, v_old) < tol) {
+            break
+          }
+        }
         
-        names(select_grx[[j]]) <- names(index_grx)
-        names(select_gry[[j]]) <- names(index_gry)
         
-        break
+        # post-orthogonalizing
+        if(j>1){
+          # print('W')
+          v <- orth_vec(v, W[,1:j-1])
+          # print('C')
+          u <- orth_vec(u, C[,1:j-1])
+        }
+        
+        W[,j] <- v
+        C[,j] <- u
+        Tt[,j] <- X %*% W[,j]
+        U[,j] <- Y %*% C[,j]
+        
+        p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
+        q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
+        X <- X - Tt[,j] %*% t(p)
+        Y <- Y - U[,j] %*% t(q)
       }
     }
-
-    # # post-orthogonalizing
-    # if(j>1){
-    #   # print('W')
-    #   v <- orth_vec(v, W[,1:j-1])
-    #   # print('C')
-    #   u <- orth_vec(u, C[,1:j-1])
-    # }
-    
-    W[,j] <- v
-    C[,j] <- u
-    Tt[,j] <- X %*% W[,j]
-    U[,j] <- Y %*% C[,j]
-    
-    p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
-    q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
-    X <- X - Tt[,j] %*% t(p)
-    Y <- Y - U[,j] %*% t(q)
   }
   
-  select_grx <- do.call(cbind,select_grx)
-  select_gry <- do.call(cbind,select_gry)
+  if(method == "GO2PLS"){
+
+    
+    names_grx <- groupx %>% unique # names of groups
+    names_gry <- groupy %>% unique  
+    nr_grx <- names_grx %>% length # number of groups
+    nr_gry <- names_gry %>% length
+    index_grx <- lapply(1:nr_grx, function(j){
+      index <- which(groupx == names_grx[j])
+      size <- length(index)
+      return(list(index=index, size=size))
+    })
+    index_gry <- lapply(1:nr_gry, function(j){
+      index <- which(groupy == names_gry[j])
+      size <- length(index)
+      return(list(index=index, size=size))
+    })
+    names(index_grx) <- names_grx
+    names(index_gry) <- names_gry 
+    
+    select_grx <- select_gry <- list()
+    
+    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+    w_ini <- W_C$W
+    
+    # get u,v iteratively
+    for(j in 1: n){
+      if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
+      if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
+      v <- w_ini[,j]
+      for (i in 1: max_iterations){
+        v_old <- v
+        u <- t(Y) %*% (X %*% v)
+        ul <- thresh_n_gr(u, keepy_gr[j], index_gry)
+        u <- ul$w
+        u <- u/norm_vec(u)
+        v <- t(X) %*% (Y %*% u)
+        vl <- thresh_n_gr(v, keepx_gr[j], index_grx)
+        v <- vl$w
+        v <- v/norm_vec(v)
+        if (mse(v, v_old) < tol) {
+          select_grx[[j]] <- sapply(1:length(index_grx), function(k){
+            wj <- v[index_grx[[k]]$index] 
+            normj <- norm_vec(wj)
+            return(normj)
+          })
+          select_gry[[j]] <- sapply(1:length(index_gry), function(k){
+            wj <- u[index_gry[[k]]$index] 
+            normj <- norm_vec(wj)
+            return(normj)
+          })
+          
+          names(select_grx[[j]]) <- names(index_grx)
+          names(select_gry[[j]]) <- names(index_gry)
+          
+          break
+        }
+      }
+      
+      # # post-orthogonalizing
+      # if(j>1){
+      #   # print('W')
+      #   v <- orth_vec(v, W[,1:j-1])
+      #   # print('C')
+      #   u <- orth_vec(u, C[,1:j-1])
+      # }
+      
+      W[,j] <- v
+      C[,j] <- u
+      Tt[,j] <- X %*% W[,j]
+      U[,j] <- Y %*% C[,j]
+      
+      p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
+      q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
+      X <- X - Tt[,j] %*% t(p)
+      Y <- Y - U[,j] %*% t(q)
+    }
+    
+    select_grx <- do.call(cbind,select_grx)
+    select_gry <- do.call(cbind,select_gry)
+  }
+  
   
   # Inner relation parameters
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
