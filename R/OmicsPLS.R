@@ -120,12 +120,27 @@ input_checker <- function(X, Y = NULL) {
 #' 
 #' @keywords internal
 #' @export
-lambda_checker <- function(groupx, groupy, keepx, keepy) {
+lambda_checker <- function(x,y,keepx, keepy) {
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
   if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
-  if(max(keepx) > length(unique(groupx)))  stop("keepx must not exceed the number of columns/groups in X")
-  if(max(keepy) > length(unique(groupy)))  stop("keepy must not exceed the number of columns/groups in Y")
+  if(max(keepx) > dim(x)[2])  stop("keepx must be less then the number of column of X")
+  if(max(keepy) > dim(y)[2])  stop("keepx must be less then the number of column of Y")
+}
+
+#' Check if penalization parameters satisfy input conditions
+#'
+#' @return NULL
+#' @details This function throws an error if lambda is not within the range.
+#' 
+#' @keywords internal
+#' @export
+lambda_checker_group <- function(groupx, groupy, keepx, keepy) {
+  bl_x <- !sapply(keepx, is.numeric)
+  bl_y <- !sapply(keepy, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
+  if(max(keepx) > length(unique(groupx)))  stop("keepx must not exceed the number of groups in X")
+  if(max(keepy) > length(unique(groupy)))  stop("keepy must not exceed the number of groups in Y")
 }
 
 #' Orthogonalize a matrix

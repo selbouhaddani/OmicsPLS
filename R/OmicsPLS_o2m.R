@@ -118,7 +118,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   
   if(sparsity){
-     return("insert GO2PLS here")
+     model = so2m_group(...)
   }else{
     highd = FALSE
     if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
@@ -229,8 +229,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
                          varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
                          varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq),
                          method = "O2PLS"))
-    return(model)
   }
+  return(model)
 }
 
 #' Power method for PLS2
@@ -396,14 +396,10 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #' 
 #' @keywords internal
 #' @export
-o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations = 1000){
+o2m2 <- function(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10, max_iterations = 100) {
   
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
-  
-  if(stripped){
-    return(o2m_stripped2(X, Y, n, nx, ny, tol, max_iterations))
-  }
   
   X_true <- X
   Y_true <- Y
@@ -459,12 +455,11 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
     }
   }
   # Re-estimate joint part in n-dimensional subspace if(N<p&N<q){ # When N is smaller than p and q
-  
-    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-    W <- W_C$W
-    C <- W_C$C
-    Tt <- W_C$Tt
-    U <- W_C$U
+  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+  W <- W_C$W
+  C <- W_C$C
+  Tt <- W_C$Tt
+  U <- W_C$U
   # } cdw = svd(t(Y)%*%X,nu=n,nv=n); # 3.2.1. 1 C=cdw$u;W=cdw$v Tt = X%*%W; # 3.2.1. 2 U = Y%*%C; #
   # 3.2.1. 4
   
@@ -473,6 +468,14 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
   
   # Residuals and R2's
+  if(stripped){
+    E <- Ff <- X_hat <- Y_hat <- as.matrix(0)
+  } else {
+    E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+    Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
+    Y_hat <- Tt %*% B_T %*% t(C)
+    X_hat <- U %*% B_U %*% t(W)
+  }
   H_TU <- Tt - U %*% B_U
   H_UT <- U - Tt %*% B_T
   
@@ -491,11 +494,11 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10, max_iterations 
   rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
   rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
   
-  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = 0, Ff = 0, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
-                X_hat = 0, Y_hat = 0, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
                 R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
-  class(model) <- "o2m"
+  class(model) <- "pre.o2m"
   return(model)
 }
 
@@ -790,15 +793,18 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
     print("Group information not provided, using SO2PLS")
+    lambda_checker(X, Y, keepx, keepy)
   }else{
     method = "GO2PLS"
     print("Group information provided, using GO2PLS")
+    # check if only information for one dataset is provided
+    if(is.null(groupx))  groupx = colnames(X)
+    if(is.null(groupy))  groupy = colnames(Y)
+    lambda_checker_group(groupx, groupy, keepx, keepy)
   }
-  
   
   if(length(keepx)==1){keepx <- rep(keepx,n)}
   if(length(keepy)==1){keepy <- rep(keepy,n)}
-  lambda_checker(groupx, groupy, keepx_gr, keepy_gr)
   #############################################################
   # Orthogonal filtering
   #############################################################
@@ -865,69 +871,46 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
   U <- matrix(0, dim(Y)[1], n)
   
   if(method == "SO2PLS"){
-    if(sparsity){
-      W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-      w_ini <- W_C$W
-      
-      # get u,v iteratively
-      for(j in 1: n){
-        # if(is.null(keepx)){
-        #   v <- X[1,]/norm_vec(X[1,])
-        #   for (i in 1: max_iterations_sparsity){
-        #     v_old <- v
-        #     # get u (or c in my PLS summary)
-        #     a <- t(Y)%*% (X %*% v)  
-        #     del <- delta(a, lambda = lambda_y)
-        #     u <- thresh(a, del) / norm_vec(thresh(a, del))
-        #     
-        #     # get v
-        #     a <- t(X)%*% (Y %*% u)  
-        #     del <- delta(a, lambda = lambda_x)
-        #     v <- thresh(a, del) / norm_vec(thresh(a, del))
-        #     if (mse(v, v_old) < tol) {
-        #       break
-        #     }
-        #   }
-        # }else{
-        v <- w_ini[,j]
-        for (i in 1: max_iterations_sparsity){
-          v_old <- v
-          u <- t(Y) %*% (X %*% v)
-          u <- thresh_n(u, keepy[j])
-          u <- u/norm_vec(u)
-          v <- t(X) %*% (Y %*% u)
-          v <- thresh_n(v, keepx[j])
-          v <- v/norm_vec(v)
-          if (mse(v, v_old) < tol) {
-            break
-          }
+    W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+    w_ini <- W_C$W
+    
+    # get u,v iteratively
+    for(j in 1: n){
+      v <- w_ini[,j]
+      for (i in 1: max_iterations_sparsity){
+        v_old <- v
+        u <- t(Y) %*% (X %*% v)
+        u <- thresh_n(u, keepy[j])
+        u <- u/norm_vec(u)
+        v <- t(X) %*% (Y %*% u)
+        v <- thresh_n(v, keepx[j])
+        v <- v/norm_vec(v)
+        if (mse(v, v_old) < tol) {
+          break
         }
-        
-        
-        # post-orthogonalizing
-        if(j>1){
-          # print('W')
-          v <- orth_vec(v, W[,1:j-1])
-          # print('C')
-          u <- orth_vec(u, C[,1:j-1])
-        }
-        
-        W[,j] <- v
-        C[,j] <- u
-        Tt[,j] <- X %*% W[,j]
-        U[,j] <- Y %*% C[,j]
-        
-        p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
-        q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
-        X <- X - Tt[,j] %*% t(p)
-        Y <- Y - U[,j] %*% t(q)
       }
+      
+      # post-orthogonalizing
+      if(j>1){
+        # print('W')
+        v <- orth_vec(v, W[,1:j-1])
+        # print('C')
+        u <- orth_vec(u, C[,1:j-1])
+      }
+      
+      W[,j] <- v
+      C[,j] <- u
+      Tt[,j] <- X %*% W[,j]
+      U[,j] <- Y %*% C[,j]
+      
+      p <- t(X) %*% Tt[,j] / drop(crossprod(Tt[,j]))
+      q <- t(Y) %*% U[,j] / drop(crossprod(U[,j]))
+      X <- X - Tt[,j] %*% t(p)
+      Y <- Y - U[,j] %*% t(q)
     }
   }
   
   if(method == "GO2PLS"){
-
-    
     names_grx <- groupx %>% unique # names of groups
     names_gry <- groupy %>% unique  
     nr_grx <- names_grx %>% length # number of groups
@@ -984,13 +967,13 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
         }
       }
       
-      # # post-orthogonalizing
-      # if(j>1){
-      #   # print('W')
-      #   v <- orth_vec(v, W[,1:j-1])
-      #   # print('C')
-      #   u <- orth_vec(u, C[,1:j-1])
-      # }
+      # post-orthogonalizing
+      if(j>1){
+        # print('W')
+        v <- orth_vec(v, W[,1:j-1])
+        # print('C')
+        u <- orth_vec(u, C[,1:j-1])
+      }
       
       W[,j] <- v
       C[,j] <- u
@@ -1007,22 +990,47 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
     select_gry <- do.call(cbind,select_gry)
   }
   
-  
   # Inner relation parameters
   B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
   B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
   
   # Residuals and R2's
+  E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+  Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
   H_TU <- Tt - U %*% B_U
   H_UT <- U - Tt %*% B_T
+  Y_hat <- Tt %*% B_T %*% t(C)
+  X_hat <- U %*% B_U %*% t(W)
   
-  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
-  rownames(U) <- rownames(U_Xosc) <- rownames(H_UT) <- Ynames[[1]]
-  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
-  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
+  R2Xcorr <- (ssq(Tt)/ssqX)
+  R2Ycorr <- (ssq(U)/ssqY)
+  R2X_YO <- (ssq(T_Yosc %*% t(P_Yosc))/ssqX)
+  R2Y_XO <- (ssq(U_Xosc %*% t(P_Xosc))/ssqY)
+  R2Xhat <- (ssq(U %*% B_U)/ssqX)
+  R2Yhat <- (ssq(Tt %*% B_T)/ssqY)
+  R2X <- R2Xcorr + R2X_YO
+  R2Y <- R2Ycorr + R2Y_XO
   
-  model <- list(Tt = Tt, W. = W, U = U, C. = C, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_UT) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
+  
+  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
+                X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat, 
                 sel_grx = select_grx, sel_gry = select_gry)
+  class(model) <- "o2m"
+  toc <- proc.time() - tic
+  model$flags = c(time = toc[3], 
+                  list(n = n, nx = nx, ny = ny, 
+                       stripped = stripped, highd = highd, 
+                       call = match.call(), ssqX = ssqX, ssqY = ssqY,
+                       varXjoint = apply(model$Tt,2,ssq),
+                       varYjoint = apply(model$U,2,ssq),
+                       varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
+                       varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq),
+                       method = method))
   return(model)
 }

@@ -6,8 +6,8 @@
 \usage{
 o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
   q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
-  sparsity = F, keepx = NULL, keepy = NULL,
-  max_iterations_sparsity = max_iterations, ...)
+  sparsity = F, groupx = NULL, groupy = NULL, keepx = NULL,
+  keepy = NULL, max_iterations_sparsity = 1000, ...)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -30,11 +30,15 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 
-\item{sparsity}{Boolean. Set to TRUE for sparse loadings}
+\item{sparsity}{Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS}
 
-\item{keepx}{Vector. Number of variables with non-zero loading values for \code{X} in each joint component.}
+\item{groupx}{Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
 
-\item{keepy}{Vector. Number of variables with non-zero loading values for \code{Y} in each joint component.}
+\item{groupy}{Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
+
+\item{keepx}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of variables or groups retained.}
+
+\item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of variables or groups retained.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 

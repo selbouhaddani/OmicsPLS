@@ -4,9 +4,8 @@
 \alias{o2m2}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
-  max_iterations = 1000, sparsity = F, keepx, keepy,
-  max_iterations_sparsity)
+o2m2(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10,
+  max_iterations = 100)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -24,14 +23,6 @@ o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
-
-\item{sparsity}{Boolean. Set to TRUE for sparse loadings}
-
-\item{keepx}{Vector. Number of variables with non-zero loading values for \code{X} in each joint component.}
-
-\item{keepy}{Vector. Number of variables with non-zero loading values for \code{Y} in each joint component.}
-
-\item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 }
 \value{
 A list containing
