@@ -24,13 +24,13 @@ so2m_group(X, Y, n, nx, ny, groupx = NULL, groupy = NULL,
 
 \item{groupy}{Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
 
+\item{keepx}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.}
+
+\item{keepy}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.}
+
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
-
-\item{keepx_gr}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.}
-
-\item{keepy_gr}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.}
 }
 \value{
 A list containing
