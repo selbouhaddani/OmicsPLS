@@ -72,6 +72,8 @@ A list containing
    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
+   \item{W_gr}{Joint loadings of \eqn{X} at group level (only available when GO2PLS is used)}
+   \item{C_gr}{Joint loadings of \eqn{Y} at group level (only available when GO2PLS is used)}
 }
 \description{
 NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.

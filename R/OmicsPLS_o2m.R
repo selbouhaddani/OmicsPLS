@@ -47,6 +47,8 @@
 #'    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
 #'    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
+#'    \item{W_gr}{Joint loadings of \eqn{X} at group level (only available when GO2PLS is used)}
+#'    \item{C_gr}{Joint loadings of \eqn{Y} at group level (only available when GO2PLS is used)}
 #'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
@@ -93,8 +95,6 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   
   input_checker(X, Y)
   
-  ssqX = ssq(X)
-  ssqY = ssq(Y)
   if(length(n)>1 | length(nx)>1 | length(ny)>1)
     stop("Number of components should be scalars, not vectors")
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
@@ -118,8 +118,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   
   if(sparsity){
-     model = so2m_group(...)
+     model = so2m_group(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, 
+                        tol, max_iterations, max_iterations_sparsity)
   }else{
+    ssqX = ssq(X)
+    ssqY = ssq(Y)
+    
     highd = FALSE
     if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
       highd = TRUE
@@ -216,7 +220,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
       model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                     U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
                     X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
-                    R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+                    R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat,
+                    W_gr = NULL, C_gr = NULL)
       class(model) <- "o2m"
     }
     toc <- proc.time() - tic
@@ -618,7 +623,8 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
                 T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
-                R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+                R2Xhat = R2Xhat, R2Yhat = R2Yhat,
+                W_gr = NULL, C_gr = NULL)
   class(model) <- c("o2m","o2m_stripped")
   return(model)
 }
@@ -747,7 +753,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
                 T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
                 B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
-                R2Xhat = R2Xhat, R2Yhat = R2Yhat)
+                R2Xhat = R2Xhat, R2Yhat = R2Yhat,
+                W_gr = NULL, C_gr = NULL)
   
   class(model) <- c("o2m","o2m_stripped")
   return(model)
@@ -783,12 +790,13 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #'    \item{B_T.}{Regression coefficient in \code{U} ~ \code{Tt}}
 #'    \item{H_TU}{Residuals in \code{Tt} in \code{Tt} ~ \code{U}}
 #'    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
-#'    \item{sel_grx}{Joint weights of X variables at group level. They are the norms of the X-joint loadings per group}
-#'    \item{sel_gry}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
+#'    \item{W_gr}{Joint weights of X variables at group level. They are the norms of the X-joint loadings per group}
+#'    \item{C_gr}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 #' 
 #'
 #' @export
-so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-10, max_iterations=1000){
+so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, keepy=NULL, 
+                       tol = 1e-10, max_iterations=1000, max_iterations_sparsity=1000){
 
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
@@ -805,10 +813,14 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
   
   if(length(keepx)==1){keepx <- rep(keepx,n)}
   if(length(keepy)==1){keepy <- rep(keepy,n)}
+  
+  ssqX = ssq(X)
+  ssqY = ssq(Y)
   #############################################################
   # Orthogonal filtering
   #############################################################
   # setup
+  tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
   
@@ -908,6 +920,8 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
       X <- X - Tt[,j] %*% t(p)
       Y <- Y - U[,j] %*% t(q)
     }
+    select_grx <- NULL
+    select_gry <- NULL
   }
   
   if(method == "GO2PLS"){
@@ -1020,12 +1034,12 @@ so2m_group <- function(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, tol = 1e-1
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
                 X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
                 R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat, 
-                sel_grx = select_grx, sel_gry = select_gry)
+                W_gr = select_grx, C_gr = select_gry)
   class(model) <- "o2m"
   toc <- proc.time() - tic
   model$flags = c(time = toc[3], 
                   list(n = n, nx = nx, ny = ny, 
-                       stripped = stripped, highd = highd, 
+                       stripped = FALSE, highd = TRUE, 
                        call = match.call(), ssqX = ssqX, ssqY = ssqY,
                        varXjoint = apply(model$Tt,2,ssq),
                        varYjoint = apply(model$U,2,ssq),
