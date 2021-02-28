@@ -128,8 +128,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
       highd = TRUE
       message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
-      model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                   sparsity, keepx, keepy, max_iterations_sparsity)
+      model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
     } else if(stripped){
       model = o2m_stripped(X, Y, n, nx, ny)
     } else {
