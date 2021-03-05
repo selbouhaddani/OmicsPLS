@@ -15,7 +15,7 @@ License: GPL-3
 Imports:
     ggplot2,
     parallel,
-    ssvd
+    dplyr
 Suggests:
     testthat,
     knitr,
