@@ -924,9 +924,14 @@ print.o2m <- function (x, ...) {
   n = x$flags$n #ncol(x$W.)
   nx = x$flags$nx #ifelse(vnorm(x$P_Yosc.)[1] == 0, 0, ncol(x$P_Yosc.))
   ny = x$flags$ny #ifelse(vnorm(x$P_Xosc.)[1] == 0, 0, ncol(x$P_Xosc.))
-  if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
+  if(x$flags$method == "SO2PLS") cat("SO2PLS fit \n")
+  else if(x$flags$method == "GO2PLS") cat("GO2PLS fit \n")
+  else{
+    if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
     else if(x$flags$highd) cat("O2PLS fit: High dimensional \n") 
-      else cat("O2PLS fit \n")
+    else cat("O2PLS fit \n")
+  }
+
   cat("with ",n," joint components  \n",sep='')
   cat("and  ",nx," orthogonal components in X \n",sep='')
   cat("and  ",ny," orthogonal components in Y \n",sep='')
@@ -1050,7 +1055,8 @@ summary.o2m <- function(object, digits = 3, ...) {
 #' @export
 print.summary.o2m <- function(x, ...){
   digits = x$digits
-  cat("\n*** Summary of the O2PLS fit *** \n\n")
+  method = x$flags$method
+  cat(paste("\n*** Summary of the", method, "fit *** \n\n"))
   R2_names = c("Joint","Orthogonal","Noise")
   R2_Xall = with(x,{c(R2_Xjoint, R2_X - R2_Xjoint, 1 - R2_X)})
   R2_Yall = with(x,{c(R2_Yjoint, R2_Y - R2_Yjoint, 1 - R2_Y)})
