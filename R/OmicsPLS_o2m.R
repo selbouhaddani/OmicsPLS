@@ -128,8 +128,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
       highd = TRUE
       message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
-      model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations, 
-                   sparsity, keepx, keepy, max_iterations_sparsity)
+      model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
     } else if(stripped){
       model = o2m_stripped(X, Y, n, nx, ny)
     } else {
@@ -772,8 +771,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
 #' @param groupx Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.
 #' @param groupy Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
-#' @param keepx_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.
-#' @param keepy_gr Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.
+#' @param keepx Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.
+#' @param keepy Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #'
@@ -950,17 +949,17 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
     
     # get u,v iteratively
     for(j in 1: n){
-      if(length(keepx_gr)==1){keepx_gr <- rep(keepx_gr,n)}
-      if(length(keepy_gr)==1){keepy_gr <- rep(keepy_gr,n)}
+      if(length(keepx)==1){keepx <- rep(keepx,n)}
+      if(length(keepy)==1){keepy <- rep(keepy,n)}
       v <- w_ini[,j]
       for (i in 1: max_iterations){
         v_old <- v
         u <- t(Y) %*% (X %*% v)
-        ul <- thresh_n_gr(u, keepy_gr[j], index_gry)
+        ul <- thresh_n_gr(u, keepy[j], index_gry)
         u <- ul$w
         u <- u/norm_vec(u)
         v <- t(X) %*% (Y %*% u)
-        vl <- thresh_n_gr(v, keepx_gr[j], index_grx)
+        vl <- thresh_n_gr(v, keepx[j], index_grx)
         v <- vl$w
         v <- v/norm_vec(v)
         if (mse(v, v_old) < tol) {

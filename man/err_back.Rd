@@ -2,7 +2,7 @@
 % Please edit documentation in R/Crossval_OmicsPLS.R
 \name{err_back}
 \alias{err_back}
-\title{Perform cross-validation to find the optimal number of groups to keep for each joint component}
+\title{Internal function for cv_sparsity}
 \usage{
 err_back(dat, index, p, q)
 }
@@ -12,5 +12,8 @@ err_back(dat, index, p, q)
 \item{index}{get from which(..., arr.ind = T)}
 }
 \description{
-Perform cross-validation to find the optimal number of groups to keep for each joint component
+Internal function for cv_sparsity
+}
+\details{
+This function finds the most sparse combination of keepx and keepy (min(keepx/p + keepy/q)) that yields cov(T,U) within 1 std error of the largest cov(T,U). Note that it's possible that the resulting keepx or keepy is larger than the orignal when p >> q or p << q.
 }

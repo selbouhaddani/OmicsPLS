@@ -7,15 +7,16 @@
 \usage{
 loadings(x, ...)
 
-\method{loadings}{o2m}(x, loading_name = c("Xjoint", "Yjoint", "Xorth",
-  "Yorth"), subset = 0, sorted = FALSE, ...)
+\method{loadings}{o2m}(x, loading_name = c("Xjoint", "Yjoint",
+  "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), subset = 0,
+  sorted = FALSE, ...)
 }
 \arguments{
 \item{x}{Object of class \code{o2m}}
 
 \item{...}{For consistency}
 
-\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.}
+\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.}
 
 \item{subset}{subset of loading vectors to be extracted.}
 

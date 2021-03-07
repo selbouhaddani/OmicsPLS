@@ -121,6 +121,7 @@ input_checker <- function(X, Y = NULL) {
 #' @keywords internal
 #' @export
 lambda_checker <- function(x,y,keepx, keepy) {
+  if(any(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'")
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
   if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
@@ -136,6 +137,7 @@ lambda_checker <- function(x,y,keepx, keepy) {
 #' @keywords internal
 #' @export
 lambda_checker_group <- function(groupx, groupy, keepx, keepy) {
+  if(any(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'")
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
   if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
@@ -944,7 +946,7 @@ print.o2m <- function (x, ...) {
 #' This function plots one or two loading vectors, by default with ggplot2. 
 #' 
 #' @param x An O2PLS fit, with class 'o2m'
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
 #' @param i Integer. First component to be plotted.
 #' @param j NULL (default) or Integer. Second component to be plotted.
 #' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
@@ -956,13 +958,16 @@ print.o2m <- function (x, ...) {
 #' @seealso \code{\link{summary.o2m}}
 #' 
 #' @export
-plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
+plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
   stopifnot(i == round(i), is.logical(use_ggplot2))
   
+  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   fit <- list()
   loading_name = match.arg(loading_name)
-  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
+                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   fit$load = as.matrix(x[which_load][[1]])
   if(ncol(fit$load) < max(i,j) )
     stop("i and j cannot exceed #components = ",ncol(fit$load))
@@ -1129,19 +1134,22 @@ print.summary.o2m <- function(x, ...){
 loadings <- function(x, ...) UseMethod("loadings")
 
 
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
 #' @param subset subset of loading vectors to be extracted.
 #' @param sorted Logical. Should the rows of the loadings be sorted according to the 
 #' absolute magnitute of the first column?
 #' 
 #' @rdname loadings
 #' @export
-loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
+loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), 
                          subset = 0, sorted = FALSE, ...) {
   if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
   
+  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   loading_name = match.arg(loading_name)
-  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
+                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   loading_matrix = x[[which_load]]
   dim_names = dimnames(loading_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)

@@ -455,10 +455,12 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq, group
 }
 
 
-#' Perform cross-validation to find the optimal number of groups to keep for each joint component
+#' Internal function for cv_sparsity
 #'
 #' @param dat matrix with numeric row/col names
 #' @param index get from which(..., arr.ind = T)
+#' 
+#' @details This function finds the most sparse combination of keepx and keepy (min(keepx/p + keepy/q)) that yields cov(T,U) within 1 std error of the largest cov(T,U). Note that it's possible that the resulting keepx or keepy is larger than the orignal when p >> q or p << q.
 #' @export
 err_back <- function(dat, index, p, q){
   index <- index %>% as_tibble() %>% mutate(sp = as.numeric(rownames(dat)[row])/q + as.numeric(colnames(dat)[col])/p)
