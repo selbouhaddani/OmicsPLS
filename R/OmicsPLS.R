@@ -120,13 +120,28 @@ input_checker <- function(X, Y = NULL) {
 #' 
 #' @keywords internal
 #' @export
-lambda_checker <- function(x,y,keepx, keepy) {
-  if(any(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'")
+lambda_checker <- function(x,y,keepx, keepy,n) {
+  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy', \n Otherwise please set 'sparsity' to FALSE and run O2PLS")
+  if(any(is.null(keepx), is.null(keepy))){
+      if(is.null(keepx)){
+        keepx = ncol(x)
+        print("'keepx' not specified, sparsity not imposed in X")
+      }else{
+        keepy = ncol(y)
+        print("'keepy' not specified, sparsity not imposed in Y")
+      }
+  }
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
-  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
+  if(!length(keepx) %in% c(1,n)) stop("length of 'keepx' must be equal to 1 or number of joint components")
+  if(!length(keepy) %in% c(1,n)) stop("length of 'keepy' must be equal to 1 or number of joint components")
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be positive numbers")
+  if(any(c(keepx<=0, keepy<=0)))  stop("Input of keepx, keepy must be positive")
   if(max(keepx) > dim(x)[2])  stop("keepx must be less then the number of column of X")
   if(max(keepy) > dim(y)[2])  stop("keepx must be less then the number of column of Y")
+  if(length(keepx)==1){keepx <- rep(keepx,n)}
+  if(length(keepy)==1){keepy <- rep(keepy,n)}
+  return(list(keepx=keepx, keepy=keepy))
 }
 
 #' Check if penalization parameters satisfy input conditions
@@ -136,13 +151,26 @@ lambda_checker <- function(x,y,keepx, keepy) {
 #' 
 #' @keywords internal
 #' @export
-lambda_checker_group <- function(groupx, groupy, keepx, keepy) {
-  if(any(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'")
+lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
+  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy', \n Otherwise please set 'sparsity' to FALSE and run O2PLS")
+  if(any(is.null(keepx), is.null(keepy))){
+    if(is.null(keepx)){
+      keepx = length(unique(groupx))
+      print("'keepx' not specified, sparsity not imposed in X")
+    }else{
+      keepy = length(unique(groupy))
+      print("'keepy' not specified, sparsity not imposed in Y")
+    }
+  }
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
-  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be integers")
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be positive numbers")
+  if(any(c(keepx<=0, keepy<=0)))  stop("Input of keepx, keepy must be positive")
   if(max(keepx) > length(unique(groupx)))  stop("keepx must not exceed the number of groups in X")
   if(max(keepy) > length(unique(groupy)))  stop("keepy must not exceed the number of groups in Y")
+  if(length(keepx)==1){keepx <- rep(keepx,n)}
+  if(length(keepy)==1){keepy <- rep(keepy,n)}
+  return(list(keepx=keepx, keepy=keepy))
 }
 
 #' Orthogonalize a matrix

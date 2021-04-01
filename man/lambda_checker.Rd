@@ -4,7 +4,7 @@
 \alias{lambda_checker}
 \title{Check if penalization parameters satisfy input conditions}
 \usage{
-lambda_checker(x, y, keepx, keepy)
+lambda_checker(x, y, keepx, keepy, n)
 }
 \description{
 Check if penalization parameters satisfy input conditions

@@ -13,10 +13,10 @@
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
 #' @param sparsity Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS
-#' @param groupx Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.
-#' @param groupy Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
-#' @param keepx Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of variables or groups retained.
-#' @param keepy Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of variables or groups retained.
+#' @param groupx Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables. 
+#' @param groupy Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
+#' @param keepx Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.
+#' @param keepy Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
 #' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
@@ -802,18 +802,25 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
     print("Group information not provided, using SO2PLS")
-    lambda_checker(X, Y, keepx, keepy)
+    keepxy <- lambda_checker(X, Y, keepx, keepy, n)
+    keepx <- keepxy$keepx
+    keepy <- keepxy$keepy
   }else{
     method = "GO2PLS"
     print("Group information provided, using GO2PLS")
     # check if only information for one dataset is provided
-    if(is.null(groupx))  groupx = colnames(X)
-    if(is.null(groupy))  groupy = colnames(Y)
-    lambda_checker_group(groupx, groupy, keepx, keepy)
+    if(is.null(groupx)){
+      if(is.null(colnames(X))) stop("Please provide 'groupx' or colnames of X")
+      groupx = colnames(X)
+    }
+    if(is.null(groupy)){
+      if(is.null(colnames(Y))) stop("Please provide 'groupy' or colnames of Y")
+      groupy = colnames(Y)
+    }
+    keepxy <- lambda_checker_group(groupx, groupy, keepx, keepy, n)
+    keepx <- keepxy$keepx
+    keepy <- keepxy$keepy
   }
-  
-  if(length(keepx)==1){keepx <- rep(keepx,n)}
-  if(length(keepy)==1){keepy <- rep(keepy,n)}
   
   ssqX = ssq(X)
   ssqY = ssq(Y)

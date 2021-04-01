@@ -32,13 +32,13 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{sparsity}{Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS}
 
-\item{groupx}{Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
+\item{groupx}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
 
-\item{groupy}{Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
+\item{groupy}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
 
-\item{keepx}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of variables or groups retained.}
+\item{keepx}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of variables or groups retained.}
+\item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 

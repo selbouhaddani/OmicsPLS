@@ -4,7 +4,7 @@
 \alias{lambda_checker_group}
 \title{Check if penalization parameters satisfy input conditions}
 \usage{
-lambda_checker_group(groupx, groupy, keepx, keepy)
+lambda_checker_group(groupx, groupy, keepx, keepy, n)
 }
 \description{
 Check if penalization parameters satisfy input conditions
