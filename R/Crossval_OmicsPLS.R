@@ -169,7 +169,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
 #' @param lambda_kcv Integer. Number of folds of CV
 #' @param keepx_seq Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X.
-#' @param keepy_gr Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.
+#' @param keepy_seq Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.
 #' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X. If not provided, SO2PLS will be used.
 #' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y. If not provided, SO2PLS will be used.
 #' @param tol double. Threshold for power method iteration

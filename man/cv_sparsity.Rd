@@ -22,6 +22,8 @@ cv_sparsity(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq,
 
 \item{keepx_seq}{Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X.}
 
+\item{keepy_seq}{Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.}
+
 \item{groupx}{Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X. If not provided, SO2PLS will be used.}
 
 \item{groupy}{Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y. If not provided, SO2PLS will be used.}
@@ -29,8 +31,6 @@ cv_sparsity(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
-
-\item{keepy_gr}{Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.}
 }
 \value{
 A list containing
