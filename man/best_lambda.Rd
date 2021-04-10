@@ -4,8 +4,15 @@
 \alias{best_lambda}
 \title{K-fold CV based on symmetrized prediction error to find lambda}
 \usage{
-best_lambda(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10,
-  max_iterations = 100)
+best_lambda(
+  X,
+  Y,
+  n,
+  lambda_kcv,
+  n_lambda = 6,
+  tol = 1e-10,
+  max_iterations = 100
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

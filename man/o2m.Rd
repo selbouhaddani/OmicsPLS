@@ -4,10 +4,25 @@
 \alias{o2m}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
-  q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
-  sparsity = F, groupx = NULL, groupy = NULL, keepx = NULL,
-  keepy = NULL, max_iterations_sparsity = 1000, ...)
+o2m(
+  X,
+  Y,
+  n,
+  nx,
+  ny,
+  stripped = FALSE,
+  p_thresh = 3000,
+  q_thresh = p_thresh,
+  tol = 1e-10,
+  max_iterations = 1000,
+  sparsity = F,
+  groupx = NULL,
+  groupy = NULL,
+  keepx = NULL,
+  keepy = NULL,
+  max_iterations_sparsity = 1000,
+  ...
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

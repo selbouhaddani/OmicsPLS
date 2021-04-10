@@ -26,6 +26,12 @@ colnames(X) <- paste0("x_", 1:p)
 colnames(Y) <- paste0("y_", 1:q)
 ###############################
 # Test
+
+cv_nrcomp <- crossval_o2m_adjR2(X, Y, 1, 0:2, 0:2, nr_folds = 50)
+
+print(cv_nrcomp)
+crossval_o2m_adjR2(X, Y, 1, 1, 1, nr_folds = 50) %>% print
+
 ###############################
 # use of O2PLS not affected
 fit <- o2m(X, Y, r, rx, ry)
@@ -64,13 +70,13 @@ fit <- o2m(X, Y, r, rx, ry, sparsity = T, groupx=groupx, groupy=groupy, keepx = 
 #################################
 # CV for sparsity
 # SO2PLS
-cv <- cv_sparsity(X, Y, r, rx, ry, lambda_kcv = 5, 
-                  keepx_seq = seq(50,1000, by=50), keepy_seq = 1:5)
+cv <- cv_sparsity(X, Y, r, rx, ry, lambda_kcv = 2, 
+                  keepx_seq = seq(50,1000, by=150), keepy_seq = 3:5)
 cv
 
 # GO2PLS
 cv <- cv_sparsity(X, Y, r, rx, ry, lambda_kcv = 5, groupx = groupx, groupy = groupy,
-                  keepx_seq = seq(5,100, by=5), keepy_seq = 1:5)
+                  keepx_seq = seq(10,100, by=10), keepy_seq = 2:4)
 cv
 fit <- o2m(X, Y, r, rx, ry, sparsity = T, groupx=groupx, groupy=groupy, 
            keepx = cv$x_1sd, keepy = cv$y_1sd)

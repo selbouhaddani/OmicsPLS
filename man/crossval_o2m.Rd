@@ -4,9 +4,20 @@
 \alias{crossval_o2m}
 \title{Cross-validate procedure for O2PLS}
 \usage{
-crossval_o2m(X, Y, a, ax, ay, nr_folds, nr_cores = 1, stripped = TRUE,
-  p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10,
-  max_iterations = 100)
+crossval_o2m(
+  X,
+  Y,
+  a,
+  ax,
+  ay,
+  nr_folds,
+  nr_cores = 1,
+  stripped = TRUE,
+  p_thresh = 3000,
+  q_thresh = p_thresh,
+  tol = 1e-10,
+  max_iterations = 100
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

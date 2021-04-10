@@ -15,11 +15,12 @@ License: GPL-3
 Imports:
     ggplot2,
     parallel,
-    dplyr
+    dplyr,
+    tibble
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     gplots,
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr

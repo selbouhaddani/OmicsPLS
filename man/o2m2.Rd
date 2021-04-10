@@ -4,8 +4,7 @@
 \alias{o2m2}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m2(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10,
-  max_iterations = 100)
+o2m2(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

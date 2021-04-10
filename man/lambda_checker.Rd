@@ -6,6 +6,17 @@
 \usage{
 lambda_checker(x, y, keepx, keepy, n)
 }
+\arguments{
+\item{x}{Should be numeric matrix.}
+
+\item{y}{Should be numeric matrix.}
+
+\item{keepx}{Input of \code{o2m} function.}
+
+\item{keepy}{Input of \code{o2m} function.}
+
+\item{n}{Number of joint components.}
+}
 \description{
 Check if penalization parameters satisfy input conditions
 }

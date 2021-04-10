@@ -99,65 +99,65 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #'              nr_folds = 5, nr_cores = 1)
 #' })
 #' @export
-crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
-                               stripped = TRUE, p_thresh = 3000, 
-                               q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
-{
-  tic = proc.time()
-  X <- as.matrix(X)
-  Y <- as.matrix(Y)
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
-  kcv = nr_folds
-  stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
-  stopifnot(nr_cores == abs(round(nr_cores)))
-  if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
-  cl_crossval_o2m <- NULL
-  on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
-  
-  parms = data.frame(a = a)
-  parms = apply(parms,1,as.list)
-  
-  if(Sys.info()[["sysname"]] == "Windows" && nr_cores > 1){
-    cl_crossval_o2m <- makePSOCKcluster(nr_cores)
-    clusterEvalQ(cl_crossval_o2m, library(OmicsPLS))
-    clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
-    outp=parLapply(cl_crossval_o2m,parms,function(e){
-      parms = data.frame(nx = ax)
-      parms = merge(parms,data.frame(ny = ay))
-      parms = apply(parms,1,as.list)
-      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
-                                                      stripped = stripped, p_thresh = p_thresh, 
-                                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
-                      nrow = length(ay), byrow=TRUE)
-      nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                                           stripped = stripped, p_thresh = p_thresh, 
-                                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
-      c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
-    })
-  } else {
-    outp=mclapply(mc.cores=nr_cores,parms,function(e){
-      parms = data.frame(nx = ax)
-      parms = merge(parms,data.frame(ny = ay))
-      parms = apply(parms,1,as.list)
-      R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
-                                                      stripped = stripped, p_thresh = p_thresh, 
-                                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
-                      nrow = length(ay), byrow=TRUE)
-      nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
-      a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                                           stripped = stripped, p_thresh = p_thresh, 
-                                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
-      c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
-    })
+  crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
+                                 stripped = TRUE, p_thresh = 3000, 
+                                 q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
+  {
+    tic = proc.time()
+    X <- as.matrix(X)
+    Y <- as.matrix(Y)
+    if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+    kcv = nr_folds
+    stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
+    stopifnot(nr_cores == abs(round(nr_cores)))
+    if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
+    cl_crossval_o2m <- NULL
+    on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
+    
+    parms = data.frame(a = a)
+    parms = apply(parms,1,as.list)
+    
+    if(Sys.info()[["sysname"]] == "Windows" && nr_cores > 1){
+      cl_crossval_o2m <- makePSOCKcluster(nr_cores)
+      clusterEvalQ(cl_crossval_o2m, library(OmicsPLS))
+      clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
+      outp=parLapply(cl_crossval_o2m,parms,function(e){
+        parms = data.frame(nx = ax)
+        parms = merge(parms,data.frame(ny = ay))
+        parms = apply(parms,1,as.list)
+        R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
+                                                        stripped = stripped, p_thresh = p_thresh, 
+                                                        q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
+                        nrow = length(ay), byrow=TRUE)
+        nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
+        a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
+                                             stripped = stripped, p_thresh = p_thresh, 
+                                             q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+        c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
+      })
+    } else {
+      outp=mclapply(mc.cores=nr_cores,parms,function(e){
+        parms = data.frame(nx = ax)
+        parms = merge(parms,data.frame(ny = ay))
+        parms = apply(parms,1,as.list)
+        R2grid = matrix(colMeans(suppressMessages(adjR2(Y, X, e$a, ax, ay,
+                                                        stripped = stripped, p_thresh = p_thresh, 
+                                                        q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
+                        nrow = length(ay), byrow=TRUE)
+        nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
+        a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
+                                             stripped = stripped, p_thresh = p_thresh, 
+                                             q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
+        c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
+      })
+    }
+    outp2 = matrix(unlist(outp), nrow = length(a), byrow = T)
+    outp2 <- as.data.frame(outp2)
+    names(outp2) <- c("MSE", "n", "nx", "ny")
+    message("minimum is at n = ", outp2[,2][which.min(outp2[,1])], sep = ' ')
+    message("Elapsed time: ", round((proc.time() - tic)[3],2), " sec")
+    return(outp2)
   }
-  outp2 = matrix(unlist(outp), nrow = length(a), byrow = T)
-  outp2 <- as.data.frame(outp2)
-  names(outp2) <- c("MSE", "n", "nx", "ny")
-  message("minimum is at n = ", outp2[,2][which.min(outp2[,1])], sep = ' ')
-  message("Elapsed time: ", round((proc.time() - tic)[3],2), " sec")
-  return(outp2)
-}
 
 
 #' Perform cross-validation to find the optimal number of groups to keep for each joint component
@@ -168,8 +168,8 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
 #' @param lambda_kcv Integer. Number of folds of CV
-#' @param keepx_seq Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X.
-#' @param keepy_seq Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.
+#' @param keepx_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X. Sparsity of each joint component will be selected sequentially.
+#' @param keepy_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y. Sparsity of each joint component will be selected sequentially.
 #' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X. If not provided, SO2PLS will be used.
 #' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y. If not provided, SO2PLS will be used.
 #' @param tol double. Threshold for power method iteration
@@ -180,19 +180,19 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #'    \item{x}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent, without applying the one standard error rule}
 #'    \item{y}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent, without applying the one standard error rule}
 #' @export
-cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
+cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=NULL, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
   
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
     print("Group information not provided, CV for number of variables to keep")
-    lambda_checker(X, Y, max(keepx_seq), max(keepy_seq))
+    cv_lambda_checker(X, Y, keepx_seq, keepy_seq)
   }else{
     method = "GO2PLS"
     print("Group information provided, CV for number of groups to keep")
     # check if only information for one dataset is provided
     if(is.null(groupx))  groupx = colnames(X)
     if(is.null(groupy))  groupy = colnames(Y)
-    lambda_checker_group(groupx, groupy, max(keepx_seq), max(keepy_seq))
+    cv_lambda_checker_group(groupx, groupy, keepx_seq, keepy_seq)
   }
   
   # Check format
@@ -463,7 +463,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq, group
 #' @details This function finds the most sparse combination of keepx and keepy (min(keepx/p + keepy/q)) that yields cov(T,U) within 1 std error of the largest cov(T,U). Note that it's possible that the resulting keepx or keepy is larger than the orignal when p >> q or p << q.
 #' @export
 err_back <- function(dat, index, p, q){
-  index <- index %>% as_tibble() %>% mutate(sp = as.numeric(rownames(dat)[row])/q + as.numeric(colnames(dat)[col])/p)
+  index <- index %>% tibble::as_tibble() %>% dplyr::mutate(sp = as.numeric(rownames(dat)[row])/q + as.numeric(colnames(dat)[col])/p)
   # find most sparse model
   temp <- which(index$sp == min(index$sp))
   # if draw

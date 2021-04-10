@@ -6,6 +6,17 @@
 \usage{
 lambda_checker_group(groupx, groupy, keepx, keepy, n)
 }
+\arguments{
+\item{groupx}{Vector. Input of \code{o2m} function.}
+
+\item{groupy}{Vector. Input of \code{o2m} function.}
+
+\item{keepx}{Input of \code{o2m} function or \code{cv_sparsity} function.}
+
+\item{keepy}{Input of \code{o2m} function or \code{cv_sparsity} function.}
+
+\item{n}{Number of joint components.}
+}
 \description{
 Check if penalization parameters satisfy input conditions
 }

@@ -114,7 +114,12 @@ input_checker <- function(X, Y = NULL) {
 }
 
 #' Check if penalization parameters satisfy input conditions
-#'
+#' @param x Should be numeric matrix.
+#' @param y Should be numeric matrix.
+#' @param keepx Input of \code{o2m} function.
+#' @param keepy Input of \code{o2m} function.
+#' @param n Number of joint components.
+#' 
 #' @return NULL
 #' @details This function throws an error if lambda is not within the range.
 #' 
@@ -145,6 +150,11 @@ lambda_checker <- function(x,y,keepx, keepy,n) {
 }
 
 #' Check if penalization parameters satisfy input conditions
+#' @param groupx Vector. Input of \code{o2m} function.
+#' @param groupy Vector. Input of \code{o2m} function.
+#' @param keepx Input of \code{o2m} function or \code{cv_sparsity} function.
+#' @param keepy Input of \code{o2m} function or \code{cv_sparsity} function.
+#' @param n Number of joint components.
 #'
 #' @return NULL
 #' @details This function throws an error if lambda is not within the range.
@@ -171,6 +181,48 @@ lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
   if(length(keepx)==1){keepx <- rep(keepx,n)}
   if(length(keepy)==1){keepy <- rep(keepy,n)}
   return(list(keepx=keepx, keepy=keepy))
+}
+
+#' Check if sparisity parameters satisfy input conditions in cv functions
+#' @param x Should be numeric matrix.
+#' @param y Should be numeric matrix.
+#' @param keepx_seq Input of \code{cv_sparsity} function.
+#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' 
+#' @return NULL
+#' @details This function throws an error if sparsity parameters are not valid.
+#' 
+#' @keywords internal
+#' @export
+cv_lambda_checker <- function(x,y,keepx_seq=NULL, keepy_seq=NULL) {
+  if(any(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify at least one of 'keepx_seq' and 'keepy_seq'")
+  bl_x <- !sapply(keepx_seq, is.numeric)
+  bl_y <- !sapply(keepy_seq, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx_seq, keepy_seq must all be positive numbers")
+  if(any(c(keepx_seq<=0, keepy_seq<=0)))  stop("Input of keepx_seq, keepy_seq must all be positive")
+  if(max(keepx_seq) > dim(x)[2])  stop("all numbers in keepx_seq must be less then the number of column of X")
+  if(max(keepy_seq) > dim(y)[2])  stop("all numbers in keepy_seq must be less then the number of column of Y")
+}
+
+#' Check if sparisity parameters satisfy input conditions in cv functions
+#' @param groupx Vector. Input of \code{cv_sparsity} function.
+#' @param groupy Vector. Input of \code{cv_sparsity} function.
+#' @param keepx_seq Input of \code{cv_sparsity} function.
+#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' 
+#' @return NULL
+#' @details This function throws an error if sparsity parameters are not valid.
+#' 
+#' @keywords internal
+#' @export
+cv_lambda_checker_group <- function(groupx,groupy,keepx_seq=NULL, keepy_seq=NULL) {
+  if(any(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify 'keepx_seq' and 'keepy_seq'")
+  bl_x <- !sapply(keepx_seq, is.numeric)
+  bl_y <- !sapply(keepy_seq, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx_seq, keepy_seq must all be positive numbers")
+  if(any(c(keepx_seq<=0, keepy_seq<=0)))  stop("Input of keepx_seq, keepy_seq must all be positive")
+  if(max(keepx_seq) > length(unique(groupx)))  stop("all numbers in keepx_seq must be less then the number of groups in X")
+  if(max(keepy_seq) > length(unique(groupy)))  stop("all numbers in keepy_seq must be less then the number of groups in Y")
 }
 
 #' Orthogonalize a matrix

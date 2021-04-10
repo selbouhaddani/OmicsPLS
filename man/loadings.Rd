@@ -7,9 +7,13 @@
 \usage{
 loadings(x, ...)
 
-\method{loadings}{o2m}(x, loading_name = c("Xjoint", "Yjoint",
-  "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), subset = 0,
-  sorted = FALSE, ...)
+\method{loadings}{o2m}(
+  x,
+  loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"),
+  subset = 0,
+  sorted = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Object of class \code{o2m}}

@@ -4,8 +4,20 @@
 \alias{cv_sparsity}
 \title{Perform cross-validation to find the optimal number of groups to keep for each joint component}
 \usage{
-cv_sparsity(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq,
-  groupx = NULL, groupy = NULL, tol = 1e-10, max_iterations = 100)
+cv_sparsity(
+  X,
+  Y,
+  n,
+  nx,
+  ny,
+  lambda_kcv,
+  keepx_seq = NULL,
+  keepy_seq = NULL,
+  groupx = NULL,
+  groupy = NULL,
+  tol = 1e-10,
+  max_iterations = 100
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -20,9 +32,9 @@ cv_sparsity(X, Y, n, nx, ny, lambda_kcv, keepx_seq, keepy_seq,
 
 \item{lambda_kcv}{Integer. Number of folds of CV}
 
-\item{keepx_seq}{Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X.}
+\item{keepx_seq}{Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X. Sparsity of each joint component will be selected sequentially.}
 
-\item{keepy_seq}{Vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y.}
+\item{keepy_seq}{Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y. Sparsity of each joint component will be selected sequentially.}
 
 \item{groupx}{Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X. If not provided, SO2PLS will be used.}
 

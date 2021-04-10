@@ -5,9 +5,20 @@
 \title{Perform group lasso SpO2PLS 
 #'}
 \usage{
-so2m_group(X, Y, n, nx, ny, groupx = NULL, groupy = NULL,
-  keepx = NULL, keepy = NULL, tol = 1e-10, max_iterations = 1000,
-  max_iterations_sparsity = 1000)
+so2m_group(
+  X,
+  Y,
+  n,
+  nx,
+  ny,
+  groupx = NULL,
+  groupy = NULL,
+  keepx = NULL,
+  keepy = NULL,
+  tol = 1e-10,
+  max_iterations = 1000,
+  max_iterations_sparsity = 1000
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

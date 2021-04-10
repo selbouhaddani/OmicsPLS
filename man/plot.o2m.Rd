@@ -4,9 +4,15 @@
 \alias{plot.o2m}
 \title{Plot one or two loading vectors for class o2m}
 \usage{
-\method{plot}{o2m}(x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr",
-  "Yjoint_gr", "Xorth", "Yorth"), i = 1, j = NULL,
-  use_ggplot2 = TRUE, label = c("number", "colnames"), ...)
+\method{plot}{o2m}(
+  x,
+  loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"),
+  i = 1,
+  j = NULL,
+  use_ggplot2 = TRUE,
+  label = c("number", "colnames"),
+  ...
+)
 }
 \arguments{
 \item{x}{An O2PLS fit, with class 'o2m'}
