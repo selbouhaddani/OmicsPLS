@@ -24,7 +24,7 @@
 #'  \item{3.} A noise part capturing all residual variation.
 #' }
 #' 
-#' See also the corresponding paper (el Bouhaddani et al, 2018).
+#' See also the corresponding paper (el Bouhaddani et al, 2018) below.
 #' 
 #' 
 #' @section Fitting:
@@ -51,11 +51,28 @@
 #' See \code{citation("OmicsPLS")} for our proposed approach for determining the number of components, implemented in \code{crossval_o2m_adjR2}!
 #' \itemize{
 #'  \item{} Cross-validation (CV) is done with \code{\link{crossval_o2m}} and \code{\link{crossval_o2m_adjR2}}, both have built in parallelization which relies on the \code{parallel} package.
-#'  Usage is something like \code{crossval_o2m(X,Y,a,ax,ay)} where \code{a,ax,ay} are vectors of integers. See the help pages.
-#'  \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV. 
+#'  Usage is something like \code{crossval_o2m(X,Y,a,ax,ay,nr_folds)} where \code{a,ax,ay} are vectors of integers. See the help pages.
+#'  \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV. 
 #'  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
-#'  faster than the standard approach. 
+#'  faster than the standard approach. It is also recommended over the standard CV.
 #' }
+#' 
+#' @section S3 methods:
+#' There are S3 methods implemented for a fit obtained with \code{o2m}, i.e. \code{fit <- o2m(X,Y,n,nx,ny)}
+#' \itemize{
+#'   \item{} Use plot(fit) to plot the loadings, see above.
+#'   \item{} Use \code{\link{loadings}(fit)} to extract a matrix with loading values
+#'   \item{} Use \code{\link{scores}(fit)} to extract the scores
+#'   \item{} Use \code{\link{print}} and \code{\link{summary}} to print and summarize the fit object
+#' }
+#' 
+#' @section Imputation:
+#' When the data contains missing values, one should impute them prior to using O2PLS.
+#' There are many sophisticated approaches available, such as MICE and MissForest, and no one approach is the best for all situations.
+#' To still allow users to quickly impute missing values in their data matrix, 
+#' the \code{\link{impute_matrix}} function is implemented. 
+#' It relies on the \code{\link{softImpute}} function/package and imputes based on the singular value decomposition.
+#' 
 #' 
 #' @section Misc:
 #' Also some handy tools are available
@@ -84,7 +101,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2 tibble magrittr
+#' @import parallel ggplot2 tibble magrittr softImpute
 #' @importFrom graphics abline
 NULL
 
@@ -100,18 +117,49 @@ NULL
 input_checker <- function(X, Y = NULL) {
   if(!is.numeric(X)) stop("Input is not numeric, but of mode ",mode(X))
   if(!is.matrix(X)) stop("Input is not a matrix, but of class ",class(X))
-  if(any(is.na(X))) stop("Input contains NA's or NaN's")
-  if(!any(is.finite(X))) stop("Input contains non-finite elements")
+  if(any(is.na(X))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix")
+  if(any(is.infinite(X))) stop("Input contains non-finite elements, consider imputing with impute_matrix")
   
   if (!is.null(Y)) {
     if(!is.numeric(Y)) stop("Input is not numeric, but of mode ",mode(Y))
     if(!is.matrix(Y)) stop("Input is not a matrix, but of class ",class(Y))
-    if(any(is.na(Y))) stop("Input contains NA's or NaN's")
-    if(!any(is.finite(Y))) stop("Input contains non-finite elements")
+    if(any(is.na(Y))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix")
+    if(any(is.infinite(Y))) stop("Input contains non-finite elements, consider imputing with impute_matrix")
     if(nrow(X) != nrow(Y)) stop("# rows don't match: ",nrow(X)," versus ",nrow(Y))
     if(!identical(rownames(X), rownames(Y))) warning("Caution: Rownames don't match!")
   }
   NULL
+}
+
+#' Impute missing values in a matrix
+#'
+#' @param X A matrix with missing values in some entries.
+#' @param ... Further arguments for \code{softimpute}.
+#' @return An imputed version of matrix \eqn{X}
+#' @details This function is based on the \code{\link{softImpute}} function in its eponymous package.
+#' @examples
+#' X <- matrix(rnorm(20*100),20)
+#' Xmis <- X
+#' Xmis[sample(length(Xmis),length(Xmis)/10)] <- NA
+#' anyNA(X)
+#' anyNA(impute_matrix(Xmis))
+#' @export
+impute_matrix <- function(X, ...){
+  Xnames = dimnames(X)
+  if(!is.matrix(X)){
+    message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
+    X <- as.matrix(X)
+    dimnames(X) <- Xnames
+  }
+  if(any(is.infinite(X))) X[is.infinite(X)] = NA
+  if(!anyNA(X)){
+    message("X doesn't contain missings. Returning original matrix.")
+    return(X)
+  }
+  
+  imp <- softImpute::softImpute(X, rank.max = min(dim(X),51)-1, 
+                                       type="svd", ...)
+  return(softImpute::complete(X, imp))
 }
 
 #' Orthogonalize a matrix
@@ -355,13 +403,22 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NU
   # cl <- makeCluster(rep( 'localhost', detectCores()),type='SOCK') clusterExport(cl=cl,
   # varlist=c('X','Y','N','pars2','ssq','o2m'))
   outp <- S_apply(cl, pars2, function(p) {
-    fit <- func(X, Y, p$a, p$a2, p$b2, stripped = stripped, p_thresh = p_thresh, 
-                q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
-    RX <- 1 - ssq(fit$H_UT)/ssq(fit$U)
-    RY <- 1 - ssq(fit$H_TU)/ssq(fit$Tt)
-    adjRX <- RX  #1 - (1 - RX)*(N - 1)/(N - p$a - 1)
-    adjRY <- RY  #1 - (1 - RY)*(N - 1)/(N - p$a - 1)
-    return(c(adjR2X = adjRX, adjR2Y = adjRY))
+    fit <- try(func(X, Y, p$a, p$a2, p$b2, stripped = stripped, p_thresh = p_thresh, 
+                q_thresh = q_thresh, tol = tol, max_iterations = max_iterations), silent=T)
+    if(inherits(fit,'try-error')) {
+      if(!grepl("exceeds #columns in X or Y", fit)){
+        warning(fit[1])
+      }
+    }
+    if(!inherits(fit, 'try-error')){
+      RX <- 1 - ssq(fit$H_UT)/ssq(fit$U)
+      RY <- 1 - ssq(fit$H_TU)/ssq(fit$Tt)
+      adjRX <- RX  #1 - (1 - RX)*(N - 1)/(N - p$a - 1)
+      adjRY <- RY  #1 - (1 - RY)*(N - 1)/(N - p$a - 1)
+      return(c(adjR2X = adjRX, adjR2Y = adjRY))
+    } else {
+      return(c(adjR2X = NA, adjR2Y = NA))
+    }
   })
   if (parall & cl_was_null == TRUE) {
     stopCluster(cl)
@@ -438,10 +495,10 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   if (!is.null(fitted_model)) {
     if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL")}
     app_err <- F
-    warning("apparent error calculated with provided fit")
+    message("apparent error calculated with provided fit")
   }
   
-  # determine type of model
+  # determine type of model, deprecated 
   type <- 3  #ifelse(deparse(substitute(func))=='o2m',3,ifelse(deparse(substitute(func))=='oplsm',2,1))
   
   N <- length(X[, 1])
@@ -471,7 +528,11 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
                          q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)
           }
           fit <- try(do.call(func, pars), silent = T)
-          if(inherits(fit,'try-error')) warning(fit[1])
+          if(inherits(fit,'try-error')) {
+            if(!grepl("exceeds #columns in X or Y", fit)){
+              warning(fit[1])
+            }
+          }
           err[i] <- ifelse(inherits(fit, 'try-error'), 
                            NA, 
                            rmsep_combi(X[folds[ii], ], Y[folds[ii], ], fit))
@@ -529,7 +590,7 @@ print.o2m <- function (x, ...) {
   cat("with ",n," joint components  \n",sep='')
   cat("and  ",nx," orthogonal components in X \n",sep='')
   cat("and  ",ny," orthogonal components in Y \n",sep='')
-  cat("Elapsed time: ",x$flags$time, " sec", sep='')
+  cat("Elapsed time: ",x$flags$time, " sec\n\n", sep='')
 }
 
 #' Print function for O2PLS.
@@ -783,7 +844,7 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth
 scores <- function(x, ...) UseMethod("scores")
 
 
-#' @inheritParams scores
+#' @param x Object of class \code{o2m}
 #' @param which_part character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
 #' @param subset subset of scores vectors to be extracted.
 #' 
@@ -835,8 +896,8 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
          Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!"))
   
   pred = switch(XorY, 
-                Y = with(object, (newdata - newdata %*% C_Xosc %*% t(C_Xosc)) %*% C. %*% B_U %*% t(W.)), 
-                X = with(object, (newdata - newdata %*% W_Yosc %*% t(W_Yosc)) %*% W. %*% B_T. %*% t(C.)))
+                Y = with(object, (newdata - newdata %*% C_Xosc %*% t(P_Xosc.)) %*% C. %*% B_U %*% t(W.)), 
+                X = with(object, (newdata - newdata %*% W_Yosc %*% t(P_Yosc.)) %*% W. %*% B_T. %*% t(C.)))
   
   return(pred)
 }

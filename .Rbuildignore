@@ -3,3 +3,4 @@
 ^\.travis\.yml$
 ^OmicsPLS_vignette_realdata\.pdf$
 ^README\.md$
+^.*\.comment

@@ -3,7 +3,6 @@
 \docType{package}
 \name{OmicsPLS}
 \alias{OmicsPLS}
-\alias{OmicsPLS-package}
 \title{Data integration with O2PLS: Two-Way Orthogonal Partial Least Squares}
 \description{
 OmicsPLS software is described in (el Bouhaddani et al, 2018, BMC Bioinformatics).
@@ -22,7 +21,7 @@ The O2PLS model (Trygg & Wold, 2003) decomposes two datasets \eqn{X} and \eqn{Y}
  \item{3.} A noise part capturing all residual variation.
 }
 
-See also the corresponding paper (el Bouhaddani et al, 2018).
+See also the corresponding paper (el Bouhaddani et al, 2018) below.
 }
 
 \section{Fitting}{
@@ -54,11 +53,31 @@ Determining the number of components \code{n,nx,ny} is an important task. For th
 See \code{citation("OmicsPLS")} for our proposed approach for determining the number of components, implemented in \code{crossval_o2m_adjR2}!
 \itemize{
  \item{} Cross-validation (CV) is done with \code{\link{crossval_o2m}} and \code{\link{crossval_o2m_adjR2}}, both have built in parallelization which relies on the \code{parallel} package.
- Usage is something like \code{crossval_o2m(X,Y,a,ax,ay)} where \code{a,ax,ay} are vectors of integers. See the help pages.
- \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV. 
+ Usage is something like \code{crossval_o2m(X,Y,a,ax,ay,nr_folds)} where \code{a,ax,ay} are vectors of integers. See the help pages.
+ \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV. 
  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
- faster than the standard approach. 
+ faster than the standard approach. It is also recommended over the standard CV.
 }
+}
+
+\section{S3 methods}{
+
+There are S3 methods implemented for a fit obtained with \code{o2m}, i.e. \code{fit <- o2m(X,Y,n,nx,ny)}
+\itemize{
+  \item{} Use plot(fit) to plot the loadings, see above.
+  \item{} Use \code{\link{loadings}(fit)} to extract a matrix with loading values
+  \item{} Use \code{\link{scores}(fit)} to extract the scores
+  \item{} Use \code{\link{print}} and \code{\link{summary}} to print and summarize the fit object
+}
+}
+
+\section{Imputation}{
+
+When the data contains missing values, one should impute them prior to using O2PLS.
+There are many sophisticated approaches available, such as MICE and MissForest, and no one approach is the best for all situations.
+To still allow users to quickly impute missing values in their data matrix, 
+the \code{\link{impute_matrix}} function is implemented. 
+It relies on the \code{\link{softImpute}} function/package and imputes based on the singular value decomposition.
 }
 
 \section{Misc}{

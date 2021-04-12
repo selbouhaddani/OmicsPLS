@@ -1,5 +1,9 @@
 library(OmicsPLS)
 context("OmicsPLS main function checking")
+set.seed(1234)
+X <- matrix(rnorm(10*1e1),10);
+Xmiss <- X
+Xmiss[sample(length(Xmiss),length(Xmiss)/10)] <- NA
 
 test_that("Normal input goes without error", {
   expect_error(o2m(1:10, 1:10, 1, 0, 0), NA)
@@ -11,6 +15,7 @@ test_that("Normal input goes without error", {
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
+  expect_error(impute_matrix(Xmiss, maxit = 1000), NA)
 })
 
 # test_that("Examples run", {
@@ -34,7 +39,7 @@ test_that("Errors in *o2m* are thrown", {
   expect_error(crossval_o2m(diag(3),diag(4),1,0,0,2)                   )
   expect_error(crossval_o2m(matrix(c(1:8,NA),3),matrix(1:9,3),1,1,1,2) )
   expect_error(crossval_o2m(matrix(1:9,3),matrix(c(1:8,NaN),3),1,1,1,2))
-  expect_warning(crossval_o2m(matrix(1:9,3),matrix(c(1:8,Inf),3),1,1,1,2))
+  expect_error(crossval_o2m(matrix(1:9,3),matrix(c(1:8,Inf),3),1,1,1,2))
   expect_error(crossval_o2m(diag(4),diag(4),1.5,0,0,2)                 )
   expect_error(crossval_o2m(diag(4),diag(4),1,1.5,0,2)                 )
   expect_error(crossval_o2m(diag(4),diag(4),1,0,1.5,2)                 )
@@ -46,6 +51,7 @@ test_that("Errors in *o2m* are thrown", {
   expect_error(crossval_o2m_adjR2(diag(4),diag(4),1.5,0,0,2)                 )
   expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,1.5,0,2)                 )
   expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,0,1.5,2)                 )
+  expect_warning(crossval_o2m_adjR2(diag(4,10,10),diag(4,10,3),1:2,0:4,0:2,2)                 )
 })
 
 test_that("size, ratios and names are correct", {
@@ -79,4 +85,5 @@ test_that("Misc functions are working", {
   expect_error(orth(1:10), NA)
   expect_error(orth(1:10, 1:10, type="SVD"), NA)
   expect_error(adjR2(1:10, 1:10, 1, 0, 0), NA)
+  expect_message(impute_matrix(X), "original matrix")
 })

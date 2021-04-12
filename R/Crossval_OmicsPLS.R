@@ -10,7 +10,7 @@
 #' @details This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
 #' Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
 #'  and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
-#'  A print method is defined, printing the minimizers and minimum in a readible way. Also the elapsed time is tracked and reported.
+#'  A print method is defined, printing the minimizers and minimum in a readable way. Also the elapsed time is tracked and reported.
 #' 
 #' @return List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.
 #' 
@@ -29,12 +29,15 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   tic = proc.time()
   X <- as.matrix(X)
   Y <- as.matrix(Y)
-  #input_checker(X, Y)
+  input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
-  stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
+  if(ncol(X) < max(a)+max(ax)+max(ay) | ncol(Y) < max(a)+max(ax)+max(ay)) 
+    warning("Some combinations of # components exceed data dimensions, 
+            these combinations are not considered")
+  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
   stopifnot(nr_cores == abs(round(nr_cores)))
-  if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
+  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
   
   parms = data.frame(nx = ax)
   parms = merge(parms,data.frame(ny = ay))
@@ -106,11 +109,16 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   tic = proc.time()
   X <- as.matrix(X)
   Y <- as.matrix(Y)
+  input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
-  stopifnot(ncol(X) > max(a)+max(ax) , ncol(Y) > max(a)+max(ay) , nrow(X) >= kcv)
+  if(ncol(X) < max(a)+max(ax)+max(ay) | ncol(Y) < max(a)+max(ax)+max(ay)) 
+    warning("Some combinations of # components exceed data dimensions, 
+            these combinations are not considered")
+  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
   stopifnot(nr_cores == abs(round(nr_cores)))
-  if(nr_folds==1){stop("Cross-validation with 1 fold does not make sense, use 2 folds or more")}
+  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
+  
   cl_crossval_o2m <- NULL
   on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
   
@@ -144,7 +152,8 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                                      stripped = stripped, p_thresh = p_thresh, 
                                      q_thresh = q_thresh, tol = tol, max_iterations = max_iterations))), 
                       nrow = length(ay), byrow=TRUE)
-      nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
+      #R2grid[which(is.na(R2grid))] = -999
+      nxny = which(R2grid == max(R2grid,na.rm = TRUE), arr.ind = TRUE)[1,]
       a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
                           stripped = stripped, p_thresh = p_thresh, 
                           q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
@@ -168,7 +177,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' @return NULL
 #' @export
 print.cvo2m <- function(x,include_matrix=FALSE,...) {
-  wmCV = which(min(x$Or)==x$Or,TRUE,FALSE)
+  wmCV = which(min(x$Or,na.rm = TRUE)==x$Or,arr.ind = TRUE,useNames = FALSE)
   dnams = dimnames(x$Or)
   dnams1 = dnams[[1]][wmCV[1]]
   dnams2 = dnams[[2]][wmCV[2]]
@@ -179,7 +188,7 @@ print.cvo2m <- function(x,include_matrix=FALSE,...) {
   cat("*******\n")
   cat("Minimal ",x$kcv,"-CV error is at ",dnams1," ",dnams2," ",dnams3," ","\n",sep="")
   cat("*******\n")
-  cat("Minimum is",min(x$Sor),"\n")
+  cat("Minimum MSE is",min(x$Sor,na.rm = TRUE),"\n")
   if(include_matrix){
     cat("*******\n")
     cat("Simplified CV matrix is \n")

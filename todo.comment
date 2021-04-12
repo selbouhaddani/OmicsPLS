@@ -1,6 +1,9 @@
-Bug fixes
+Bug fixes:
 
-- add newline at summary, print
+none...?
 
-- replace t(W_Yosc) with t(P_Yosc.) in predict
+Improvements:
+
+- flexible grid in crossval*
+- missing data via SVD
 

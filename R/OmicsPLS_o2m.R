@@ -88,7 +88,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   if(length(n)>1 | length(nx)>1 | length(ny)>1)
     stop("Number of components should be scalars, not vectors")
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) =", n + max(nx, ny), " exceed # columns in X or Y")
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceeds #columns in X or Y")
   if(nx != round(abs(nx)) || ny != round(abs(ny))) 
     stop("n, nx and ny should be non-negative integers")
   if(p_thresh != round(abs(p_thresh)) || q_thresh != round(abs(q_thresh))) 
