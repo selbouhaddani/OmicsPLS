@@ -32,9 +32,8 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
-  if(ncol(X) < max(a)+max(ax)+max(ay) | ncol(Y) < max(a)+max(ax)+max(ay)) 
-    warning("Some combinations of # components exceed data dimensions, 
-            these combinations are not considered")
+  if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay)) 
+    warning("Some combinations of # components exceed data dimensions, these combinations are not considered")
   if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
   stopifnot(nr_cores == abs(round(nr_cores)))
   if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
@@ -112,9 +111,8 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   input_checker(X, Y)
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
   kcv = nr_folds
-  if(ncol(X) < max(a)+max(ax)+max(ay) | ncol(Y) < max(a)+max(ax)+max(ay)) 
-    warning("Some combinations of # components exceed data dimensions, 
-            these combinations are not considered")
+  if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay)) 
+    warning("Some combinations of # components exceed data dimensions, these combinations are not considered")
   if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
   stopifnot(nr_cores == abs(round(nr_cores)))
   if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
