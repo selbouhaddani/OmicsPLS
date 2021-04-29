@@ -4,13 +4,25 @@
 \alias{o2m}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
-  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100,
-  sparsity = FALSE, method = c("theory", "method"),
-  orth_last_step = FALSE, sparsity_it = F, lambda_x = max(1, 0.5 *
-  (dim(X)[2])^0.5), lambda_y = max(1, 0.5 * (dim(Y)[2])^0.5),
-  lambda_kcv = 2, n_lambda = 6, keepx = NULL, keepy = NULL,
-  max_iterations_sparsity = max_iterations, ...)
+o2m(
+  X,
+  Y,
+  n,
+  nx,
+  ny,
+  stripped = FALSE,
+  p_thresh = 3000,
+  q_thresh = p_thresh,
+  tol = 1e-10,
+  max_iterations = 1000,
+  sparsity = F,
+  groupx = NULL,
+  groupy = NULL,
+  keepx = NULL,
+  keepy = NULL,
+  max_iterations_sparsity = 1000,
+  ...
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -33,25 +45,15 @@ o2m(X, Y, n, nx, ny, stripped = FALSE, p_thresh = 3000,
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
 
-\item{sparsity}{Boolean. Set to TRUE for sparse loadings}
+\item{sparsity}{Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS}
 
-\item{method}{Either "theory" or "method". See \code{\link{ssvd}}.}
+\item{groupx}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
 
-\item{orth_last_step}{Boolean. Set to TRUE to orthogonalize the loadings in the final iteration. This will reduce the degree of sparsity. Note that this only holds when \code{sparsity} is TRUE.}
+\item{groupy}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
 
-\item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data}
+\item{keepx}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings}
-
-\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings}
-
-\item{lambda_kcv}{Integer. k-fold cross-validation for lambda_x and lambda_y}
-
-\item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
-
-\item{keepx}{Integer. Number of non-zero loadings for \code{X} in each joint component desired.}
-
-\item{keepy}{Integer. Number of non-zero loadings for \code{Y} in each joint component desired.}
+\item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 
@@ -85,6 +87,8 @@ A list containing
    \item{R2Y_XO}{Variation (measured with \code{\link{ssq}}) of the orthogonal part in \eqn{Y} as proportion of variation in \eqn{Y}}
    \item{R2Xhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{X} as proportion of variation in \eqn{X}}
    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
+   \item{W_gr}{Joint loadings of \eqn{X} at group level (only available when GO2PLS is used)}
+   \item{C_gr}{Joint loadings of \eqn{Y} at group level (only available when GO2PLS is used)}
 }
 \description{
 NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.

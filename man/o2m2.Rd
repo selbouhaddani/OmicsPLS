@@ -4,9 +4,7 @@
 \alias{o2m2}
 \title{Perform O2-PLS with two-way orthogonal corrections}
 \usage{
-o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
-  max_iterations = 100, sparsity_it = F, lambda_x, lambda_y,
-  lambda_kcv, n_lambda, keepx, keepy, max_iterations_sparsity)
+o2m2(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10, max_iterations = 100)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -24,22 +22,6 @@ o2m2(X, Y, n, nx, ny, stripped = FALSE, tol = 1e-10,
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
-
-\item{sparsity_it}{Boolean. Set to TRUE for sparse loadings for high-dimensional data}
-
-\item{lambda_x}{double. Penalization parameter for X. Smaller value will produce more sparse X-loadings}
-
-\item{lambda_y}{double. Penalization parameter for Y. Smaller value will produce more sparse Y-loadings}
-
-\item{lambda_kcv}{Integer. k-fold cross-validation for lambda_x and lambda_y}
-
-\item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
-
-\item{keepx}{Integer. Number of non-zero loadings for \code{X} in each joint component desired.}
-
-\item{keepy}{Integer. Number of non-zero loadings for \code{Y} in each joint component desired.}
-
-\item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
 }
 \value{
 A list containing

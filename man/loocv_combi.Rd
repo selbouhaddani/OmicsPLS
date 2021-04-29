@@ -4,9 +4,22 @@
 \alias{loocv_combi}
 \title{K-fold CV based on symmetrized prediction error}
 \usage{
-loocv_combi(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL,
-  func = o2m, app_err = F, kcv, stripped = TRUE, p_thresh = 3000,
-  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
+loocv_combi(
+  X,
+  Y,
+  a = 1:2,
+  a2 = 1,
+  b2 = 1,
+  fitted_model = NULL,
+  func = o2m,
+  app_err = F,
+  kcv,
+  stripped = TRUE,
+  p_thresh = 3000,
+  q_thresh = p_thresh,
+  tol = 1e-10,
+  max_iterations = 100
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

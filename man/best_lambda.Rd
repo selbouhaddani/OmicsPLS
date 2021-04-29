@@ -4,8 +4,15 @@
 \alias{best_lambda}
 \title{K-fold CV based on symmetrized prediction error to find lambda}
 \usage{
-best_lambda(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10,
-  max_iterations = 100)
+best_lambda(
+  X,
+  Y,
+  n,
+  lambda_kcv,
+  n_lambda = 6,
+  tol = 1e-10,
+  max_iterations = 100
+)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
@@ -13,10 +20,6 @@ best_lambda(X, Y, n, lambda_kcv, n_lambda = 6, tol = 1e-10,
 \item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
 \item{n}{Integer. Number of joint PLS components. Must be positive!}
-
-\item{lambda_kcv}{Integer. k-fold cross-validation for lambda_x and lambda_y}
-
-\item{n_lambda}{Integer. Number of lambda_x and lambda_y to be tested. Search will be done on a n*n grid}
 
 \item{tol}{double. Threshold for power method iteration}
 

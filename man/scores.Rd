@@ -7,8 +7,12 @@
 \usage{
 scores(x, ...)
 
-\method{scores}{o2m}(x, which_part = c("Xjoint", "Yjoint", "Xorth",
-  "Yorth"), subset = 0, ...)
+\method{scores}{o2m}(
+  x,
+  which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
+  subset = 0,
+  ...
+)
 }
 \arguments{
 \item{x}{Object of class \code{o2m}}

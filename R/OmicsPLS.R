@@ -83,7 +83,7 @@
 #' @docType package
 #' @name OmicsPLS
 #' @keywords OmicsPLS
-#' @import parallel ggplot2 ssvd
+#' @import parallel ggplot2 ssvd magrittr
 #' @importFrom graphics abline
 NULL
 
@@ -114,27 +114,115 @@ input_checker <- function(X, Y = NULL) {
 }
 
 #' Check if penalization parameters satisfy input conditions
-#'
-#' @param lambda_x Should be between 1 and square root of the number of variables of X.
-#' @param lambda_y Should be between 1 and square root of the number of variables of Y.
+#' @param x Should be numeric matrix.
+#' @param y Should be numeric matrix.
+#' @param keepx Input of \code{o2m} function.
+#' @param keepy Input of \code{o2m} function.
+#' @param n Number of joint components.
+#' 
 #' @return NULL
 #' @details This function throws an error if lambda is not within the range.
 #' 
 #' @keywords internal
 #' @export
-lambda_checker <- function(lambda_x, lambda_y, x, y) {
-  if(is.numeric(lambda_x) & is.numeric(lambda_y)){
-    if(lambda_x < 1 | lambda_x > sqrt(dim(x)[2])) {
-      stop("lambda_x must between 1 and square root of the number of variables of X")
-    }
-    if(lambda_y < 1 | lambda_y > sqrt(dim(y)[2])) {
-      stop("lambda_y must between 1 and square root of the number of variables of Y")
-    }
-  }else{
-    if(lambda_x != "cv" | lambda_y != "cv"){
-      stop("lambda_x and lambda_y much be both \"cv\" or numeric")
+lambda_checker <- function(x,y,keepx, keepy,n) {
+  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy', \n Otherwise please set 'sparsity' to FALSE and run O2PLS")
+  if(any(is.null(keepx), is.null(keepy))){
+      if(is.null(keepx)){
+        keepx = ncol(x)
+        print("'keepx' not specified, sparsity not imposed in X")
+      }else{
+        keepy = ncol(y)
+        print("'keepy' not specified, sparsity not imposed in Y")
+      }
+  }
+  bl_x <- !sapply(keepx, is.numeric)
+  bl_y <- !sapply(keepy, is.numeric)
+  if(!length(keepx) %in% c(1,n)) stop("length of 'keepx' must be equal to 1 or number of joint components")
+  if(!length(keepy) %in% c(1,n)) stop("length of 'keepy' must be equal to 1 or number of joint components")
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be positive numbers")
+  if(any(c(keepx<=0, keepy<=0)))  stop("Input of keepx, keepy must be positive")
+  if(max(keepx) > dim(x)[2])  stop("keepx must be less then the number of column of X")
+  if(max(keepy) > dim(y)[2])  stop("keepx must be less then the number of column of Y")
+  if(length(keepx)==1){keepx <- rep(keepx,n)}
+  if(length(keepy)==1){keepy <- rep(keepy,n)}
+  return(list(keepx=keepx, keepy=keepy))
+}
+
+#' Check if penalization parameters satisfy input conditions
+#' @param groupx Vector. Input of \code{o2m} function.
+#' @param groupy Vector. Input of \code{o2m} function.
+#' @param keepx Input of \code{o2m} function or \code{cv_sparsity} function.
+#' @param keepy Input of \code{o2m} function or \code{cv_sparsity} function.
+#' @param n Number of joint components.
+#'
+#' @return NULL
+#' @details This function throws an error if lambda is not within the range.
+#' 
+#' @keywords internal
+#' @export
+lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
+  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy', \n Otherwise please set 'sparsity' to FALSE and run O2PLS")
+  if(any(is.null(keepx), is.null(keepy))){
+    if(is.null(keepx)){
+      keepx = length(unique(groupx))
+      print("'keepx' not specified, sparsity not imposed in X")
+    }else{
+      keepy = length(unique(groupy))
+      print("'keepy' not specified, sparsity not imposed in Y")
     }
   }
+  bl_x <- !sapply(keepx, is.numeric)
+  bl_y <- !sapply(keepy, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be positive numbers")
+  if(any(c(keepx<=0, keepy<=0)))  stop("Input of keepx, keepy must be positive")
+  if(max(keepx) > length(unique(groupx)))  stop("keepx must not exceed the number of groups in X")
+  if(max(keepy) > length(unique(groupy)))  stop("keepy must not exceed the number of groups in Y")
+  if(length(keepx)==1){keepx <- rep(keepx,n)}
+  if(length(keepy)==1){keepy <- rep(keepy,n)}
+  return(list(keepx=keepx, keepy=keepy))
+}
+
+#' Check if sparisity parameters satisfy input conditions in cv functions
+#' @param x Should be numeric matrix.
+#' @param y Should be numeric matrix.
+#' @param keepx_seq Input of \code{cv_sparsity} function.
+#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' 
+#' @return NULL
+#' @details This function throws an error if sparsity parameters are not valid.
+#' 
+#' @keywords internal
+#' @export
+cv_lambda_checker <- function(x,y,keepx_seq=NULL, keepy_seq=NULL) {
+  if(any(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify at least one of 'keepx_seq' and 'keepy_seq'")
+  bl_x <- !sapply(keepx_seq, is.numeric)
+  bl_y <- !sapply(keepy_seq, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx_seq, keepy_seq must all be positive numbers")
+  if(any(c(keepx_seq<=0, keepy_seq<=0)))  stop("Input of keepx_seq, keepy_seq must all be positive")
+  if(max(keepx_seq) > dim(x)[2])  stop("all numbers in keepx_seq must be less then the number of column of X")
+  if(max(keepy_seq) > dim(y)[2])  stop("all numbers in keepy_seq must be less then the number of column of Y")
+}
+
+#' Check if sparisity parameters satisfy input conditions in cv functions
+#' @param groupx Vector. Input of \code{cv_sparsity} function.
+#' @param groupy Vector. Input of \code{cv_sparsity} function.
+#' @param keepx_seq Input of \code{cv_sparsity} function.
+#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' 
+#' @return NULL
+#' @details This function throws an error if sparsity parameters are not valid.
+#' 
+#' @keywords internal
+#' @export
+cv_lambda_checker_group <- function(groupx,groupy,keepx_seq=NULL, keepy_seq=NULL) {
+  if(any(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify 'keepx_seq' and 'keepy_seq'")
+  bl_x <- !sapply(keepx_seq, is.numeric)
+  bl_y <- !sapply(keepy_seq, is.numeric)
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx_seq, keepy_seq must all be positive numbers")
+  if(any(c(keepx_seq<=0, keepy_seq<=0)))  stop("Input of keepx_seq, keepy_seq must all be positive")
+  if(max(keepx_seq) > length(unique(groupx)))  stop("all numbers in keepx_seq must be less then the number of groups in X")
+  if(max(keepy_seq) > length(unique(groupy)))  stop("all numbers in keepy_seq must be less then the number of groups in Y")
 }
 
 #' Orthogonalize a matrix
@@ -800,6 +888,44 @@ thresh_n <- function (x, keepx){
   x
 }
 
+#' Soft threshholding to n non-zero groups
+#'
+#' @param w Numerical loading vector 
+#' @param keep_gr How many groups to retain
+#' @param index_gr List of index and size. index are the index of variables belongs to the group in the original vector, size is the group size
+#' @return A list containing sparse loading vector and names of the selected groups
+#'
+#' @export
+#' 
+thresh_n_gr <- function (w, keep_gr, index_gr){
+  nr <- length(index_gr)
+  # each group l2 norm
+  gr_norm <- sapply(1:nr, function(j){
+    wj <- w[index_gr[[j]]$index] 
+    normj <- norm_vec(wj)
+    return(normj)
+  })
+  
+  # find weights for each group
+  # first sorted critical lambda value for each group
+  size <- sapply(index_gr, function(e) e$size)
+  lambda_seq <- (gr_norm/sqrt(size)) %>% sort(decreasing = T)
+  if(keep_gr == nr){
+    lambda <- 0
+  }else{
+    lambda <- lambda_seq[keep_gr+1]
+  }
+  coef_seq <- (gr_norm - sqrt(size)*lambda)/gr_norm
+  coef_seq[coef_seq < 0] <- 0
+  
+  for(j in 1:nr){
+    w[index_gr[[j]]$index] <- coef_seq[j] * w[index_gr[[j]]$index]
+  }
+  
+  select_gr <- names(index_gr)[which(coef_seq > 0)]
+  return(list(w = w, select_gr = select_gr))
+}
+
 
 #' Norm of vector
 #'
@@ -809,6 +935,56 @@ thresh_n <- function (x, keepx){
 norm_vec <- function(x) sqrt(
   sum(x^2))
 
+#' Post-orthogonalization of a sparse loading vector with regard to a matrix
+#'
+#' @param x sparse loading vector to be orthogonalized
+#' @param W sparse loading matrix of the previous loading vectors
+#' @return A sparse loading vector
+#' @export
+orth_vec <- function(x, W){
+  # get non-zero positions in x and subset W
+  W %<>% as.matrix
+  l <- length(x)
+  pos <- which(x!=0)
+  x <- x[pos]
+  W <- W[pos, ,drop = F]
+  # First check if W is already 0
+  # Step1: delete row i if ith row in W contain all 0
+  # Step2: delete column j in W if it contains all 0
+  # this makes sure W'W is invertible (expect when W ncol > nrow)
+  if(all(W == 0)){
+    x_orth <- x
+    # print('all 0')
+  }else{
+    # Step1
+    #print(W)
+    rowi <- sapply(1:nrow(W), function(i) any(W[i, ]!=0)) %>% which
+    W <- W[rowi, ,drop = F]
+    x_sub <- x[rowi]  # x_sub = x_original[pos[rowi]]
+    # Step2
+    colj <- sapply(1:ncol(W), function(j) any(W[ ,j]!=0)) %>% which
+    W <- W[,colj,drop = F]
+    
+    # when W ncol > nrow, W is singular
+    if(ncol(W)>nrow(W)){
+      x_sub <- rep(0, length(x_sub))
+      #print("ncol > nrow")
+    }else{
+      # Orthogonal projection
+      n <- nrow(W)
+      I <- diag(1, n)
+      #print(W)
+      x_sub <- (I - W %*% solve(t(W)%*%W) %*% t(W)) %*% x_sub
+    }
+    
+  x[rowi] <- x_sub
+  x_orth <- x
+  }
+  x_orth <- x_orth/norm_vec(x_orth)
+  final <- rep(0, l)
+  final[pos] <- x_orth
+  return(final)
+}
 
 # Generic Methods ---------------------------------------------------------
 
@@ -830,9 +1006,14 @@ print.o2m <- function (x, ...) {
   n = x$flags$n #ncol(x$W.)
   nx = x$flags$nx #ifelse(vnorm(x$P_Yosc.)[1] == 0, 0, ncol(x$P_Yosc.))
   ny = x$flags$ny #ifelse(vnorm(x$P_Xosc.)[1] == 0, 0, ncol(x$P_Xosc.))
-  if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
+  if(x$flags$method == "SO2PLS") cat("SO2PLS fit \n")
+  else if(x$flags$method == "GO2PLS") cat("GO2PLS fit \n")
+  else{
+    if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
     else if(x$flags$highd) cat("O2PLS fit: High dimensional \n") 
-      else cat("O2PLS fit \n")
+    else cat("O2PLS fit \n")
+  }
+
   cat("with ",n," joint components  \n",sep='')
   cat("and  ",nx," orthogonal components in X \n",sep='')
   cat("and  ",ny," orthogonal components in Y \n",sep='')
@@ -845,7 +1026,7 @@ print.o2m <- function (x, ...) {
 #' This function plots one or two loading vectors, by default with ggplot2. 
 #' 
 #' @param x An O2PLS fit, with class 'o2m'
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
 #' @param i Integer. First component to be plotted.
 #' @param j NULL (default) or Integer. Second component to be plotted.
 #' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
@@ -857,13 +1038,16 @@ print.o2m <- function (x, ...) {
 #' @seealso \code{\link{summary.o2m}}
 #' 
 #' @export
-plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
+plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
   stopifnot(i == round(i), is.logical(use_ggplot2))
   
+  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   fit <- list()
   loading_name = match.arg(loading_name)
-  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
+                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   fit$load = as.matrix(x[which_load][[1]])
   if(ncol(fit$load) < max(i,j) )
     stop("i and j cannot exceed #components = ",ncol(fit$load))
@@ -956,7 +1140,8 @@ summary.o2m <- function(object, digits = 3, ...) {
 #' @export
 print.summary.o2m <- function(x, ...){
   digits = x$digits
-  cat("\n*** Summary of the O2PLS fit *** \n\n")
+  method = x$flags$method
+  cat(paste("\n*** Summary of the", method, "fit *** \n\n"))
   R2_names = c("Joint","Orthogonal","Noise")
   R2_Xall = with(x,{c(R2_Xjoint, R2_X - R2_Xjoint, 1 - R2_X)})
   R2_Yall = with(x,{c(R2_Yjoint, R2_Y - R2_Yjoint, 1 - R2_Y)})
@@ -1029,19 +1214,22 @@ print.summary.o2m <- function(x, ...){
 loadings <- function(x, ...) UseMethod("loadings")
 
 
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
 #' @param subset subset of loading vectors to be extracted.
 #' @param sorted Logical. Should the rows of the loadings be sorted according to the 
 #' absolute magnitute of the first column?
 #' 
 #' @rdname loadings
 #' @export
-loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
+loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), 
                          subset = 0, sorted = FALSE, ...) {
   if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
   
+  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   loading_name = match.arg(loading_name)
-  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+  which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
+                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   loading_matrix = x[[which_load]]
   dim_names = dimnames(loading_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)

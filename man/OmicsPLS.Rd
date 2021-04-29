@@ -3,7 +3,6 @@
 \docType{package}
 \name{OmicsPLS}
 \alias{OmicsPLS}
-\alias{OmicsPLS-package}
 \title{O2PLS: Two-Way Orthogonal Partial Least Squares}
 \description{
 This is based on work of (Trygg, Wold, 2003).
