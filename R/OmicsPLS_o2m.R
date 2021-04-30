@@ -1,4 +1,4 @@
-#' Perform O2-PLS with two-way orthogonal corrections
+#' Perform O2PLS data integration with two-way orthogonal corrections
 #'
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #'
@@ -83,12 +83,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   Ynames = dimnames(Y)
   
   if(!is.matrix(X)){
-    message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
+    message("X has class ",class(X),", trying to convert with as.matrix.\n",sep="")
     X <- as.matrix(X)
     dimnames(X) <- Xnames
   }
   if(!is.matrix(Y)){
-    message("Y has class ",class(Y),", trying to convert with as.matrix.",sep="")
+    message("Y has class ",class(Y),", trying to convert with as.matrix.\n",sep="")
     Y <- as.matrix(Y)
     dimnames(Y) <- Ynames
   }
@@ -96,26 +96,26 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   input_checker(X, Y)
   
   if(length(n)>1 | length(nx)>1 | length(ny)>1)
-    stop("Number of components should be scalars, not vectors")
+    stop("Number of components should be scalars, not vectors\n")
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) =", n + max(nx, ny), " exceed # columns in X or Y")
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceeds #columns in X or Y\n")
   if(nx != round(abs(nx)) || ny != round(abs(ny))) 
-    stop("n, nx and ny should be non-negative integers")
+    stop("n, nx and ny should be non-negative integers\n")
   if(p_thresh != round(abs(p_thresh)) || q_thresh != round(abs(q_thresh))) 
-    stop("p_thresh and q_thresh should be non-negative integers")
+    stop("p_thresh and q_thresh should be non-negative integers\n")
   if(max_iterations != round(abs(max_iterations)) ) 
-    stop("max_iterations should be a non-negative integer")
+    stop("max_iterations should be a non-negative integer\n")
   if(tol < 0) 
-    stop("tol should be non-negative")
+    stop("tol should be non-negative\n")
   if(nrow(X) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceed sample size N = ",nrow(X))
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceed sample size N = ",nrow(X),"\n")
   if(nrow(X) == n + max(nx, ny)) 
-    warning("n + max(nx, ny) = ", n + max(nx, ny)," equals sample size")
+    warning("n + max(nx, ny) = ", n + max(nx, ny)," equals sample size\n")
   if (n != round(abs(n)) || n <= 0) {
-    stop("n should be a positive integer")
+    stop("n should be a positive integer\n")
   }
   
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   
   if(sparsity){
      model = so2m_group(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, 
@@ -127,7 +127,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     highd = FALSE
     if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
       highd = TRUE
-      message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
+      message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations,"\n")
       model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
     } else if(stripped){
       model = o2m_stripped(X, Y, n, nx, ny)
@@ -300,7 +300,7 @@ pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
 #' 
 #' @keywords internal
 #' @export
-pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
+pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
   input_checker(X, Y)
   stopifnot(n == round(n))
   #  message("High dimensional problem: switching to power method.\n")
@@ -383,7 +383,8 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 100) {
 #'    \item{R2Yhat}{Variation (measured with \code{\link{ssq}}) of the predicted \eqn{Y} as proportion of variation in \eqn{Y}}
 #'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m2} is equivalent to PLS2 with orthonormal loadings.
-#' This is a `slower' implementation of O2PLS, and is using \code{\link{svd}}. For cross-validation purposes, consider using \code{\link{o2m_stripped}}.
+#' For cross-validation purposes, consider using \code{stripped = TRUE}.
+#' 
 #' Note that in this function, a power-method based approach is used when the data dimensionality is larger than the sample size. E.g. for genomic data the covariance matrix might be too memory expensive.
 #'
 #' @examples
@@ -608,8 +609,8 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
   
   R2Xcorr <- ssq(Tt) / ssq(X_true)
   R2Ycorr <- ssq(U) / ssq(Y_true)
-  R2X_YO <- ssq(T_Yosc) / ssq(X_true)
-  R2Y_XO <- ssq(U_Xosc) / ssq(Y_true)
+  R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
+  R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
   R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
   R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
@@ -626,7 +627,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
                 R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat,
                 W_gr = NULL, C_gr = NULL)
-  class(model) <- c("o2m","o2m_stripped")
+  class(model) <- c("pre.o2m","o2m_stripped")
   return(model)
 }
 
@@ -738,8 +739,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
   
   R2Xcorr <- ssq(Tt) / ssq(X_true)
   R2Ycorr <- ssq(U) / ssq(Y_true)
-  R2X_YO <- ssq(T_Yosc) / ssq(X_true)
-  R2Y_XO <- ssq(U_Xosc) / ssq(Y_true)
+  R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
+  R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
   R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
   R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
   R2X <- R2Xcorr + R2X_YO
@@ -757,7 +758,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
                 R2Xhat = R2Xhat, R2Yhat = R2Yhat,
                 W_gr = NULL, C_gr = NULL)
   
-  class(model) <- c("o2m","o2m_stripped")
+  class(model) <- c("pre.o2m","o2m_stripped")
   return(model)
 }
 
