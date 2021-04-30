@@ -30,13 +30,15 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   X <- as.matrix(X)
   Y <- as.matrix(Y)
   input_checker(X, Y)
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   kcv = nr_folds
   if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay)) 
-    warning("Some combinations of # components exceed data dimensions, these combinations are not considered")
-  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
+    warning("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
+  if(ncol(X) < min(a)+min(ax,ay) | ncol(Y) < min(a)+min(ay,ay))
+    stop("There is no valid combination of numbers of components! Please select fewer components in a, ax, ay.\n")
+  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X),"\n")
   stopifnot(nr_cores == abs(round(nr_cores)))
-  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
+  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test\n")}
   
   parms = data.frame(nx = ax)
   parms = merge(parms,data.frame(ny = ay))
@@ -109,13 +111,15 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   X <- as.matrix(X)
   Y <- as.matrix(Y)
   input_checker(X, Y)
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   kcv = nr_folds
   if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay)) 
-    warning("Some combinations of # components exceed data dimensions, these combinations are not considered")
-  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X))
+    warning("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
+  if(ncol(X) < min(a)+min(ax,ay) | ncol(Y) < min(a)+min(ay,ay))
+    stop("There is no valid combination of numbers of components! Please select fewer components in a, ax, ay.\n")
+  if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X),"\n")
   stopifnot(nr_cores == abs(round(nr_cores)))
-  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test")}
+  if(nr_folds==1){stop("Cross-validation needs at least two folds, to train and test\n")}
   
   cl_crossval_o2m <- NULL
   on.exit({if(!is.null(cl_crossval_o2m)) stopCluster(cl_crossval_o2m)})
@@ -161,7 +165,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   outp2 = matrix(unlist(outp), nrow = length(a), byrow = T)
   outp2 <- as.data.frame(outp2)
   names(outp2) <- c("MSE", "n", "nx", "ny")
-  message("minimum is at n = ", outp2[,2][which.min(outp2[,1])], sep = ' ')
+  message("Minimum is at n = ", outp2[,2][which.min(outp2[,1])], sep = ' ')
   message("Elapsed time: ", round((proc.time() - tic)[3],2), " sec")
   return(outp2)
 }

@@ -115,18 +115,18 @@ NULL
 #' @keywords internal
 #' @export
 input_checker <- function(X, Y = NULL) {
-  if(!is.numeric(X)) stop("Input is not numeric, but of mode ",mode(X))
-  if(!is.matrix(X)) stop("Input is not a matrix, but of class ",class(X))
-  if(any(is.na(X))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix")
-  if(any(is.infinite(X))) stop("Input contains non-finite elements, consider imputing with impute_matrix")
+  if(!is.numeric(X)) stop("Input is not numeric, but of mode ",mode(X),"\n")
+  if(!is.matrix(X)) stop("Input is not a matrix, but of class ",class(X),"\n")
+  if(any(is.na(X))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix","\n")
+  if(any(is.infinite(X))) stop("Input contains non-finite elements, consider imputing with impute_matrix","\n")
   
   if (!is.null(Y)) {
-    if(!is.numeric(Y)) stop("Input is not numeric, but of mode ",mode(Y))
-    if(!is.matrix(Y)) stop("Input is not a matrix, but of class ",class(Y))
-    if(any(is.na(Y))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix")
-    if(any(is.infinite(Y))) stop("Input contains non-finite elements, consider imputing with impute_matrix")
-    if(nrow(X) != nrow(Y)) stop("# rows don't match: ",nrow(X)," versus ",nrow(Y))
-    if(!identical(rownames(X), rownames(Y))) warning("Caution: Rownames don't match!")
+    if(!is.numeric(Y)) stop("Input is not numeric, but of mode ",mode(Y),"\n")
+    if(!is.matrix(Y)) stop("Input is not a matrix, but of class ",class(Y),"\n")
+    if(any(is.na(Y))) stop("Input contains NA's or NaN's, consider imputing with impute_matrix","\n")
+    if(any(is.infinite(Y))) stop("Input contains non-finite elements, consider imputing with impute_matrix","\n")
+    if(nrow(X) != nrow(Y)) stop("# rows don't match: ",nrow(X)," versus ",nrow(Y),"\n")
+    if(!identical(rownames(X), rownames(Y))) warning("Caution: Rownames don't match!","\n")
   }
   NULL
 }
@@ -147,13 +147,13 @@ input_checker <- function(X, Y = NULL) {
 impute_matrix <- function(X, ...){
   Xnames = dimnames(X)
   if(!is.matrix(X)){
-    message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
+    message("X has class ",class(X),", trying to convert with as.matrix.",sep="","\n")
     X <- as.matrix(X)
     dimnames(X) <- Xnames
   }
   if(any(is.infinite(X))) X[is.infinite(X)] = NA
   if(!anyNA(X)){
-    message("X doesn't contain missings. Returning original matrix.")
+    message("X doesn't contain missings. Returning original matrix.","\n")
     return(X)
   }
   
@@ -180,7 +180,7 @@ orth <- function(X, X_true = NULL, type = c("QR", "SVD")) {
   if (!is.null(X_true)) {
     X_true <- as.matrix(X_true)
     input_checker(X,X_true)
-    if(ncol(X) != ncol(X_true)) stop("# columns don't match:",ncol(X),"versus",ncol(X_true))
+    if(ncol(X) != ncol(X_true)) stop("# columns don't match:",ncol(X),"versus",ncol(X_true),"\n")
   }else {
     input_checker(X)
   }
@@ -197,7 +197,7 @@ orth <- function(X, X_true = NULL, type = c("QR", "SVD")) {
   } else {
     sign_e <- sign(crossprod(e,X_true)) * diag(1,ncol(e))
   }
-  if(any(diag(sign_e)==0)){warning("Orthogonalization made some columns orthogonal to original columns")}
+  if(any(diag(sign_e)==0)){warning("Orthogonalization made some columns orthogonal to original columns","\n")}
   
   return(e %*% sign_e)
 }
@@ -230,7 +230,7 @@ ssq <- function(X) {
 #' @export
 mse <- function(x, y = 0, na.rm = FALSE)
 {
-  if(length(x) != length(y) && length(y) != 0) message("Comparing lengths ",length(x)," with ",length(y))
+  if(length(x) != length(y) && length(y) != 0) message("Comparing lengths ",length(x)," with ",length(y),"\n")
   mean((x - y)^2, na.rm = na.rm)
 }
 
@@ -248,7 +248,7 @@ mse <- function(x, y = 0, na.rm = FALSE)
 #' @return Mean squares difference between predicted Y and true Y
 #' @export
 rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
-  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit")
+  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit","\n")
   
   if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
@@ -294,14 +294,14 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
     app_err <- F
-    message("apparent error calculated with provided fit")
+    message("apparent error calculated with provided fit","\n")
   }
   # determine type of model
   type <- 3  #ifelse(deparse(substitute(func))=='o2m',3,ifelse(deparse(substitute(func))=='oplsm',2,1))
   
   N <- nrow(X)
   if (N != nrow(Y)) {
-    stop("N not the same")
+    stop("N not the same","\n")
   }
   mean_err <- mean_fit <- NA * 1:max(length(a), length(a2), length(b2))
   k <- 0
@@ -456,7 +456,7 @@ vnorm <- function(x)
 #' @export
 rmsep_combi <- function(Xtst, Ytst, fit)
 {
-  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit")
+  if(!inherits(fit,c("o2m","pre.o2m"))) stop("fit should be an O2PLS fit","\n")
   
   if (!is.matrix(Xtst)) Xtst <- t(Xtst)
   
@@ -493,7 +493,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   Y = as.matrix(Y)
   input_checker(X, Y)
   if (!is.null(fitted_model)) {
-    if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL")}
+    if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL","\n")}
     app_err <- F
     message("apparent error calculated with provided fit")
   }
@@ -651,7 +651,7 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   if(label2 == "colnames" && !is.null(rownames(x[which_load][[1]]))) {
     label = rownames(x[which_load][[1]])
     } else label = 1:p
-  if(label2 == "colnames" && is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...")
+  if(label2 == "colnames" && is.null(rownames(x[which_load][[1]]))) message("No labels found in colnames, proceeding...","\n")
   
   if (use_ggplot2) {
     plt = with(fit, {
@@ -689,7 +689,7 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
 summary.o2m <- function(object, digits = 3, ...) {
   fit <- object
   a <- ncol(fit$W.)
-  if(digits != round(digits) || digits <= 0) stop("digits must be a positive integer")
+  if(digits != round(digits) || digits <= 0) stop("Digits must be a positive integer","\n")
   outp <- with( fit, list(
     Comp = a,
     R2_X = R2X,
@@ -807,14 +807,14 @@ loadings <- function(x, ...) UseMethod("loadings")
 #' @export
 loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
                          subset = 0, sorted = FALSE, ...) {
-  if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
+  if(any(subset != abs(round(subset)))) stop("Subset must be a vector of non-negative integers","\n")
   
   loading_name = match.arg(loading_name)
   which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   loading_matrix = x[[which_load]]
   dim_names = dimnames(loading_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)
-  if(max(subset) > ncol(loading_matrix)) stop("Elements in subset exceed #components")
+  if(max(subset) > ncol(loading_matrix)) stop("Elements in subset exceed #components","\n")
   loading_matrix = as.matrix(loading_matrix[,subset])
   dimnames(loading_matrix) <- dim_names
   
@@ -853,14 +853,14 @@ scores <- function(x, ...) UseMethod("scores")
 #' @export
 scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"), 
                          subset = 0, ...) {
-  if(any(subset != abs(round(subset)))) stop("subset must be a vector of non-negative integers")
+  if(any(subset != abs(round(subset)))) stop("Subset must be a vector of non-negative integers","\n")
   
   which_part = match.arg(which_part)
   which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc", Yorth = "U_Xosc")
   scores_matrix = x[[which_scores]]
   dim_names = dimnames(scores_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(scores_matrix)
-  if(max(subset) > ncol(scores_matrix)) stop("Elements in subset exceed #components")
+  if(max(subset) > ncol(scores_matrix)) stop("Elements in subset exceed #components","\n")
   scores_matrix = as.matrix(scores_matrix[,subset])
   dimnames(scores_matrix) <- dim_names
   
@@ -886,14 +886,14 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
   XorY = match.arg(XorY)
   Xnames = dimnames(newdata)
   if(!is.matrix(newdata)){
-    message("newdata has class ",class(newdata),", trying to convert with as.matrix.",sep="")
+    message("newdata has class ",class(newdata),", trying to convert with as.matrix.",sep="","\n")
     newdata <- as.matrix(newdata)
     dimnames(newdata) <- Xnames
   }
   input_checker(newdata)
   switch(XorY,
-         X = if(ncol(newdata) != nrow(object$W.)) stop("Number of columns mismatch!"),
-         Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!"))
+         X = if(ncol(newdata) != nrow(object$W.)) stop("Number of columns mismatch!","\n"),
+         Y = if(ncol(newdata) != nrow(object$C.)) stop("Number of columns mismatch!","\n"))
   
   pred = switch(XorY, 
                 Y = with(object, (newdata - newdata %*% C_Xosc %*% t(P_Xosc.)) %*% C. %*% B_U %*% t(W.)), 

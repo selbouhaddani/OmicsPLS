@@ -72,12 +72,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   Ynames = dimnames(Y)
   
   if(!is.matrix(X)){
-    message("X has class ",class(X),", trying to convert with as.matrix.",sep="")
+    message("X has class ",class(X),", trying to convert with as.matrix.\n",sep="")
     X <- as.matrix(X)
     dimnames(X) <- Xnames
   }
   if(!is.matrix(Y)){
-    message("Y has class ",class(Y),", trying to convert with as.matrix.",sep="")
+    message("Y has class ",class(Y),", trying to convert with as.matrix.\n",sep="")
     Y <- as.matrix(Y)
     dimnames(Y) <- Ynames
   }
@@ -86,31 +86,31 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   ssqX = ssq(X)
   ssqY = ssq(Y)
   if(length(n)>1 | length(nx)>1 | length(ny)>1)
-    stop("Number of components should be scalars, not vectors")
+    stop("Number of components should be scalars, not vectors\n")
   if(ncol(X) < n + max(nx, ny) || ncol(Y) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceeds #columns in X or Y")
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceeds #columns in X or Y\n")
   if(nx != round(abs(nx)) || ny != round(abs(ny))) 
-    stop("n, nx and ny should be non-negative integers")
+    stop("n, nx and ny should be non-negative integers\n")
   if(p_thresh != round(abs(p_thresh)) || q_thresh != round(abs(q_thresh))) 
-    stop("p_thresh and q_thresh should be non-negative integers")
+    stop("p_thresh and q_thresh should be non-negative integers\n")
   if(max_iterations != round(abs(max_iterations)) ) 
-    stop("max_iterations should be a non-negative integer")
+    stop("max_iterations should be a non-negative integer\n")
   if(tol < 0) 
-    stop("tol should be non-negative")
+    stop("tol should be non-negative\n")
   if(nrow(X) < n + max(nx, ny)) 
-    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceed sample size N = ",nrow(X))
+    stop("n + max(nx, ny) = ", n + max(nx, ny), " exceed sample size N = ",nrow(X),"\n")
   if(nrow(X) == n + max(nx, ny)) 
-    warning("n + max(nx, ny) = ", n + max(nx, ny)," equals sample size")
+    warning("n + max(nx, ny) = ", n + max(nx, ny)," equals sample size\n")
   if (n != round(abs(n)) || n <= 0) {
-    stop("n should be a positive integer")
+    stop("n should be a positive integer\n")
   }
   
-  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...")}
+  if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   
   highd = FALSE
   if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
     highd = TRUE
-    message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations)
+    message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations,"\n")
     model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
   } else if(stripped){
     model = o2m_stripped(X, Y, n, nx, ny)
