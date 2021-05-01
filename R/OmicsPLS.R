@@ -1,12 +1,13 @@
-#' O2PLS: Two-Way Orthogonal Partial Least Squares
+#' Data integration with O2PLS: Two-Way Orthogonal Partial Least Squares
 #'
-#' The OmicsPLS package facilitates omics data integration. 
-#' It includes the O2PLS fit, some misc functions and cross-validation tools.
+#' The OmicsPLS package is an R package for penalized integration of heterogeneous omics data. 
+#' The software articles are published in (el Bouhaddani et al, 2018, doi:10.1186/s12859-018-2371-3) and (Gu et al, 2020, doi:10.1186/s12859-021-03958-3).
+#' OmicsPLS includes the O2PLS fit, the GO2PLS fit, some misc functions and cross-validation tools.
 #' 
 #' @author
 #' Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}, Twitter: @@selbouhaddani),
+#' Zhujie Gu, 
 #' Jeanine Houwing-Duistermaat,
-#' Zhujie Gu
 #' Geurt Jongbloed,
 #' Szymon Kielbasa,
 #' Hae-Won Uh.
@@ -52,7 +53,6 @@
 #' \itemize{
 #'  \item{} Cross-validation (CV) is done with \code{\link{crossval_o2m}} and \code{\link{crossval_o2m_adjR2}}, both have built in parallelization which relies on the \code{parallel} package.
 #'  Usage is something like \code{crossval_o2m(X,Y,a,ax,ay,nr_folds)} where \code{a,ax,ay} are vectors of integers. See the help pages.
-#'  \code{kcv} is the number of folds, with \code{kcv = nrow(X)} for Leave-One-Out CV.
 #'  \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV.
 #'  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
 #'  faster than the standard approach. It is also recommended over the standard CV.
@@ -103,6 +103,8 @@
 #' @keywords OmicsPLS
 #' @import parallel ggplot2 tibble magrittr softImpute
 #' @importFrom graphics abline
+#' @importFrom stats cov sd
+#' @importFrom dplyr mutate
 NULL
 
 #' Check if matrices satisfy input conditions
@@ -617,7 +619,7 @@ print.pre.o2m <- function (x, ...) {
 #' This function plots one or two loading vectors, by default with ggplot2. 
 #' 
 #' @param x An O2PLS fit, with class 'o2m'
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'gr_Xjoint', 'gr_Yjoint', 'Xorth' or 'Yorth'.
 #' @param i Integer. First component to be plotted.
 #' @param j NULL (default) or Integer. Second component to be plotted.
 #' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
@@ -629,16 +631,16 @@ print.pre.o2m <- function (x, ...) {
 #' @seealso \code{\link{summary.o2m}}
 #' 
 #' @export
-plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
+plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
 {
   stopifnot(i == round(i), is.logical(use_ggplot2))
   
-  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
-  
   fit <- list()
   loading_name = match.arg(loading_name)
+  if((loading_name %in% c("gr_Xjoint", "gr_Yjoint")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
-                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+                      gr_Xjoint = "W_gr", gr_Yjoint = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   fit$load = as.matrix(x[which_load][[1]])
   if(ncol(fit$load) < max(i,j) )
     stop("i and j cannot exceed #components = ",ncol(fit$load))
@@ -805,22 +807,22 @@ print.summary.o2m <- function(x, ...){
 loadings <- function(x, ...) UseMethod("loadings")
 
 
-#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.
+#' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'gr_Xjoint', 'gr_Yjoint', 'Xorth' or 'Yorth'.
 #' @param subset subset of loading vectors to be extracted.
 #' @param sorted Logical. Should the rows of the loadings be sorted according to the 
 #' absolute magnitute of the first column?
 #' 
 #' @rdname loadings
 #' @export
-loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"), 
+loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Yjoint", "Xorth", "Yorth"), 
                          subset = 0, sorted = FALSE, ...) {
   if(any(subset != abs(round(subset)))) stop("Subset must be a vector of non-negative integers","\n")
   
-  if((loading_name %in% c("Xjoint_gr", "Yjoint_gr")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS","\n")
-  
   loading_name = match.arg(loading_name)
+  if((loading_name %in% c("gr_Xjoint", "gr_Yjoint")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
+  
   which_load = switch(loading_name, Xjoint = "W.", Yjoint = "C.", 
-                      Xjoint_gr = "W_gr", Yjoint_gr = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
+                      gr_Xjoint = "W_gr", gr_Yjoint = "C_gr", Xorth = "P_Yosc.", Yorth = "P_Xosc.")
   loading_matrix = x[[which_load]]
   dim_names = dimnames(loading_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(loading_matrix)
@@ -866,7 +868,7 @@ scores.o2m <- function(x, which_part = c("Xjoint", "Yjoint", "Xorth", "Yorth"),
   if(any(subset != abs(round(subset)))) stop("Subset must be a vector of non-negative integers","\n")
   
   which_part = match.arg(which_part)
-  which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc.", Yorth = "U_Xosc.")
+  which_scores = switch(which_part, Xjoint = "Tt", Yjoint = "U", Xorth = "T_Yosc", Yorth = "U_Xosc")
   scores_matrix = x[[which_scores]]
   dim_names = dimnames(scores_matrix)
   if(length(subset) == 1 && subset == 0) subset = 1:ncol(scores_matrix)

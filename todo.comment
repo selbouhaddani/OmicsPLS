@@ -1,0 +1,15 @@
+Bug fixes:
+
+- gr_Yjoint instead of Yjoint_gr 
+
+Improvements:
+
+- Merge Penalized in Dev, and Dev in Master
+- Add description, vignette, tests of GO2PLS
+- Harmonize with/out dot, eg W.
+- Use usethis package
+
+Completed improvements
+
+- flexible grid in crossval*
+- missing data via SVD

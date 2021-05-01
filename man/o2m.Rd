@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS_o2m.R
 \name{o2m}
 \alias{o2m}
-\title{Perform O2-PLS with two-way orthogonal corrections}
+\title{Perform O2PLS data integration with two-way orthogonal corrections}
 \usage{
 o2m(
   X,
@@ -20,8 +20,7 @@ o2m(
   groupy = NULL,
   keepx = NULL,
   keepy = NULL,
-  max_iterations_sparsity = 1000,
-  ...
+  max_iterations_sparsity = 1000
 )
 }
 \arguments{
@@ -56,8 +55,6 @@ o2m(
 \item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
 \item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
-
-\item{...}{Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}}
 }
 \value{
 A list containing

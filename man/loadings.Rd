@@ -9,7 +9,7 @@ loadings(x, ...)
 
 \method{loadings}{o2m}(
   x,
-  loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"),
+  loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Yjoint", "Xorth", "Yorth"),
   subset = 0,
   sorted = FALSE,
   ...
@@ -20,7 +20,7 @@ loadings(x, ...)
 
 \item{...}{For consistency}
 
-\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.}
+\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'gr_Xjoint', 'gr_Yjoint', 'Xorth' or 'Yorth'.}
 
 \item{subset}{subset of loading vectors to be extracted.}
 

@@ -54,13 +54,13 @@ Cross-validate procedure for O2PLS
 This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
 Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
  and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
- A print method is defined, printing the minimizers and minimum in a readible way. Also the elapsed time is tracked and reported.
+ A print method is defined, printing the minimizers and minimum in a readable way. Also the elapsed time is tracked and reported.
 }
 \examples{
 local({
 X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
-crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
+crossval_o2m(X, Y, a = 1:4, ax = 1:2, ay = 1:2,
              nr_folds = 5, nr_cores = 1)
 })
 

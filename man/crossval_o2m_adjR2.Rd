@@ -51,17 +51,17 @@ data.frame with four columns: MSE, n, nx and ny. Each row corresponds to an elem
 Combines CV with R2 optimization
 }
 \details{
-This is an alternative way of cross-validating. It is proposed in \code{citation(OmicsPLS)}. 
+This is an alternative way of cross-validating. It is proposed in \code{citation(OmicsPLS)}.
 This approach is (much) faster than the standard \code{crossval_o2m} approach and works fine even with two folds.
-For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model. 
-This approach often yields similar integer as the standard approach. 
+For each element in \code{n} it looks for nx and ny that maximize the \eqn{R^2} between T and U in the O2PLS model.
+This approach often yields similar integer as the standard approach.
 We however suggest to use the standard approach to minimize the prediction error around the found integers.
 }
 \examples{
 local({
 X = scale(jitter(tcrossprod(rnorm(100),runif(10))))
 Y = scale(jitter(tcrossprod(rnorm(100),runif(10))))
-crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2, 
+crossval_o2m_adjR2(X, Y, a = 1:4, ax = 1:2, ay = 1:2,
              nr_folds = 5, nr_cores = 1)
 })
 }

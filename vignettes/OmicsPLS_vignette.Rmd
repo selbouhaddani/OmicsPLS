@@ -2,17 +2,14 @@
 title: "The OmicsPLS R Package"
 author: "Said el Bouhaddani"
 date: "`r Sys.Date()`"
-output: 
-  pdf_document:
-    keep_tex: true
-  
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{The OmicsPLS R Package}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+knitr::opts_chunk$set(fig.width=7.5, fig.height=4.5, fig.path='Figs/',
                       echo=TRUE, warning=TRUE, message=TRUE)
 ```
 
@@ -63,7 +60,8 @@ Now `X` has `r nrow(X)` rows and `r ncol(X)` columns while `Y` has `r nrow(Y)` r
 We will use the `gplots` package to create heatmaps of correlations.
 ```{r}
 try(
-  gplots::heatmap.2(cor(X,Y), Rowv=F,Colv=F, col=gplots::bluered(100)),
+  gplots::heatmap.2(cor(X,Y), Rowv=F,Colv=F, col=gplots::bluered(100),
+                    symm = TRUE, trace="none", dendrogram="none"),
   silent = TRUE)
 ```
 It is difficult to see where the correlated part lies. 

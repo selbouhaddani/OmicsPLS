@@ -18,7 +18,6 @@
 #' @param keepx Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.
 #' @param keepy Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.
 #' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
-#' @param ... Extra arguments for the \code{ssvd} function, see \code{\link{ssvd}}
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -77,7 +76,7 @@
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
                 sparsity = F, groupx = NULL, groupy = NULL, keepx = NULL, keepy = NULL, 
-                max_iterations_sparsity = 1000,...) {
+                max_iterations_sparsity = 1000) {
   tic <- proc.time()
   Xnames = dimnames(X)
   Ynames = dimnames(Y)
@@ -117,10 +116,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   
-  if(sparsity){
-     model = so2m_group(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, 
-                        tol, max_iterations, max_iterations_sparsity)
-  }else{
+  if(!sparsity){
     ssqX = ssq(X)
     ssqY = ssq(Y)
     
@@ -232,6 +228,9 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
                          varXorth = apply(model$P_Y,2,ssq)*apply(model$T_Y,2,ssq),
                          varYorth = apply(model$P_X,2,ssq)*apply(model$U_X,2,ssq),
                          method = "O2PLS"))
+  } else {
+    model = so2m_group(X, Y, n, nx, ny, groupx, groupy, keepx, keepy, 
+                             tol, max_iterations, max_iterations_sparsity)
   }
   toc <- proc.time() - tic
   model$flags$call = match.call()

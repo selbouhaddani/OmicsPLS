@@ -4,7 +4,7 @@
 \alias{pow_o2m}
 \title{NIPALS method for PLS2}
 \usage{
-pow_o2m(X, Y, n, tol = 1e-10, max_iterations = 100)
+pow_o2m(X, Y, n, tol = 1e-10, max_iterations = 1000)
 }
 \arguments{
 \item{X}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}

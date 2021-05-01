@@ -3,7 +3,7 @@ Type: Package
 Title: Data Integration with Two-Way Orthogonal Partial Least Squares
 Version: 2.0.1
 Date: 2021-05-01
-Author: Said el Bouhaddani, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
+Author: Said el Bouhaddani, Zhujie Gu, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
     Hae-Won Uh
 Maintainer: Said el Bouhaddani <s.elbouhaddani@umcutrecht.nl>
 Description: Performs the O2PLS data integration method for two datasets yielding joint and data-specific parts for each dataset.
@@ -14,11 +14,13 @@ Description: Performs the O2PLS data integration method for two datasets yieldin
 License: GPL-3
 Encoding: UTF-8
 Imports:
+    graphics,
+    stats, 
+    dplyr,
     ggplot2,
     parallel,
     magrittr,
     tibble,
-    dplyr,
     softImpute
 Suggests:
     testthat,

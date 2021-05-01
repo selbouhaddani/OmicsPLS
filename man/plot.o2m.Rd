@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{o2m}(
   x,
-  loading_name = c("Xjoint", "Yjoint", "Xjoint_gr", "Yjoint_gr", "Xorth", "Yorth"),
+  loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Yjoint", "Xorth", "Yorth"),
   i = 1,
   j = NULL,
   use_ggplot2 = TRUE,
@@ -17,7 +17,7 @@
 \arguments{
 \item{x}{An O2PLS fit, with class 'o2m'}
 
-\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'Xjoint_gr', 'Yjoint_gr', 'Xorth' or 'Yorth'.}
+\item{loading_name}{character string. One of the following: 'Xjoint', 'Yjoint', 'gr_Xjoint', 'gr_Yjoint', 'Xorth' or 'Yorth'.}
 
 \item{i}{Integer. First component to be plotted.}
 
