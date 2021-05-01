@@ -762,7 +762,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 }
 
 
-#' Perform group lasso SpO2PLS 
+#' Perform group lasso GO2PLS 
 #'#'
 #' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
@@ -775,6 +775,7 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #' @param keepy Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.
 #' @param tol double. Threshold for power method iteration
 #' @param max_iterations Integer, Maximum number of iterations for power method
+#' @param max_iterations_sparsity Integer, Maximum number of iterations for power method in sparse mode
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -959,7 +960,7 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
       if(length(keepx)==1){keepx <- rep(keepx,n)}
       if(length(keepy)==1){keepy <- rep(keepy,n)}
       v <- w_ini[,j]
-      for (i in 1: max_iterations){
+      for (i in 1: max_iterations_sparsity){
         v_old <- v
         u <- t(Y) %*% (X %*% v)
         ul <- thresh_n_gr(u, keepy[j], index_gry)

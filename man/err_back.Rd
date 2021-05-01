@@ -7,9 +7,13 @@
 err_back(dat, index, p, q)
 }
 \arguments{
-\item{dat}{matrix with numeric row/col names}
+\item{dat}{Matrix with numeric row/col names}
 
-\item{index}{get from which(..., arr.ind = T)}
+\item{index}{Get from which(..., arr.ind = T)}
+
+\item{p}{Number of variables in X}
+
+\item{q}{Number of variables in Y}
 }
 \description{
 Internal function for cv_sparsity

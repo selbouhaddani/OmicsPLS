@@ -242,7 +242,6 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
   Y = as.matrix(Y)
   input_checker(X, Y)
   
-  #######################
   # Filter O2
   if (nx + ny > 0) {
     # larger principal subspace
@@ -286,7 +285,6 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
       # Update U again U = Y%*%C;
     }
   }
-  ##########################
   # Initiating variables
   N <- length(X[, 1])
   if (N != length(Y[, 1])) {
@@ -498,8 +496,10 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
 
 #' Internal function for cv_sparsity
 #'
-#' @param dat matrix with numeric row/col names
-#' @param index get from which(..., arr.ind = T)
+#' @param dat Matrix with numeric row/col names
+#' @param index Get from which(..., arr.ind = T)
+#' @param p Number of variables in X
+#' @param q Number of variables in Y
 #'
 #' @details This function finds the most sparse combination of keepx and keepy (min(keepx/p + keepy/q)) that yields cov(T,U) within 1 std error of the largest cov(T,U). Note that it's possible that the resulting keepx or keepy is larger than the orignal when p >> q or p << q.
 #' @export

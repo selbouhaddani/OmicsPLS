@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS_o2m.R
 \name{so2m_group}
 \alias{so2m_group}
-\title{Perform group lasso SpO2PLS 
+\title{Perform group lasso GO2PLS 
 #'}
 \usage{
 so2m_group(
@@ -42,6 +42,8 @@ so2m_group(
 \item{tol}{double. Threshold for power method iteration}
 
 \item{max_iterations}{Integer, Maximum number of iterations for power method}
+
+\item{max_iterations_sparsity}{Integer, Maximum number of iterations for power method in sparse mode}
 }
 \value{
 A list containing
@@ -63,6 +65,6 @@ A list containing
    \item{C_gr}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 }
 \description{
-Perform group lasso SpO2PLS 
+Perform group lasso GO2PLS 
 #'
 }
