@@ -2,14 +2,19 @@ Bug fixes:
 
 - gr_Yjoint instead of Yjoint_gr 
 
-Improvements:
+Improvements now:
 
+- crossval_sparsity instead of cv_sparsity, nr_folds inst. of lambda_kcv
 - Merge Penalized in Dev, and Dev in Master
 - Add description, vignette, tests of GO2PLS
+
+Later:
+
 - Harmonize with/out dot, eg W.
 - Use usethis package
 
-Completed improvements
+
+Completed improvements:
 
 - flexible grid in crossval*
 - missing data via SVD
