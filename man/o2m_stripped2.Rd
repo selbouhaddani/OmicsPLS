@@ -11,15 +11,15 @@ o2m_stripped2(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100)
 
 \item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{n}{Integer. Number of joint PLS components. Must be positive!}
+\item{n}{Integer. Number of joint PLS components. Must be positive.}
 
 \item{nx}{Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0}
 
 \item{ny}{Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0}
 
-\item{tol}{double. Threshold for power method iteration}
+\item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
-\item{max_iterations}{Integer, Maximum number of iterations for power method}
+\item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 }
 \value{
 A list containing
@@ -43,6 +43,6 @@ If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with 
 This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 }
 \seealso{
-\code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+\code{\link{o2m}}
 }
 \keyword{internal}

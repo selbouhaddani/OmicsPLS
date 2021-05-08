@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{lambda_checker_group}
 \alias{lambda_checker_group}
-\title{Check if penalization parameters satisfy input conditions}
+\title{Check if penalization parameters for groups satisfy input conditions}
 \usage{
 lambda_checker_group(groupx, groupy, keepx, keepy, n)
 }
@@ -11,14 +11,14 @@ lambda_checker_group(groupx, groupy, keepx, keepy, n)
 
 \item{groupy}{Vector. Input of \code{o2m} function.}
 
-\item{keepx}{Input of \code{o2m} function or \code{cv_sparsity} function.}
+\item{keepx}{Input of \code{o2m} function or \code{crossval_sparsity} function.}
 
-\item{keepy}{Input of \code{o2m} function or \code{cv_sparsity} function.}
+\item{keepy}{Input of \code{o2m} function or \code{crossval_sparsity} function.}
 
 \item{n}{Number of joint components.}
 }
 \description{
-Check if penalization parameters satisfy input conditions
+Check if penalization parameters for groups satisfy input conditions
 }
 \details{
 This function throws an error if lambda is not within the range.

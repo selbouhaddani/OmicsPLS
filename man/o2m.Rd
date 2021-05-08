@@ -15,7 +15,7 @@ o2m(
   q_thresh = p_thresh,
   tol = 1e-10,
   max_iterations = 1000,
-  sparsity = F,
+  sparse = F,
   groupx = NULL,
   groupy = NULL,
   keepx = NULL,
@@ -28,7 +28,7 @@ o2m(
 
 \item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{n}{Integer. Number of joint PLS components. Must be positive!}
+\item{n}{Integer. Number of joint PLS components. Must be positive.}
 
 \item{nx}{Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0}
 
@@ -40,21 +40,21 @@ o2m(
 
 \item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
 
-\item{tol}{double. Threshold for power method iteration}
+\item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
-\item{max_iterations}{Integer, Maximum number of iterations for power method}
+\item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 
-\item{sparsity}{Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS}
+\item{sparse}{Boolean. Default value is \code{FALSE}, in which case O2PLS will be fitted. Set to \code{TRUE} for GO2PLS.}
 
-\item{groupx}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
+\item{groupx}{Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each X-variable. Its length must be equal to the number of variables in \eqn{X}. The order of group names must corresponds to the order of the variables.}
 
-\item{groupy}{Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
+\item{groupy}{Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each Y-variable. The length must be equal to the number of variables in \eqn{Y}. The order of group names must corresponds to the order of the variables.}
 
-\item{keepx}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
+\item{keepx}{Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{keepy}{Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
+\item{keepy}{Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{max_iterations_sparsity}{Integer, Maximum number of iterations for sparse loadings for high-dimensional data.}
+\item{max_iterations_sparsity}{Integer. Used when \code{sparse = TRUE}. Maximum number of iterations for the NIPALS method for GO2PLS.}
 }
 \value{
 A list containing
@@ -88,12 +88,12 @@ A list containing
    \item{C_gr}{Joint loadings of \eqn{Y} at group level (only available when GO2PLS is used)}
 }
 \description{
-NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALE THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 }
 \details{
 If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
-If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (NIPALS) which does not store the entire covariance matrix.
+If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, the NIPALS method is used which does not store the entire covariance matrix.
 The squared error between iterands in the NIPALS approach can be adjusted with \code{tol}.
 The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
 }
@@ -114,5 +114,5 @@ o2m(test_X, test_Y, 3, 2, 1, stripped = TRUE, p_thresh = 1, max_iterations = 1e6
 
 }
 \seealso{
-\code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
+\code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m_adjR2}}, \code{\link{crossval_sparsity}}
 }

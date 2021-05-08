@@ -1,12 +1,19 @@
 Bug fixes:
 
 - gr_Yjoint instead of Yjoint_gr 
+- message instead of print 
+- any(!null keepx keepy) not necessary, one should be specified
+- any(!null keepx keepy) necessary in group case?
+- max cov, dependent of negative sign!
+- non-unique minimum err_back?
+- LOO CV in sparsity?
 
 Improvements now:
 
-- crossval_sparsity instead of cv_sparsity, nr_folds inst. of lambda_kcv
 - Merge Penalized in Dev, and Dev in Master
 - Add description, vignette, tests of GO2PLS
+- add details for crossvalidation sparsity, add table of cov/mse values
+- output crossval sparsity
 
 Later:
 
@@ -18,3 +25,6 @@ Completed improvements:
 
 - flexible grid in crossval*
 - missing data via SVD
+- crossval_sparsity instead of cv_sparsity, nr_folds inst. of lambda_kcv
+- sparse instead of sparsity in o2m
+

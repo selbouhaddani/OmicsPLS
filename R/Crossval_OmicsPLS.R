@@ -201,43 +201,39 @@ print.cvo2m <- function(x,include_matrix=FALSE,...) {
 
 
 ###### Penalized part ######
-#' Perform cross-validation to find the optimal number of groups to keep for each joint component
+#' Perform cross-validation to find the optimal number of variables/groups to keep for each joint component
 #'
-#' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
-#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
-#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' @param lambda_kcv Integer. Number of folds of CV
+#' @inheritParams o2m
+#' @param nr_folds Integer. Number of folds of CV
 #' @param keepx_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X. Sparsity of each joint component will be selected sequentially.
 #' @param keepy_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y. Sparsity of each joint component will be selected sequentially.
-#' @param groupx Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in X. If not provided, SO2PLS will be used.
-#' @param groupy Character. A vecter or character indicating group names of the variables. The order of group names must correspond to the order of the vairables in Y. If not provided, SO2PLS will be used.
-#' @param tol double. Threshold for power method iteration
-#' @param max_iterations Integer, Maximum number of iterations for power method
 #' @return A list containing
 #'    \item{x_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent. One standard error rule is applied}
 #'    \item{y_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent. One standard error rule is applied}
 #'    \item{x}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent, without applying the one standard error rule}
 #'    \item{y}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent, without applying the one standard error rule}
 #' @export
-cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=NULL, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
+crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_seq=NULL, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
   
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
-    print("Group information not provided, CV for number of variables to keep")
+    message("Group information not provided, CV for number of variables to keep\n")
     cv_lambda_checker(X, Y, keepx_seq, keepy_seq)
+    if(is.null(keepx_seq)) keepx_seq <- ncol(X)
+    if(is.null(keepy_seq)) keepy_seq <- ncol(Y)
   }else{
     method = "GO2PLS"
-    print("Group information provided, CV for number of groups to keep")
+    message("Group information provided, CV for number of groups to keep\n")
     # check if only information for one dataset is provided
     if(is.null(groupx))  groupx = colnames(X)
     if(is.null(groupy))  groupy = colnames(Y)
     cv_lambda_checker_group(groupx, groupy, keepx_seq, keepy_seq)
+    if(is.null(keepx_seq)) keepx_seq <- ncol(X)
+    if(is.null(keepy_seq)) keepy_seq <- ncol(Y)
   }
   
   # Check format
-  stopifnot(all(n == round(n)), lambda_kcv == round(lambda_kcv))
+  stopifnot(all(n == round(n)), nr_folds == round(nr_folds))
   X = as.matrix(X)
   Y = as.matrix(Y)
   input_checker(X, Y)
@@ -297,7 +293,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
   rownames(mean_covTU) <- rownames(srr_covTU) <- keepy_seq
   colnames(mean_covTU) <- colnames(srr_covTU) <- keepx_seq
   
-  covTU <- NA * 1: lambda_kcv
+  covTU <- NA * 1:nr_folds
   keepxy_x <- keepxy_y <- x_max <- y_max <- vector()
   
   if(method == "SO2PLS"){
@@ -305,7 +301,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
       kx <- 0
       
       # Creating blocks and folds
-      blocks <- cut(seq(1:N), breaks=lambda_kcv, labels=F)
+      blocks <- cut(seq(1:N), breaks=nr_folds, labels=F)
       folds <- sample(N)
       
       # Loop through a grid of n_lambda * n_lambda
@@ -316,7 +312,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
           ky <- ky + 1
           
           # loop through number of folds
-          for (i in 1:lambda_kcv) {
+          for (i in 1:nr_folds) {
             ii <- which(blocks==i)
             X_tr <- X[-folds[ii], ]
             X_tst <- X[folds[ii], ]
@@ -339,12 +335,13 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
             
             t_tst <- X_tst %*% v
             u_tst <- Y_tst %*% u
-            covTU[i] <- drop(cov(t_tst, u_tst))
+            #covTU[i] <- drop(cov(t_tst, u_tst))
+            covTU[i] <- abs(drop(cov(t_tst, u_tst)))
           }
           
           # Test cov
           mean_covTU[ky,kx] <- mean(covTU)
-          srr_covTU[ky,kx] <- sd(covTU)/sqrt(lambda_kcv)
+          srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
       # 1 stardard err rule
@@ -372,7 +369,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
       q <- t(Y) %*% u_tmp / drop(crossprod(u_tmp))
       X <- X - t_tmp %*% t(p)
       Y <- Y - u_tmp %*% t(q)
-      
+      #solve(t(0))
       keepxy_x[comp] <- keepxy$x
       keepxy_y[comp] <- keepxy$y
       y_max[comp] <- as.numeric(rownames(mean_covTU)[which(mean_covTU == max(mean_covTU), arr.ind = T)[1]])
@@ -401,7 +398,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
       kx <- 0
       
       # Creating blocks and folds
-      blocks <- cut(seq(1:N), breaks=lambda_kcv, labels=F)
+      blocks <- cut(seq(1:N), breaks=nr_folds, labels=F)
       folds <- sample(N)
       
       # Loop through a grid of n_lambda * n_lambda
@@ -412,7 +409,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
           ky <- ky + 1
           
           # loop through number of folds
-          for (i in 1:lambda_kcv) {
+          for (i in 1:nr_folds) {
             ii <- which(blocks==i)
             X_tr <- X[-folds[ii], ]
             X_tst <- X[folds[ii], ]
@@ -438,11 +435,12 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
             t_tst <- X_tst %*% v
             u_tst <- Y_tst %*% u
             covTU[i] <- drop(cov(t_tst, u_tst))
+            covTU[i] <- abs(drop(cov(t_tst, u_tst)))
           }
           
           # Test cov
           mean_covTU[ky,kx] <- mean(covTU)
-          srr_covTU[ky,kx] <- sd(covTU)/sqrt(lambda_kcv)
+          srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
       # 1 stardard err rule
@@ -481,20 +479,19 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
     }
   }
   
-  
   # Output Change here the standard
   bestsp <- list()
   bestsp$x_1sd <- keepxy_x
   bestsp$y_1sd <- keepxy_y
-  # bestsp$err_tu <- mean_covTU
-  # bestsp$srr <- srr_covTU
+  #bestsp$err_tu <- mean_covTU
+  #bestsp$srr <- srr_covTU
   bestsp$x <- x_max
   bestsp$y <- y_max
-  return(bestsp)
+  return(list(Best = unlist(bestsp), Err = mean_covTU, SErr = srr_covTU))
 }
 
 
-#' Internal function for cv_sparsity
+#' Internal function for crossval_sparsity
 #'
 #' @param dat Matrix with numeric row/col names
 #' @param index Get from which(..., arr.ind = T)
@@ -502,6 +499,7 @@ cv_sparsity <- function(X, Y, n, nx, ny, lambda_kcv, keepx_seq=NULL, keepy_seq=N
 #' @param q Number of variables in Y
 #'
 #' @details This function finds the most sparse combination of keepx and keepy (min(keepx/p + keepy/q)) that yields cov(T,U) within 1 std error of the largest cov(T,U). Note that it's possible that the resulting keepx or keepy is larger than the orignal when p >> q or p << q.
+#' @keywords internal
 #' @export
 err_back <- function(dat, index, p, q){
   index <- index %>% tibble::as_tibble() %>% dplyr::mutate(sp = as.numeric(rownames(dat)[row])/q + as.numeric(colnames(dat)[col])/p)

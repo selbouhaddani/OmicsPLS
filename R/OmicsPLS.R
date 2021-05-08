@@ -2,14 +2,14 @@
 #'
 #' The OmicsPLS package is an R package for penalized integration of heterogeneous omics data. 
 #' The software articles are published in (el Bouhaddani et al, 2018, doi:10.1186/s12859-018-2371-3) and (Gu et al, 2020, doi:10.1186/s12859-021-03958-3).
-#' OmicsPLS includes the O2PLS fit, the GO2PLS fit, some misc functions and cross-validation tools.
+#' OmicsPLS includes the O2PLS fit, the GO2PLS fit, cross-validation tools and some misc functions.
 #' 
 #' @author
 #' Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}, Twitter: @@selbouhaddani),
 #' Zhujie Gu, 
-#' Jeanine Houwing-Duistermaat,
-#' Geurt Jongbloed,
 #' Szymon Kielbasa,
+#' Geurt Jongbloed,
+#' Jeanine Houwing-Duistermaat,
 #' Hae-Won Uh.
 #'
 #' Maintainer: Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}).
@@ -35,10 +35,11 @@
 #' There are four ways to obtain an O2PLS fit, depending on the dimensionality.
 #' \itemize{
 #'  \item{} For the not-too-high dimensional case, you may use \code{\link{o2m}} with default parameters. E.g. \code{o2m(X,Y,n,nx,ny)}.
-#'  \item{} In case you don't want the fancy output, but only the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
-#'  \item{} For high dimensional cases defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh} a Power-Method approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
+#'  \item{} In case you only want the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
+#'  \item{} For high dimensional cases, defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh}, a NIPALS approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
 #'  The thresholds are by default both at 3000 variables.
 #'  \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
+#'  \item{} For GO2PLS, add \code{sparsity = TRUE} and specify how many variables or groups to retain. E.g. \code{o2m(X,Y,n,nx,ny,sparse=TRUE,keepx, keepy)}.
 #' }
 #' 
 #' @section Obtaining results:
@@ -56,6 +57,7 @@
 #'  \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV.
 #'  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
 #'  faster than the standard approach. It is also recommended over the standard CV.
+#'  \item{} To cross-validate the number of variables to keep, use \code{\link{crossval_sparsity}}. 
 #' }
 #' 
 #' @section S3 methods:
@@ -72,14 +74,14 @@
 #' There are many sophisticated approaches available, such as MICE and MissForest, and no one approach is the best for all situations.
 #' To still allow users to quickly impute missing values in their data matrix, 
 #' the \code{\link{impute_matrix}} function is implemented. 
-#' It relies on the \code{\link{softImpute}} function/package and imputes based on the singular value decomposition.
+#' It relies on the \code{\link{softImpute}} function+package and imputes based on the singular value decomposition.
 #' 
 #' @section Misc:
 #' Also some handy tools are available
 #' \itemize{
 #'  \item{} \code{\link{orth}(X)} is a function to obtain an orthogonalized version of a matrix or vector \code{X}.
 #'  \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
-#'  \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
+#'  \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. 
 #' }
 #' 
 #' @section Citation:
@@ -918,6 +920,7 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
 # Penalized -------------------------------------------------
 
 #' Check if penalization parameters satisfy input conditions
+#' 
 #' @param x Should be numeric matrix.
 #' @param y Should be numeric matrix.
 #' @param keepx Input of \code{o2m} function.
@@ -930,21 +933,21 @@ predict.o2m <- function(object, newdata, XorY = c("X","Y"), ...) {
 #' @keywords internal
 #' @export
 lambda_checker <- function(x,y,keepx, keepy,n) {
-  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'. Otherwise please set 'sparsity' to FALSE and run O2PLS")
+  if(all(is.null(keepx), is.null(keepy))) stop("Please specify 'keepx' and 'keepy'. Otherwise please set 'sparsity' to FALSE\n")
   if(any(is.null(keepx), is.null(keepy))){
     if(is.null(keepx)){
       keepx = ncol(x)
-      print("'keepx' not specified, sparsity not imposed in X")
+      message("'keepx' not specified, sparsity not imposed for X\n")
     }else{
       keepy = ncol(y)
-      print("'keepy' not specified, sparsity not imposed in Y")
+      message("'keepy' not specified, sparsity not imposed for Y\n")
     }
   }
   bl_x <- !sapply(keepx, is.numeric)
   bl_y <- !sapply(keepy, is.numeric)
   if(!length(keepx) %in% c(1,n)) stop("length of 'keepx' must be equal to 1 or number of joint components","\n")
   if(!length(keepy) %in% c(1,n)) stop("length of 'keepy' must be equal to 1 or number of joint components","\n")
-  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be positive numbers","\n")
+  if(any(c(bl_x, bl_y)))  stop("Input of keepx, keepy must be of type numeric","\n")
   if(any(c(keepx<=0, keepy<=0)))  stop("Input of keepx, keepy must be positive","\n")
   if(max(keepx) > dim(x)[2])  stop("keepx must be less then the number of column of X","\n")
   if(max(keepy) > dim(y)[2])  stop("keepx must be less then the number of column of Y","\n")
@@ -953,11 +956,12 @@ lambda_checker <- function(x,y,keepx, keepy,n) {
   return(list(keepx=keepx, keepy=keepy))
 }
 
-#' Check if penalization parameters satisfy input conditions
+#' Check if penalization parameters for groups satisfy input conditions
+#' 
 #' @param groupx Vector. Input of \code{o2m} function.
 #' @param groupy Vector. Input of \code{o2m} function.
-#' @param keepx Input of \code{o2m} function or \code{cv_sparsity} function.
-#' @param keepy Input of \code{o2m} function or \code{cv_sparsity} function.
+#' @param keepx Input of \code{o2m} function or \code{crossval_sparsity} function.
+#' @param keepy Input of \code{o2m} function or \code{crossval_sparsity} function.
 #' @param n Number of joint components.
 #'
 #' @return NULL
@@ -970,10 +974,10 @@ lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
   if(any(is.null(keepx), is.null(keepy))){
     if(is.null(keepx)){
       keepx = length(unique(groupx))
-      print("'keepx' not specified, sparsity not imposed in X","\n")
+      message("'keepx' not specified, sparsity not imposed in X","\n")
     }else{
       keepy = length(unique(groupy))
-      print("'keepy' not specified, sparsity not imposed in Y","\n")
+      message("'keepy' not specified, sparsity not imposed in Y","\n")
     }
   }
   bl_x <- !sapply(keepx, is.numeric)
@@ -987,11 +991,12 @@ lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
   return(list(keepx=keepx, keepy=keepy))
 }
 
-#' Check if sparisity parameters satisfy input conditions in cv functions
+#' Check if sparsity parameters satisfy input conditions in cross-validation functions
+#' 
 #' @param x Should be numeric matrix.
 #' @param y Should be numeric matrix.
-#' @param keepx_seq Input of \code{cv_sparsity} function.
-#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' @param keepx_seq Input of \code{crossval_sparsity} function.
+#' @param keepy_seq Input of \code{crossval_sparsity} function.
 #' 
 #' @return NULL
 #' @details This function throws an error if sparsity parameters are not valid.
@@ -999,7 +1004,7 @@ lambda_checker_group <- function(groupx, groupy, keepx, keepy, n) {
 #' @keywords internal
 #' @export
 cv_lambda_checker <- function(x,y,keepx_seq=NULL, keepy_seq=NULL) {
-  if(any(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify at least one of 'keepx_seq' and 'keepy_seq'","\n")
+  if(all(is.null(keepx_seq), is.null(keepy_seq))) stop("Please specify at least one of 'keepx_seq' and 'keepy_seq'","\n")
   bl_x <- !sapply(keepx_seq, is.numeric)
   bl_y <- !sapply(keepy_seq, is.numeric)
   if(any(c(bl_x, bl_y)))  stop("Input of keepx_seq, keepy_seq must all be positive numbers","\n")
@@ -1008,11 +1013,12 @@ cv_lambda_checker <- function(x,y,keepx_seq=NULL, keepy_seq=NULL) {
   if(max(keepy_seq) > dim(y)[2])  stop("all numbers in keepy_seq must be less then the number of column of Y","\n")
 }
 
-#' Check if sparisity parameters satisfy input conditions in cv functions
-#' @param groupx Vector. Input of \code{cv_sparsity} function.
-#' @param groupy Vector. Input of \code{cv_sparsity} function.
-#' @param keepx_seq Input of \code{cv_sparsity} function.
-#' @param keepy_seq Input of \code{cv_sparsity} function.
+#' Check if sparsity parameters satisfy input conditions in cross-validation functions
+#' 
+#' @param groupx Vector. Input of \code{crossval_sparsity} function.
+#' @param groupy Vector. Input of \code{crossval_sparsity} function.
+#' @param keepx_seq Input of \code{crossval_sparsity} function.
+#' @param keepy_seq Input of \code{crossval_sparsity} function.
 #' 
 #' @return NULL
 #' @details This function throws an error if sparsity parameters are not valid.
@@ -1029,7 +1035,7 @@ cv_lambda_checker_group <- function(groupx,groupy,keepx_seq=NULL, keepy_seq=NULL
   if(max(keepy_seq) > length(unique(groupy)))  stop("all numbers in keepy_seq must be less then the number of groups in Y","\n")
 }
 
-#' Soft threshholding to n non-zero
+#' Soft threshholding a vector with respect to a number of variables
 #'
 #' @param x Numerical vector
 #' @param keepx How many non-zero
@@ -1050,7 +1056,7 @@ thresh_n <- function (x, keepx){
   x
 }
 
-#' Soft threshholding to n non-zero groups
+#' Soft threshholding a vector with respect to a number of groups
 #'
 #' @param w Numerical loading vector 
 #' @param keep_gr How many groups to retain
@@ -1089,7 +1095,7 @@ thresh_n_gr <- function (w, keep_gr, index_gr){
 }
 
 
-#' Norm of vector
+#' Norm of a vector
 #'
 #' @param x Numerical vector
 #' @return L2 norm of a vector
@@ -1097,7 +1103,7 @@ thresh_n_gr <- function (w, keep_gr, index_gr){
 norm_vec <- function(x) sqrt(
   sum(x^2))
 
-#' Post-orthogonalization of a sparse loading vector with regard to a matrix
+#' Orthogonalize a sparse loading vector with regard to a matrix
 #'
 #' @param x sparse loading vector to be orthogonalized
 #' @param W sparse loading matrix of the previous loading vectors

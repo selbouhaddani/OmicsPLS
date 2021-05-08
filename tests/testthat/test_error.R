@@ -12,11 +12,13 @@ test_that("Normal input goes without error", {
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, stripped = TRUE), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1, stripped = TRUE), NA)
+  expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, sparse = TRUE, keepx=1, keepy=1), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
   expect_error(print(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2)), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
+  expect_error(crossval_sparsity(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, keepx_seq = 1:2, keepy_seq = 1:2), NA)
   expect_error(impute_matrix(Xmiss, maxit = 1000), NA)
 })
 

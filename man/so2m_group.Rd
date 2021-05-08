@@ -2,8 +2,7 @@
 % Please edit documentation in R/OmicsPLS_o2m.R
 \name{so2m_group}
 \alias{so2m_group}
-\title{Perform group lasso GO2PLS 
-#'}
+\title{Perform Group Sparse O2PLS}
 \usage{
 so2m_group(
   X,
@@ -25,25 +24,25 @@ so2m_group(
 
 \item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{n}{Integer. Number of joint PLS components. Must be positive!}
+\item{n}{Integer. Number of joint PLS components. Must be positive.}
 
 \item{nx}{Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0}
 
 \item{ny}{Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0}
 
-\item{groupx}{Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.}
+\item{groupx}{Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each X-variable. Its length must be equal to the number of variables in \eqn{X}. The order of group names must corresponds to the order of the variables.}
 
-\item{groupy}{Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.}
+\item{groupy}{Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each Y-variable. The length must be equal to the number of variables in \eqn{Y}. The order of group names must corresponds to the order of the variables.}
 
-\item{keepx}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.}
+\item{keepx}{Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{keepy}{Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.}
+\item{keepy}{Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.}
 
-\item{tol}{double. Threshold for power method iteration}
+\item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
-\item{max_iterations}{Integer, Maximum number of iterations for power method}
+\item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 
-\item{max_iterations_sparsity}{Integer, Maximum number of iterations for power method in sparse mode}
+\item{max_iterations_sparsity}{Integer. Used when \code{sparse = TRUE}. Maximum number of iterations for the NIPALS method for GO2PLS.}
 }
 \value{
 A list containing
@@ -65,6 +64,9 @@ A list containing
    \item{C_gr}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 }
 \description{
-Perform group lasso GO2PLS 
-#'
+Perform Group Sparse O2PLS
 }
+\seealso{
+\code{\link{o2m}}
+}
+\keyword{internal}

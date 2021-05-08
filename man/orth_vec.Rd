@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{orth_vec}
 \alias{orth_vec}
-\title{Post-orthogonalization of a sparse loading vector with regard to a matrix}
+\title{Orthogonalize a sparse loading vector with regard to a matrix}
 \usage{
 orth_vec(x, W)
 }
@@ -15,5 +15,5 @@ orth_vec(x, W)
 A sparse loading vector
 }
 \description{
-Post-orthogonalization of a sparse loading vector with regard to a matrix
+Orthogonalize a sparse loading vector with regard to a matrix
 }

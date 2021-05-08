@@ -7,7 +7,7 @@
 \description{
 The OmicsPLS package is an R package for penalized integration of heterogeneous omics data. 
 The software articles are published in (el Bouhaddani et al, 2018, doi:10.1186/s12859-018-2371-3) and (Gu et al, 2020, doi:10.1186/s12859-021-03958-3).
-OmicsPLS includes the O2PLS fit, the GO2PLS fit, some misc functions and cross-validation tools.
+OmicsPLS includes the O2PLS fit, the GO2PLS fit, cross-validation tools and some misc functions.
 }
 \section{Model and assumptions}{
 
@@ -32,10 +32,11 @@ See the help page of \code{\link{o2m}} for more information on parameters.
 There are four ways to obtain an O2PLS fit, depending on the dimensionality.
 \itemize{
  \item{} For the not-too-high dimensional case, you may use \code{\link{o2m}} with default parameters. E.g. \code{o2m(X,Y,n,nx,ny)}.
- \item{} In case you don't want the fancy output, but only the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
- \item{} For high dimensional cases defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh} a Power-Method approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
+ \item{} In case you only want the parameters, you may add \code{stripped = TRUE} to obtain a stripped version of \code{o2m} which avoids calculating and storing some matrices. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE)}.
+ \item{} For high dimensional cases, defined by \code{ncol(X)>p_thresh} and \code{ncol(Y)>q_thresh}, a NIPALS approach is used which avoids storing large matrices. E.g. \code{o2m(X,Y,n,nx,ny,p_thresh=3000,q_thresh=3000)}.
  The thresholds are by default both at 3000 variables.
  \item{} If you want a stripped version in the high dimensional case, add \code{stripped = TRUE}. E.g. \code{o2m(X,Y,n,nx,ny,stripped=TRUE,p_thresh=3000,q_thresh=3000)}.
+ \item{} For GO2PLS, add \code{sparsity = TRUE} and specify how many variables or groups to retain. E.g. \code{o2m(X,Y,n,nx,ny,sparse=TRUE,keepx, keepy)}.
 }
 }
 
@@ -57,6 +58,7 @@ See \code{citation("OmicsPLS")} for our proposed approach for determining the nu
  \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV.
  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
  faster than the standard approach. It is also recommended over the standard CV.
+ \item{} To cross-validate the number of variables to keep, use \code{\link{crossval_sparsity}}. 
 }
 }
 
@@ -77,7 +79,7 @@ When the data contains missing values, one should impute them prior to using O2P
 There are many sophisticated approaches available, such as MICE and MissForest, and no one approach is the best for all situations.
 To still allow users to quickly impute missing values in their data matrix, 
 the \code{\link{impute_matrix}} function is implemented. 
-It relies on the \code{\link{softImpute}} function/package and imputes based on the singular value decomposition.
+It relies on the \code{\link{softImpute}} function+package and imputes based on the singular value decomposition.
 }
 
 \section{Misc}{
@@ -86,7 +88,7 @@ Also some handy tools are available
 \itemize{
  \item{} \code{\link{orth}(X)} is a function to obtain an orthogonalized version of a matrix or vector \code{X}.
  \item{} \code{\link{ssq}(X)} is a function to calculate the sum of squares (or squared Frobenius norm) of \code{X}. See also \code{\link{vnorm}} for calculating the norm of each column in \code{X}.
- \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. By default \code{y=0}.
+ \item{} \code{\link{mse}(x, y)} returns the mean squared difference between two matrices/vectors. 
 }
 }
 
@@ -111,9 +113,9 @@ Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
 \author{
 Said el Bouhaddani (\email{s.elbouhaddani@umcutrecht.nl}, Twitter: @selbouhaddani),
 Zhujie Gu, 
-Jeanine Houwing-Duistermaat,
-Geurt Jongbloed,
 Szymon Kielbasa,
+Geurt Jongbloed,
+Jeanine Houwing-Duistermaat,
 Hae-Won Uh.
 
 Maintainer: Said el Bouhaddani (\email{s.elbouhaddani@umcutrecht.nl}).

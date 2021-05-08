@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{thresh_n_gr}
 \alias{thresh_n_gr}
-\title{Soft threshholding to n non-zero groups}
+\title{Soft threshholding a vector with respect to a number of groups}
 \usage{
 thresh_n_gr(w, keep_gr, index_gr)
 }
@@ -17,5 +17,5 @@ thresh_n_gr(w, keep_gr, index_gr)
 A list containing sparse loading vector and names of the selected groups
 }
 \description{
-Soft threshholding to n non-zero groups
+Soft threshholding a vector with respect to a number of groups
 }

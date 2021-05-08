@@ -1,23 +1,23 @@
 #' Perform O2PLS data integration with two-way orthogonal corrections
 #'
-#' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+#' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALE THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #'
 #' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
 #' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
+#' @param n Integer. Number of joint PLS components. Must be positive.
 #' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
 #' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
 #' @param stripped Logical. Use the stripped version of o2m (usually when cross-validating)?
 #' @param p_thresh Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
 #' @param q_thresh Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}
-#' @param tol double. Threshold for power method iteration
-#' @param max_iterations Integer, Maximum number of iterations for power method
-#' @param sparsity Boolean. Default is FALSE, O2PLS is used. Set to TRUE for SO2PLS/GO2PLS
-#' @param groupx Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables. 
-#' @param groupy Vector. GO2PLS will be used when provided. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
-#' @param keepx Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.
-#' @param keepy Vector. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.
-#' @param max_iterations_sparsity Integer, Maximum number of iterations for sparse loadings for high-dimensional data.
+#' @param tol Double. Threshold for which the NIPALS method is deemed converged. Must be positive.
+#' @param max_iterations Integer. Maximum number of iterations for the NIPALS method. 
+#' @param sparse Boolean. Default value is \code{FALSE}, in which case O2PLS will be fitted. Set to \code{TRUE} for GO2PLS.
+#' @param groupx Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each X-variable. Its length must be equal to the number of variables in \eqn{X}. The order of group names must corresponds to the order of the variables. 
+#' @param groupy Vector. Used when \code{sparse = TRUE}. A vector of strings indicating group names of each Y-variable. The length must be equal to the number of variables in \eqn{Y}. The order of group names must corresponds to the order of the variables.
+#' @param keepx Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{X}. If the input is an integer, all the components will have the same amount of variables or groups retained.
+#' @param keepy Vector. Used when \code{sparse = TRUE}. A vector of length \code{n} indicating how many variables (or groups if \code{groupx} is provided) to keep in each of the joint component of \eqn{Y}. If the input is an integer, all the components will have the same amount of variables or groups retained.
+#' @param max_iterations_sparsity Integer. Used when \code{sparse = TRUE}. Maximum number of iterations for the NIPALS method for GO2PLS.
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -51,7 +51,7 @@
 #'
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a `slower' (in terms of memory) implementation of O2PLS, and is using \code{\link{svd}}, use \code{stripped=T} for a stripped version with less output.
-#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, an alternative method is used (NIPALS) which does not store the entire covariance matrix.
+#' If either \code{ncol(X) > p_thresh} or \code{ncol(Y) > q_thresh}, the NIPALS method is used which does not store the entire covariance matrix.
 #' The squared error between iterands in the NIPALS approach can be adjusted with \code{tol}.
 #' The maximum number of iterations in the NIPALS approach is tuned by \code{max_iterations}.
 #'
@@ -70,12 +70,12 @@
 #' o2m(test_X, test_Y, 3, 2, 1, stripped = TRUE, p_thresh = 1, max_iterations = 1e6)
 #' #  ---------------------------------- 
 #'
-#' @seealso \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m}}
+#' @seealso \code{\link{summary.o2m}}, \code{\link{plot.o2m}}, \code{\link{crossval_o2m_adjR2}}, \code{\link{crossval_sparsity}}
 #'
 #' @export
 o2m <- function(X, Y, n, nx, ny, stripped = FALSE, 
                 p_thresh = 3000, q_thresh = p_thresh, tol = 1e-10, max_iterations = 1000,
-                sparsity = F, groupx = NULL, groupy = NULL, keepx = NULL, keepy = NULL, 
+                sparse = F, groupx = NULL, groupy = NULL, keepx = NULL, keepy = NULL, 
                 max_iterations_sparsity = 1000) {
   tic <- proc.time()
   Xnames = dimnames(X)
@@ -116,12 +116,12 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
   
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   
-  if(!sparsity){
+  if(!sparse){
     ssqX = ssq(X)
     ssqY = ssq(Y)
     
     highd = FALSE
-    if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparsity) {
+    if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparse) {
       highd = TRUE
       message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations,"\n")
       model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
@@ -243,7 +243,7 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
 #' Performs power method for PLS2 loadings.
 #' 
 #' @inheritParams o2m
-#' 
+#' @seealso \code{\link{o2m}}
 #' @keywords internal
 #' @export
 pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
@@ -296,7 +296,7 @@ pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
 #' Performs power method for PLS2 loadings.
 #' 
 #' @inheritParams o2m
-#' 
+#' @seealso \code{\link{o2m}}
 #' @keywords internal
 #' @export
 pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
@@ -398,7 +398,7 @@ pow_o2m <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
 #' #              p_thresh = 1e4,q_thresh = 1e4)  # makes sure power method is not used
 #' # )
 #'
-#' @seealso \code{\link{o2m}}, \code{\link{ssq}}, \code{\link{summary.o2m}}
+#' @seealso \code{\link{o2m}}
 #' 
 #' @keywords internal
 #' @export
@@ -530,7 +530,7 @@ o2m2 <- function(X, Y, n, nx, ny, stripped = TRUE, tol = 1e-10, max_iterations =
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'
-#' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @seealso \code{\link{o2m}}
 #' @keywords internal
 #' @export
 o2m_stripped <- function(X, Y, n, nx, ny) {
@@ -653,7 +653,7 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 #' @details If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 #' This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 #'
-#' @seealso \code{\link{ssq}}, \code{\link{o2m}}, \code{\link{loocv}}, \code{\link{adjR2}}
+#' @seealso \code{\link{o2m}}
 #' @keywords internal
 #' @export
 o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
@@ -762,20 +762,9 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 }
 
 
-#' Perform group lasso GO2PLS 
-#'#'
-#' @param X Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param Y Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)
-#' @param n Integer. Number of joint PLS components. Must be positive!
-#' @param nx Integer. Number of orthogonal components in \eqn{X}. Negative values are interpreted as 0
-#' @param ny Integer. Number of orthogonal components in \eqn{Y}. Negative values are interpreted as 0
-#' @param groupx Vector. A vecter of character indicating group names of each X-variable. The length must be equal to the number of vairables in \eqn{X}. The order of group names must corresponds to the order of the vairables.
-#' @param groupy Vector. A vecter of character indicating group names of each Y-variable. The length must be equal to the number of vairables in \eqn{Y}. The order of group names must corresponds to the order of the vairables.
-#' @param keepx Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{X}. If the input is a integer, all the components will have the same amount of groups retained.
-#' @param keepy Vector. A vector of length \code{n} indicating how many groups to keep in each of the joint component of \eqn{Y}. If the input is a integer, all the components will have the same amount of groups retained.
-#' @param tol double. Threshold for power method iteration
-#' @param max_iterations Integer, Maximum number of iterations for power method
-#' @param max_iterations_sparsity Integer, Maximum number of iterations for power method in sparse mode
+#' Perform Group Sparse O2PLS 
+#'
+#' @inheritParams o2m
 #'
 #' @return A list containing
 #'    \item{Tt}{Joint \eqn{X} scores}
@@ -795,7 +784,8 @@ o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
 #'    \item{W_gr}{Joint weights of X variables at group level. They are the norms of the X-joint loadings per group}
 #'    \item{C_gr}{Joint weights of Y variables at group level. They are the norms of the Y-joint loadings per group}
 #' 
-#'
+#' @keywords internal
+#' @seealso \code{\link{o2m}}
 #' @export
 so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, keepy=NULL, 
                        tol = 1e-10, max_iterations=1000, max_iterations_sparsity=1000){

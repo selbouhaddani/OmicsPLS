@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{cv_lambda_checker}
 \alias{cv_lambda_checker}
-\title{Check if sparisity parameters satisfy input conditions in cv functions}
+\title{Check if sparsity parameters satisfy input conditions in cross-validation functions}
 \usage{
 cv_lambda_checker(x, y, keepx_seq = NULL, keepy_seq = NULL)
 }
@@ -11,12 +11,12 @@ cv_lambda_checker(x, y, keepx_seq = NULL, keepy_seq = NULL)
 
 \item{y}{Should be numeric matrix.}
 
-\item{keepx_seq}{Input of \code{cv_sparsity} function.}
+\item{keepx_seq}{Input of \code{crossval_sparsity} function.}
 
-\item{keepy_seq}{Input of \code{cv_sparsity} function.}
+\item{keepy_seq}{Input of \code{crossval_sparsity} function.}
 }
 \description{
-Check if sparisity parameters satisfy input conditions in cv functions
+Check if sparsity parameters satisfy input conditions in cross-validation functions
 }
 \details{
 This function throws an error if sparsity parameters are not valid.

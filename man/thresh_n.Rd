@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{thresh_n}
 \alias{thresh_n}
-\title{Soft threshholding to n non-zero}
+\title{Soft threshholding a vector with respect to a number of variables}
 \usage{
 thresh_n(x, keepx)
 }
@@ -15,5 +15,5 @@ thresh_n(x, keepx)
 Soft-thresholded vector
 }
 \description{
-Soft threshholding to n non-zero
+Soft threshholding a vector with respect to a number of variables
 }

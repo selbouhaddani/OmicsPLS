@@ -2,21 +2,21 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{cv_lambda_checker_group}
 \alias{cv_lambda_checker_group}
-\title{Check if sparisity parameters satisfy input conditions in cv functions}
+\title{Check if sparsity parameters satisfy input conditions in cross-validation functions}
 \usage{
 cv_lambda_checker_group(groupx, groupy, keepx_seq = NULL, keepy_seq = NULL)
 }
 \arguments{
-\item{groupx}{Vector. Input of \code{cv_sparsity} function.}
+\item{groupx}{Vector. Input of \code{crossval_sparsity} function.}
 
-\item{groupy}{Vector. Input of \code{cv_sparsity} function.}
+\item{groupy}{Vector. Input of \code{crossval_sparsity} function.}
 
-\item{keepx_seq}{Input of \code{cv_sparsity} function.}
+\item{keepx_seq}{Input of \code{crossval_sparsity} function.}
 
-\item{keepy_seq}{Input of \code{cv_sparsity} function.}
+\item{keepy_seq}{Input of \code{crossval_sparsity} function.}
 }
 \description{
-Check if sparisity parameters satisfy input conditions in cv functions
+Check if sparsity parameters satisfy input conditions in cross-validation functions
 }
 \details{
 This function throws an error if sparsity parameters are not valid.

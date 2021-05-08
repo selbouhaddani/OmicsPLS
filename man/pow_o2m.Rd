@@ -11,13 +11,16 @@ pow_o2m(X, Y, n, tol = 1e-10, max_iterations = 1000)
 
 \item{Y}{Numeric matrix. Vectors will be coerced to matrix with \code{as.matrix} (if this is possible)}
 
-\item{n}{Integer. Number of joint PLS components. Must be positive!}
+\item{n}{Integer. Number of joint PLS components. Must be positive.}
 
-\item{tol}{double. Threshold for power method iteration}
+\item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
-\item{max_iterations}{Integer, Maximum number of iterations for power method}
+\item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 }
 \description{
 Performs power method for PLS2 loadings.
+}
+\seealso{
+\code{\link{o2m}}
 }
 \keyword{internal}

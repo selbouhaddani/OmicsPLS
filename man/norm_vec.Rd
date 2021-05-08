@@ -2,7 +2,7 @@
 % Please edit documentation in R/OmicsPLS.R
 \name{norm_vec}
 \alias{norm_vec}
-\title{Norm of vector}
+\title{Norm of a vector}
 \usage{
 norm_vec(x)
 }
@@ -13,5 +13,5 @@ norm_vec(x)
 L2 norm of a vector
 }
 \description{
-Norm of vector
+Norm of a vector
 }
