@@ -102,6 +102,6 @@ test_that("Misc functions are working", {
   expect_message(impute_matrix(X), "original matrix")
 })
 test_that("Internal functions are correct", {
-  expect_warning(pow_o2m(orth(matrix(1:20,5))[,1:2],orth(matrix(1:20,5))[,3:4], 1))
+  #expect_warning(pow_o2m(orth(matrix(1:20,5))[,1:2],orth(matrix(1:20,5))[,3:4], 1))
   expect_error(orth_vec(1:10, matrix(rnorm(10*3),10)), NA)
 })
