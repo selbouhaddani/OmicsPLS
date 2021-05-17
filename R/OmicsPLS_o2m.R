@@ -121,12 +121,14 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
     ssqY = ssq(Y)
     
     highd = FALSE
-    if ((ncol(X) > p_thresh && ncol(Y) > q_thresh) || sparse) {
+    if ((ncol(X) > p_thresh && ncol(Y) > q_thresh)) {
       highd = TRUE
       message("Using high dimensional mode with tolerance ",tol," and max iterations ",max_iterations,"\n")
       model = o2m2(X, Y, n, nx, ny, stripped, tol, max_iterations)
+      class(model) <- "o2m"
     } else if(stripped){
       model = o2m_stripped(X, Y, n, nx, ny)
+      class(model) <- "o2m"
     } else {
       
       X_true <- X
@@ -240,6 +242,8 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
 
 #' Power method for PLS2
 #' 
+#' DEFUNCT!!
+#' 
 #' Performs power method for PLS2 loadings.
 #' 
 #' @inheritParams o2m
@@ -247,48 +251,49 @@ o2m <- function(X, Y, n, nx, ny, stripped = FALSE,
 #' @keywords internal
 #' @export
 pow_o2m2 <- function(X, Y, n, tol = 1e-10, max_iterations = 1000) {
-  input_checker(X, Y)
-  stopifnot(n == round(n))
-  #  message("High dimensional problem: switching to power method.\n")
-  #  message("initialize Power Method. Stopping crit: sq.err<", tol, " or ", max_iterations, " iter.\n")
-  Tt <- NULL
-  U <- NULL
-  W <- NULL
-  C <- NULL
-  for (indx in 1:n) {
-    W0 <- svd(X,nu=0,nv=1)$v[,1]
-    C0 <- svd(Y,nu=0,nv=1)$v[,1]
-    for (indx2 in 1:max_iterations) {
-      tmpp <- c(W0, C0)
-      W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
-      C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
-      if (mse(tmpp, c(W0, C0)) < tol) {
-        break
-      }
-    }
-    if(ssq(W0) < 1e-10 || ssq(C0) < 1e-10){
-      W0 <- orth(rep(1,ncol(X)))
-      C0 <- orth(rep(1,ncol(Y)))
-      for (indx2 in 1:max_iterations) {
-        tmpp <- c(W0, C0)
-        W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
-        C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
-        if (mse(tmpp, c(W0, C0)) < tol) {
-          message("The initialization of the power method lied in a degenerate space\n")
-          message("Initialization changed and power method rerun\n")
-          break
-        }
-      }
-    }
-    message("Power Method (comp ", indx, ") stopped after ", indx2, " iterations.\n")
-    Tt <- cbind(Tt, X %*% W0)
-    U <- cbind(U, Y %*% C0)
-    X <- X - (X %*% W0) %*% t(W0)
-    Y <- Y - (Y %*% C0) %*% t(C0)
-    W <- cbind(W, W0)
-    C <- cbind(C, C0)
-  }
-  return(list(W = W, C = C, Tt = Tt, U = U))
+  .Defunct(new = "pow_o2m", msg = "pow_o2m2 is defunct. It was based on the traditional power method. Please use pow_o2m for a NIPALS-based implementation.\n")
+  # input_checker(X, Y)
+  # stopifnot(n == round(n))
+  # #  message("High dimensional problem: switching to power method.\n")
+  # #  message("initialize Power Method. Stopping crit: sq.err<", tol, " or ", max_iterations, " iter.\n")
+  # Tt <- NULL
+  # U <- NULL
+  # W <- NULL
+  # C <- NULL
+  # for (indx in 1:n) {
+  #   W0 <- svd(X,nu=0,nv=1)$v[,1]
+  #   C0 <- svd(Y,nu=0,nv=1)$v[,1]
+  #   for (indx2 in 1:max_iterations) {
+  #     tmpp <- c(W0, C0)
+  #     W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
+  #     C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
+  #     if (mse(tmpp, c(W0, C0)) < tol) {
+  #       break
+  #     }
+  #   }
+  #   if(ssq(W0) < 1e-10 || ssq(C0) < 1e-10){
+  #     W0 <- orth(rep(1,ncol(X)))
+  #     C0 <- orth(rep(1,ncol(Y)))
+  #     for (indx2 in 1:max_iterations) {
+  #       tmpp <- c(W0, C0)
+  #       W0 <- orth(t(X) %*% (Y %*% t(Y)) %*% (X %*% W0))
+  #       C0 <- orth(t(Y) %*% (X %*% t(X)) %*% (Y %*% C0))
+  #       if (mse(tmpp, c(W0, C0)) < tol) {
+  #         message("The initialization of the power method lied in a degenerate space\n")
+  #         message("Initialization changed and power method rerun\n")
+  #         break
+  #       }
+  #     }
+  #   }
+  #   message("Power Method (comp ", indx, ") stopped after ", indx2, " iterations.\n")
+  #   Tt <- cbind(Tt, X %*% W0)
+  #   U <- cbind(U, Y %*% C0)
+  #   X <- X - (X %*% W0) %*% t(W0)
+  #   Y <- Y - (Y %*% C0) %*% t(C0)
+  #   W <- cbind(W, W0)
+  #   C <- cbind(C, C0)
+  # }
+  # return(list(W = W, C = C, Tt = Tt, U = U))
 }
 
 #' NIPALS method for PLS2
@@ -633,6 +638,8 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 
 #' Perform O2-PLS with two-way orthogonal corrections
 #'
+#' DEFUNCT!!
+#' 
 #' NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
 #' A stripped version of O2PLS
 #'
@@ -657,108 +664,108 @@ o2m_stripped <- function(X, Y, n, nx, ny) {
 #' @keywords internal
 #' @export
 o2m_stripped2 <- function(X, Y, n, nx, ny, tol = 1e-10, max_iterations = 100) {
-  
-  Xnames = dimnames(X)
-  Ynames = dimnames(Y)
-  
-  X_true <- X
-  Y_true <- Y
-  
-  N <- dim(X)[1]
-  p <- dim(X)[2]
-  q <- dim(Y)[2]
-  
-  T_Yosc <- U_Xosc <- matrix(0, N, 1)
-  P_Yosc <- W_Yosc <- matrix(0, p, 1)
-  P_Xosc <- C_Xosc <- matrix(0, q, 1)
-  
-  if (nx + ny > 0) {
-    n2 <- n + max(nx, ny)
-    
-    #    if (N < p & N < q) {
-    # When N is smaller than p and q
-    W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
-    W <- W_C$W
-    C <- W_C$C
-    Tt <- W_C$Tt
-    U <- W_C$U
-    rm(W_C)
-    gc()
-    #    }
-    # 3.2.1. 2
-    
-    if (nx > 0) {
-      # 3.2.1. 3
-      E_XY <- X - Tt %*% t(W)
-      
-      udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
-      rm(E_XY)
-      W_Yosc <- udv$u
-      T_Yosc <- X %*% W_Yosc
-      P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
-      X <- X - T_Yosc %*% t(P_Yosc)
-      
-      # Update T again (since X has changed) Tt = X%*%W;
-    }
-    
-    # U = Y%*%C; # 3.2.1. 4
-    
-    if (ny > 0) {
-      # 3.2.1. 5
-      F_XY <- Y
-      F_XY <- F_XY - U %*% t(C)
-      
-      udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
-      rm(F_XY)
-      C_Xosc <- udv$u
-      U_Xosc <- Y %*% C_Xosc
-      P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
-      Y <- Y - U_Xosc %*% t(P_Xosc)
-      
-      # Update U again (since Y has changed) U = Y%*%C;
-    }
-  }
-  
-  # repeat steps 1, 2, and 4 before step 6 When N is smaller than p and q
-  #  if (N < p & N < q) {
-  W_C <- pow_o2m(X, Y, n, tol, max_iterations)
-  W <- W_C$W
-  C <- W_C$C
-  Tt <- W_C$Tt
-  U <- W_C$U
-  rm(W_C)
-  gc()
-  #  }
-  
-  # 3.2.1. 6
-  B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
-  B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
-  H_TU <- Tt - U %*% B_U
-  H_UT <- U - Tt %*% B_T
-  
-  R2Xcorr <- ssq(Tt) / ssq(X_true)
-  R2Ycorr <- ssq(U) / ssq(Y_true)
-  R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
-  R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
-  R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
-  R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
-  R2X <- R2Xcorr + R2X_YO
-  R2Y <- R2Ycorr + R2Y_XO
-  
-  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
-  rownames(U) <- rownames(U_Xosc) <- rownames(H_TU) <- Ynames[[1]]
-  rownames(W) <- rownames(P_Yosc) <- Xnames[[2]]
-  rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
-  
-  model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
-                T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
-                B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
-                R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
-                R2Xhat = R2Xhat, R2Yhat = R2Yhat,
-                W_gr = NULL, C_gr = NULL)
-  
-  class(model) <- c("pre.o2m","o2m_stripped")
-  return(model)
+  .Defunct(new="o2m_stripped")
+  # Xnames = dimnames(X)
+  # Ynames = dimnames(Y)
+  # 
+  # X_true <- X
+  # Y_true <- Y
+  # 
+  # N <- dim(X)[1]
+  # p <- dim(X)[2]
+  # q <- dim(Y)[2]
+  # 
+  # T_Yosc <- U_Xosc <- matrix(0, N, 1)
+  # P_Yosc <- W_Yosc <- matrix(0, p, 1)
+  # P_Xosc <- C_Xosc <- matrix(0, q, 1)
+  # 
+  # if (nx + ny > 0) {
+  #   n2 <- n + max(nx, ny)
+  #   
+  #   #    if (N < p & N < q) {
+  #   # When N is smaller than p and q
+  #   W_C <- pow_o2m(X, Y, n2, tol, max_iterations)
+  #   W <- W_C$W
+  #   C <- W_C$C
+  #   Tt <- W_C$Tt
+  #   U <- W_C$U
+  #   rm(W_C)
+  #   gc()
+  #   #    }
+  #   # 3.2.1. 2
+  #   
+  #   if (nx > 0) {
+  #     # 3.2.1. 3
+  #     E_XY <- X - Tt %*% t(W)
+  #     
+  #     udv <- svd(t(E_XY) %*% Tt, nu = nx, nv = 0)
+  #     rm(E_XY)
+  #     W_Yosc <- udv$u
+  #     T_Yosc <- X %*% W_Yosc
+  #     P_Yosc <- t(solve(t(T_Yosc) %*% T_Yosc) %*% t(T_Yosc) %*% X)
+  #     X <- X - T_Yosc %*% t(P_Yosc)
+  #     
+  #     # Update T again (since X has changed) Tt = X%*%W;
+  #   }
+  #   
+  #   # U = Y%*%C; # 3.2.1. 4
+  #   
+  #   if (ny > 0) {
+  #     # 3.2.1. 5
+  #     F_XY <- Y
+  #     F_XY <- F_XY - U %*% t(C)
+  #     
+  #     udv <- svd(t(F_XY) %*% U, nu = ny, nv = 0)
+  #     rm(F_XY)
+  #     C_Xosc <- udv$u
+  #     U_Xosc <- Y %*% C_Xosc
+  #     P_Xosc <- t(solve(t(U_Xosc) %*% U_Xosc) %*% t(U_Xosc) %*% Y)
+  #     Y <- Y - U_Xosc %*% t(P_Xosc)
+  #     
+  #     # Update U again (since Y has changed) U = Y%*%C;
+  #   }
+  # }
+  # 
+  # # repeat steps 1, 2, and 4 before step 6 When N is smaller than p and q
+  # #  if (N < p & N < q) {
+  # W_C <- pow_o2m(X, Y, n, tol, max_iterations)
+  # W <- W_C$W
+  # C <- W_C$C
+  # Tt <- W_C$Tt
+  # U <- W_C$U
+  # rm(W_C)
+  # gc()
+  # #  }
+  # 
+  # # 3.2.1. 6
+  # B_U <- solve(t(U) %*% U) %*% t(U) %*% Tt
+  # B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
+  # H_TU <- Tt - U %*% B_U
+  # H_UT <- U - Tt %*% B_T
+  # 
+  # R2Xcorr <- ssq(Tt) / ssq(X_true)
+  # R2Ycorr <- ssq(U) / ssq(Y_true)
+  # R2X_YO <- ssq(T_Yosc %*% t(P_Yosc)) / ssq(X_true)
+  # R2Y_XO <- ssq(U_Xosc %*% t(P_Xosc)) / ssq(Y_true)
+  # R2Xhat <- (ssq(U %*% B_U) / ssq(X_true))
+  # R2Yhat <- (ssq(Tt %*% B_T) / ssq(Y_true))
+  # R2X <- R2Xcorr + R2X_YO
+  # R2Y <- R2Ycorr + R2Y_XO
+  # 
+  # rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  # rownames(U) <- rownames(U_Xosc) <- rownames(H_TU) <- Ynames[[1]]
+  # rownames(W) <- rownames(P_Yosc) <- Xnames[[2]]
+  # rownames(C) <- rownames(P_Xosc) <- Ynames[[2]]
+  # 
+  # model <- list(Tt = Tt, U = U, W. = W, C. = C, P_Yosc. = P_Yosc, P_Xosc. = P_Xosc,
+  #               T_Yosc = T_Yosc, U_Xosc = U_Xosc, W_Yosc = W_Yosc, C_Xosc = C_Xosc,
+  #               B_T. = B_T, B_U = B_U, H_TU = H_TU, H_UT = H_UT, 
+  #               R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, 
+  #               R2Xhat = R2Xhat, R2Yhat = R2Yhat,
+  #               W_gr = NULL, C_gr = NULL)
+  # 
+  # class(model) <- c("pre.o2m","o2m_stripped")
+  # return(model)
 }
 
 

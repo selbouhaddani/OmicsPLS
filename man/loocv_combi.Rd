@@ -32,11 +32,11 @@ loocv_combi(
 
 \item{b2}{Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.}
 
-\item{fitted_model}{List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.}
+\item{fitted_model}{List. Deprecated. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.}
 
 \item{func}{Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.}
 
-\item{app_err}{Logical. Should the apparent error also be computed? Not used anymore.}
+\item{app_err}{Logical. Deprecated. Should the apparent error also be computed?}
 
 \item{kcv}{Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.}
 

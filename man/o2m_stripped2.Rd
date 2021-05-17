@@ -35,10 +35,12 @@ A list containing
    \item{H_UT}{Residuals in \code{U} in \code{U} ~ \code{Tt}}
 }
 \description{
-NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
-A stripped version of O2PLS
+DEFUNCT!!
 }
 \details{
+NOTE THAT THIS FUNCTION DOES NOT CENTER NOR SCALES THE MATRICES! Any normalization you will have to do yourself. It is best practice to at least center the variables though.
+A stripped version of O2PLS
+
 If both \code{nx} and \code{ny} are zero, \code{o2m} is equivalent to PLS2 with orthonormal loadings.
 This is a stripped implementation of O2PLS, using \code{\link{svd}}. For data analysis purposes, consider using \code{\link{o2m}}.
 }

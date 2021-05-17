@@ -6,20 +6,26 @@ X <- matrix(rnorm(10*1e1),10);
 Xmiss <- X
 Xmiss[sample(length(Xmiss),length(Xmiss)/10)] <- NA
 
-test_that("Normal input goes without error", {
+test_that("Normal o2m goes without error", {
   expect_error(o2m(1:10, 1:10, 1, 0, 0), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, stripped = TRUE), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, p_thresh = 1, q_thresh = 1, stripped = TRUE), NA)
   expect_error(o2m(diag(1,6,5), diag(1,6,6), 1, 1, 1, sparse = TRUE, keepx=1, keepy=1), NA)
+  expect_error(o2m(matrix(rnorm(100*10),100), matrix(rnorm(100*11),100), 1, 1, 1, sparse = TRUE, groupx=letters[1:10], groupy=LETTERS[1:11], keepx=5, keepy=5), NA)
+  expect_error(print(o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, sparse=TRUE, keepx=1, keepy=1)), NA)
+  expect_error(print(o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, sparse=TRUE, keepx=1, keepy=1, groupx=LETTERS[1:3], groupy=letters[1:3])), NA)
+})
+
+test_that("Normal crossval goes without error", {
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
   expect_error(print(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2)), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
   expect_error(crossval_sparsity(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, keepx_seq = 1:2, keepy_seq = 1:2), NA)
-  expect_error(impute_matrix(Xmiss, maxit = 1000), NA)
+  expect_error(crossval_sparsity(matrix(rnorm(100*10),100), matrix(rnorm(100*10),100), 1, 1, 1, 2, keepx_seq = 1:2, keepy_seq = 1:2, groupx=letters[1:10], groupy=LETTERS[1:10]), NA)
 })
 
 # test_that("Examples run", {
@@ -56,6 +62,8 @@ test_that("Errors in *o2m* are thrown", {
   expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,1.5,0,2)                 )
   expect_error(crossval_o2m_adjR2(diag(4),diag(4),1,0,1.5,2)                 )
   expect_warning(crossval_o2m_adjR2(diag(4,10,10),diag(4,10,3),1:2,0:4,0:2,2))
+  expect_error(o2m(matrix(rnorm(100*10),100), matrix(rnorm(100*10),100), 1, 1, 1, sparse = TRUE, groupx=letters[1:10], keepx=5, keepy=5), "groupy")
+  expect_error(o2m(matrix(rnorm(100*10),100), matrix(rnorm(100*10),100), 1, 1, 1, sparse = TRUE, groupy=letters[1:10], keepx=5, keepy=5), "groupx")
 })
 
 test_that("size, ratios and names are correct", {
@@ -74,6 +82,7 @@ test_that("S3 Methods are working OK", {
   expect_error(invisible(print(cvfit)), NA)
   expect_error(invisible(summary(fit)), NA)
   expect_error(invisible(print(summary(fit))), NA)
+  expect_error(invisible(print(summary(o2m(diag(3),diag(3),1,1,1)))), NA)
   expect_error(plot(fit), NA)
   expect_error(plot(fit, use_ggplot2=FALSE, i=1,j=2), NA)
   expect_error(loadings(fit), NA)
@@ -89,5 +98,10 @@ test_that("Misc functions are working", {
   expect_error(orth(1:10), NA)
   expect_error(orth(1:10, 1:10, type="SVD"), NA)
   expect_error(adjR2(1:10, 1:10, 1, 0, 0), NA)
+  expect_error(impute_matrix(Xmiss, maxit = 1000), NA)
   expect_message(impute_matrix(X), "original matrix")
+})
+test_that("Internal functions are correct", {
+  expect_warning(pow_o2m(orth(matrix(1:20,5))[,1:2],orth(matrix(1:20,5))[,3:4], 1))
+  expect_error(orth_vec(1:10, matrix(rnorm(10*3),10)), NA)
 })

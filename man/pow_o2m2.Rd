@@ -18,6 +18,9 @@ pow_o2m2(X, Y, n, tol = 1e-10, max_iterations = 1000)
 \item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 }
 \description{
+DEFUNCT!!
+}
+\details{
 Performs power method for PLS2 loadings.
 }
 \seealso{

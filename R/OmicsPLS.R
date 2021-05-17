@@ -273,9 +273,9 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #' @param a Vector of integers. Contains the numbers of joint components.
 #' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
 #' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
-#' @param fitted_model List. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.
+#' @param fitted_model List. Deprecated. O2PLS model fit with \code{\link{o2m}}. Is used to calculate the apparent error without recalculating this fit.
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
-#' @param app_err Logical. Should the apparent error also be computed? Not used anymore.
+#' @param app_err Logical. Deprecated. Should the apparent error also be computed? 
 #' @param kcv Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.
 #' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 #' @return List with two numeric vectors:
@@ -291,14 +291,15 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
                   q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   app_err = F
+  fitted_model = NULL
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)))
   X = as.matrix(X)
   Y = as.matrix(Y)
   input_checker(X, Y)
-  if (!is.null(fitted_model)) {
-    app_err <- F
-    message("apparent error calculated with provided fit","\n")
-  }
+  # if (!is.null(fitted_model)) {
+  #   app_err <- F
+  #   message("apparent error calculated with provided fit","\n")
+  # }
   # determine type of model
   type <- 3  #ifelse(deparse(substitute(func))=='o2m',3,ifelse(deparse(substitute(func))=='oplsm',2,1))
   
@@ -335,20 +336,20 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
         }
         mean_err[k] <- mean(err)
         # calculate apparent error
-        if (app_err && is.null(fitted_model)) {
-          if (type == 3) {
-            pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
-          }
-          # if(class(fit)=='oplsm'){pars2=list(X=X,Y=Y,ncomp=j,n_orth=j2)}
-          # if(class(fit)=='plsm'){pars2=list(X=X,Y=Y,ncomp=j)}
-          fit2 <- try(do.call(func, pars2), F)
-          mean_fit[k] <- ifelse(inherits(fit, "try-error"), NA, rmsep(X, Y, fit2))
-          # print('1e loop')
-        }
-        if (!is.null(fitted_model)) {
-          mean_fit[k] <- rmsep(X, Y, fitted_model)
-          # print('2e loop')
-        }
+        # if (app_err && is.null(fitted_model)) {
+        #   if (type == 3) {
+        #     pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
+        #   }
+        #   # if(class(fit)=='oplsm'){pars2=list(X=X,Y=Y,ncomp=j,n_orth=j2)}
+        #   # if(class(fit)=='plsm'){pars2=list(X=X,Y=Y,ncomp=j)}
+        #   fit2 <- try(do.call(func, pars2), F)
+        #   mean_fit[k] <- ifelse(inherits(fit, "try-error"), NA, rmsep(X, Y, fit2))
+        #   # print('1e loop')
+        # }
+        # if (!is.null(fitted_model)) {
+        #   mean_fit[k] <- rmsep(X, Y, fitted_model)
+        #   # print('2e loop')
+        # }
       }
     }
   }
@@ -490,16 +491,17 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
                         q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   app_err = F
+  fitted_model = NULL
   stopifnot(all(a == round(a)), all(a2 == round(a2)), all(b2 == round(b2)), kcv == round(kcv[1]))
   stopifnot(is.logical(app_err), is.function(func))
   X = as.matrix(X)
   Y = as.matrix(Y)
   input_checker(X, Y)
-  if (!is.null(fitted_model)) {
-    if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL","\n")}
-    app_err <- F
-    message("apparent error calculated with provided fit")
-  }
+  # if (!is.null(fitted_model)) {
+  #   if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL","\n")}
+  #   app_err <- F
+  #   message("apparent error calculated with provided fit")
+  # }
   
   # determine type of model, deprecated 
   type <- 3  #ifelse(deparse(substitute(func))=='o2m',3,ifelse(deparse(substitute(func))=='oplsm',2,1))
@@ -542,24 +544,24 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
         }
         mean_err[k] <- mean(err)
         # calculate apparent error
-        if (app_err && is.null(fitted_model)) {
-          if (inherits(fit,c("o2m","pre.o2m"))) {
-            pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
-          }
-          # if (class(fit) == "oplsm") {
-          #   pars2 <- list(X = X, Y = Y, ncomp = j, n_orth = j2)
-          # }
-          # if (class(fit) == "plsm") {
-          #   pars2 <- list(X = X, Y = Y, ncomp = j)
-          # }
-          fit2 <- try(do.call(func, pars2), F)
-          mean_fit[k] <- ifelse(inherits(fit,"try-error"), NA, rmsep_combi(X, Y, fit2))
-          print("1e loop")
-        }
-        if (!is.null(fitted_model)) {
-          mean_fit[k] <- rmsep_combi(X, Y, fitted_model)
-          print("2e loop")
-        }
+        # if (app_err && is.null(fitted_model)) {
+        #   if (inherits(fit,c("o2m","pre.o2m"))) {
+        #     pars2 <- list(X = X, Y = Y, n = j, nx = j2, ny = j3)
+        #   }
+        #   # if (class(fit) == "oplsm") {
+        #   #   pars2 <- list(X = X, Y = Y, ncomp = j, n_orth = j2)
+        #   # }
+        #   # if (class(fit) == "plsm") {
+        #   #   pars2 <- list(X = X, Y = Y, ncomp = j)
+        #   # }
+        #   fit2 <- try(do.call(func, pars2), F)
+        #   mean_fit[k] <- ifelse(inherits(fit,"try-error"), NA, rmsep_combi(X, Y, fit2))
+        #   print("1e loop")
+        # }
+        # if (!is.null(fitted_model)) {
+        #   mean_fit[k] <- rmsep_combi(X, Y, fitted_model)
+        #   print("2e loop")
+        # }
       }
     }
   }
@@ -612,7 +614,7 @@ print.o2m <- function (x, ...) {
 #'
 #' @export
 print.pre.o2m <- function (x, ...) {
-  cat("\n Internal function used to fit O2PLS, use o2m to enable print, plot, etc \n")
+  cat("Internal function used to fit O2PLS, use o2m to enable print, plot, etc \n")
 }
 
 
