@@ -22,7 +22,6 @@ test_that("Normal crossval goes without error", {
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2), NA)
   expect_error(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
-  expect_error(print(crossval_o2m(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2)), NA)
   expect_error(crossval_o2m_adjR2(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, 2), NA)
   expect_error(crossval_sparsity(1:10%*%t(1:3), 1:10%*%t(1:3), 1, 0, 0, 2, keepx_seq = 1:2, keepy_seq = 1:2), NA)
   expect_error(crossval_sparsity(matrix(rnorm(100*10),100), matrix(rnorm(100*10),100), 1, 1, 1, 2, keepx_seq = 1:2, keepy_seq = 1:2, groupx=letters[1:10], groupy=LETTERS[1:10]), NA)

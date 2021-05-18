@@ -3,6 +3,4 @@
 ^\.travis\.yml$
 ^OmicsPLS_vignette_realdata\.pdf$
 ^README\.md$
-^.*\.comment
-^test_go2pls\.R$
 ^\.github$

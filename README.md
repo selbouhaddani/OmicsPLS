@@ -4,7 +4,6 @@
 [![Build Status](https://cranlogs.r-pkg.org/badges/last-month/OmicsPLS)](https://cran.r-project.org/package=OmicsPLS)
 [![R-CMD-check](https://github.com/selbouhaddani/OmicsPLS/workflows/R-CMD-check/badge.svg)](https://github.com/selbouhaddani/OmicsPLS/actions)
 
-
 # **Data integration with OmicsPLS**
 
 Welcome to the OmicsPLS package page on Github. OmicsPLS contains an implementation of O2PLS.
