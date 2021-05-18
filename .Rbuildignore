@@ -5,3 +5,4 @@
 ^README\.md$
 ^.*\.comment
 ^test_go2pls\.R$
+^\.github$
