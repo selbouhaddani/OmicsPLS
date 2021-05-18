@@ -4,3 +4,4 @@
 ^OmicsPLS_vignette_realdata\.pdf$
 ^README\.md$
 ^\.github$
+^.*\.comment$
