@@ -1,7 +1,7 @@
 #' Data integration with O2PLS: Two-Way Orthogonal Partial Least Squares
 #'
 #' The OmicsPLS package is an R package for penalized integration of heterogeneous omics data. 
-#' The software articles are published in (el Bouhaddani et al, 2018, doi:10.1186/s12859-018-2371-3) and (Gu et al, 2020, doi:10.1186/s12859-021-03958-3).
+#' The software articles are published in (el Bouhaddani et al, 2018, \doi{10.1186/s12859-018-2371-3}) and (Gu et al, 2020, \doi{10.1186/s12859-021-03958-3}).
 #' OmicsPLS includes the O2PLS fit, the GO2PLS fit, cross-validation tools and some misc functions.
 #' 
 #' @author
@@ -89,7 +89,7 @@
 #' 
 #' \strong{el Bouhaddani, S., Uh, H.-W., Jongbloed, G., Hayward, C., Klarić, L., Kiełbasa, S. M., & Houwing-Duistermaat, J.} (2018).
 #' \emph{Integrating omics datasets with the OmicsPLS package.}
-#'  BMC Bioinformatics, 19(1). \url{https://doi.org/10.1186/s12859-018-2371-3}
+#'  BMC Bioinformatics, 19(1). \doi{10.1186/s12859-018-2371-3}
 #' 
 #' The bibtex entry can be obtained with command \code{citation("OmicsPLS")}.
 #' Thank you!
@@ -98,7 +98,7 @@
 #' 
 #' \strong{Trygg, J., & Wold, S.} (2003). 
 #' \emph{O2-PLS, a two-block (X-Y) latent variable regression (LVR) method with an integral OSC filter.} 
-#' Journal of Chemometrics, 17(1), 53-64. http://doi.org/10.1002/cem.775
+#' Journal of Chemometrics, 17(1), 53-64. \doi{10.1002/cem.775}
 #' 
 #' @docType package
 #' @name OmicsPLS
