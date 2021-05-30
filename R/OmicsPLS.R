@@ -105,7 +105,7 @@
 #' @keywords OmicsPLS
 #' @import parallel ggplot2 tibble magrittr softImpute
 #' @importFrom graphics abline
-#' @importFrom stats cov sd
+#' @importFrom stats cov sd predict 
 #' @importFrom dplyr mutate
 NULL
 
@@ -259,7 +259,8 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
   
   input_checker(Xtst, Ytst)
   
-  Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
+  #Yhat <- Xtst %*% fit$W. %*% fit$B_T %*% t(fit$C.)
+  Yhat <- predict(fit, Xtst, "X")
   # Xhat = Ytst%*%fit$C.%*%fit$B_U%*%t(fit$W.)
   
   return(mean(c(sqrt(mse(Yhat, Ytst)))))  #,sqrt(mse(Xhat,Xtst)))))
@@ -468,9 +469,10 @@ rmsep_combi <- function(Xtst, Ytst, fit)
   
   input_checker(Xtst, Ytst)
   
-  Yhat <- (Xtst - Xtst %*% fit$W_Yosc %*% t(fit$W_Yosc)) %*% fit$W. %*% fit$B_T %*% t(fit$C.)
-  Xhat <- (Ytst - Ytst %*% fit$C_Xosc %*% t(fit$C_Xosc)) %*% fit$C. %*% fit$B_U %*% t(fit$W.)
-  
+  #Yhat <- (Xtst - Xtst %*% fit$W_Yosc %*% t(fit$W_Yosc)) %*% fit$W. %*% fit$B_T %*% t(fit$C.)
+  #Xhat <- (Ytst - Ytst %*% fit$C_Xosc %*% t(fit$C_Xosc)) %*% fit$C. %*% fit$B_U %*% t(fit$W.)
+  Yhat <- predict(fit, Xtst, "X")
+  Xhat <- predict(fit, Ytst, "Y")
   return(sqrt(mse(Yhat, Ytst)) + sqrt(mse(Xhat, Xtst)))
 }
 
@@ -589,8 +591,8 @@ print.o2m <- function (x, ...) {
   n = x$flags$n #ncol(x$W.)
   nx = x$flags$nx #ifelse(vnorm(x$P_Yosc.)[1] == 0, 0, ncol(x$P_Yosc.))
   ny = x$flags$ny #ifelse(vnorm(x$P_Xosc.)[1] == 0, 0, ncol(x$P_Xosc.))
-  if(x$flags$method == "SO2PLS") cat("SO2PLS fit \n")
-  else if(x$flags$method == "GO2PLS") cat("GO2PLS fit \n")
+  if(x$flags$method == "SO2PLS") {cat("SO2PLS fit \n")}
+  else if(x$flags$method == "GO2PLS") {cat("GO2PLS fit \n")}
   else{
     if(x$flags$stripped) cat("O2PLS fit: Stripped \n") 
     else if(x$flags$highd) cat("O2PLS fit: High dimensional \n") 
@@ -626,7 +628,7 @@ print.pre.o2m <- function (x, ...) {
 #' @param loading_name character string. One of the following: 'Xjoint', 'Yjoint', 'gr_Xjoint', 'gr_Yjoint', 'Xorth' or 'Yorth'.
 #' @param i Integer. First component to be plotted.
 #' @param j NULL (default) or Integer. Second component to be plotted.
-#' @param use_ggplot2 Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
+#' @param use_ggplot2 Deprecated. Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.
 #' @param label Character, either 'number' or 'colnames'. The first option prints numbers, the second prints the colnames
 #' @param ... Further arguments to \code{geom_text}, such as size, col, alpha, etc.
 #' 
@@ -640,6 +642,7 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Y
   stopifnot(i == round(i), is.logical(use_ggplot2))
   
   fit <- list()
+  if(length(label) > 2) stop("label should be a single string, 'number' or 'colnames'")
   loading_name = match.arg(loading_name)
   if((loading_name %in% c("gr_Xjoint", "gr_Yjoint")) & x$flags$method != "GO2PLS") stop("Loading plots at group level only available in GO2PLS")
   

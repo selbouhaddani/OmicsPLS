@@ -1,12 +1,19 @@
 Bug fixes:
 
-- gr_Yjoint instead of Yjoint_gr 
-- message instead of print 
+*- gr_Yjoint instead of Yjoint_gr 
+*- message instead of print 
 - any(!null keepx keepy) not necessary, one should be specified
 - any(!null keepx keepy) necessary in group case?
-- max cov, dependent of negative sign!
 - non-unique minimum err_back?
 - LOO CV in sparsity?
+*- rmsep* use predict 
+*- Group info suppress message
+- print also nr non zero features
+*- cv_sparse return list named cov not err
+*- message for CV, not warning
+*- add message that label = "colnames" not the actual names
+
+(* means completed)
 
 Improvements now:
 

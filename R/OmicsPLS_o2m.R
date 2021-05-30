@@ -799,13 +799,13 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
 
   if(is.null(groupx) & is.null(groupy)){
     method = "SO2PLS"
-    print("Group information not provided, using SO2PLS")
+    #message("Group information not provided, using SO2PLS")
     keepxy <- lambda_checker(X, Y, keepx, keepy, n)
     keepx <- keepxy$keepx
     keepy <- keepxy$keepy
   }else{
     method = "GO2PLS"
-    print("Group information provided, using GO2PLS")
+    #message("Group information provided, using GO2PLS")
     # check if only information for one dataset is provided
     if(is.null(groupx)){
       if(is.null(colnames(X))) stop("Please provide 'groupx' or colnames of X")
@@ -909,9 +909,9 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
       
       # post-orthogonalizing
       if(j>1){
-        # print('W')
+        # message('W')
         v <- orth_vec(v, W[,1:j-1])
-        # print('C')
+        # message('C')
         u <- orth_vec(u, C[,1:j-1])
       }
       
@@ -988,9 +988,9 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
       
       # post-orthogonalizing
       if(j>1){
-        # print('W')
+        # message('W')
         v <- orth_vec(v, W[,1:j-1])
-        # print('C')
+        # message('C')
         u <- orth_vec(u, C[,1:j-1])
       }
       

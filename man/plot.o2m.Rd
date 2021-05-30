@@ -23,7 +23,7 @@
 
 \item{j}{NULL (default) or Integer. Second component to be plotted.}
 
-\item{use_ggplot2}{Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.}
+\item{use_ggplot2}{Deprecated. Logical. Default is \code{TRUE}. If \code{FALSE}, the usual plot device will be used.}
 
 \item{label}{Character, either 'number' or 'colnames'. The first option prints numbers, the second prints the colnames}
 

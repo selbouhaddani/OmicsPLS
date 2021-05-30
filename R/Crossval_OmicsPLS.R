@@ -33,7 +33,7 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   kcv = nr_folds
   if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay))
-    warning("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
+    message("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
   if(ncol(X) < min(a)+min(ax,ay) | ncol(Y) < min(a)+min(ay,ay))
     stop("There is no valid combination of numbers of components! Please select fewer components in a, ax, ay.\n")
   if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X),"\n")
@@ -114,7 +114,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
   if(any(abs(colMeans(X)) > 1e-5)){message("Data is not centered, proceeding...\n")}
   kcv = nr_folds
   if(ncol(X) < max(a)+max(ax,ay) | ncol(Y) < max(a)+max(ay,ay))
-    warning("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
+    message("Some combinations of # components exceed data dimensions, these combinations are not considered\n")
   if(ncol(X) < min(a)+min(ax,ay) | ncol(Y) < min(a)+min(ay,ay))
     stop("There is no valid combination of numbers of components! Please select fewer components in a, ax, ay.\n")
   if(nrow(X) < kcv) stop("There are more folds than samples, please set nr_folds <= ",nrow(X),"\n")
@@ -487,7 +487,7 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
   #bestsp$srr <- srr_covTU
   bestsp$x <- x_max
   bestsp$y <- y_max
-  return(list(Best = unlist(bestsp), Err = mean_covTU, SErr = srr_covTU))
+  return(list(Best = unlist(bestsp), Covs = mean_covTU, SEcov = srr_covTU))
 }
 
 
