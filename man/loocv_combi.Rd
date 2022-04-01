@@ -18,7 +18,8 @@ loocv_combi(
   p_thresh = 3000,
   q_thresh = p_thresh,
   tol = 1e-10,
-  max_iterations = 100
+  max_iterations = 100,
+  seed = 1234
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ loocv_combi(
 \item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
 \item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
+
+\item{seed}{Integer. A random seed to make the analysis reproducible.}
 }
 \value{
 List with two numeric vectors:

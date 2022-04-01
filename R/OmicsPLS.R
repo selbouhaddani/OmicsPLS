@@ -278,10 +278,12 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
 #' @param app_err Logical. Deprecated. Should the apparent error also be computed? 
 #' @param kcv Integer. The value of \eqn{k}, i.e. the number of folds. Choose \eqn{N} for LOO-CV.
+#' @param seed Integer. A random seed to make the analysis reproducible.
 #' @details Note that this function can be easily parallelized (on Windows e.g. with the \code{parallel} package.).
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
+#' @importFrom withr with_seed
 #' @details The parameters \code{a}, \code{a2} and \code{b2} can be integers or vectors of integers. A for loop is used to loop over all combinations.
 #' The resulting output is a list, which is more easy to interpret if you use \code{array(unlist(output_of_loocv$CVerr))} as in the example below.
 #' The array wil have varying \code{a} along the first dimension and \code{a2} and \code{b2} along the second and third respectively.
@@ -289,7 +291,7 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #' @export
 loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
                   stripped = TRUE, p_thresh = 3000, 
-                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
+                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234)
 {
   app_err = F
   fitted_model = NULL
@@ -320,7 +322,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
       for (j3 in b2) {
         k <- k + 1
         err <- NA * 1:kcv
-        folds <- sample(N)
+        folds <- with_seed(seed, sample(N))
         # loop through number of folds
         for (i in 1:kcv) {
           ii <- which(blocks==i)
@@ -486,11 +488,12 @@ rmsep_combi <- function(Xtst, Ytst, fit)
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
+#' @importFrom withr with_seed
 #'
 #' @export
 loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
                         stripped = TRUE, p_thresh = 3000, 
-                        q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
+                        q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234)
 {
   app_err = F
   fitted_model = NULL
@@ -525,7 +528,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
       for (j3 in b2) {
         k <- k + 1
         err <- NA * 1:kcv
-        folds <- sample(N)
+        folds <- with_seed(seed, sample(N))
         # loop through number of folds
         for (i in 1:kcv) {
           ii <- which(blocks==i)

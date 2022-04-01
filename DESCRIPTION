@@ -23,11 +23,12 @@ Imports:
     parallel,
     magrittr,
     tibble,
-    softImpute
+    softImpute,
+    withr
 Suggests:
     testthat,
     knitr,
     rmarkdown,
     gplots,
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr
