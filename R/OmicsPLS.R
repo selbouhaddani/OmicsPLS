@@ -322,7 +322,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
       for (j3 in b2) {
         k <- k + 1
         err <- NA * 1:kcv
-        folds <- with_seed(seed, sample(N))
+        folds <- with_seed(seed + k, sample(N))
         # loop through number of folds
         for (i in 1:kcv) {
           ii <- which(blocks==i)
@@ -528,7 +528,7 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
       for (j3 in b2) {
         k <- k + 1
         err <- NA * 1:kcv
-        folds <- with_seed(seed, sample(N))
+        folds <- with_seed(seed + k, sample(N))
         # loop through number of folds
         for (i in 1:kcv) {
           ii <- which(blocks==i)
