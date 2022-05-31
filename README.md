@@ -58,5 +58,5 @@ Also please see http://atlasofscience.org/simultaneous-integrated-analysis-of-bi
 
 # **Updates**
 
-- We are working on Penalized O2PLS! This approach provides a sparse data integration solution and enhances interpretation of relevant features. Therefore it is not needed anymore to decide on an arbitrary threshold of, e.g., 500 features. 
-- A *Probabilistic* version of O2PLS is available in the PO2PLS GitHub repo. This approach is based on a rigorous statistical framework to integrate two datasets and obtain estimates of uncertainty. It has better performance than O2PLS [unpublished manuscript] in terms of prediction and interpretation, but is slower.
+- Group Sparse O2PLS is implemented! Check out the newest version 2.0.2 of OmicsPLS for this penalized approach to O2PLS (both on CRAN and GitHub). See https://selbouhaddani.eu/2021-04-27-OmicsPLS-1.3.0-new/ for the updates. This version of OmicsPLS is on the main branch. 
+- A *Probabilistic* version of O2PLS is available in the PO2PLS GitHub repo. This approach is based on a rigorous statistical framework to integrate two datasets and obtain estimates of uncertainty. It has better performance than O2PLS [manuscript under review] in terms of prediction and interpretation, but is slower.
