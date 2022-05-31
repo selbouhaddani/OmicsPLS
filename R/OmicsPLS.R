@@ -1147,7 +1147,7 @@ orth_vec <- function(x, W){
       n <- nrow(W)
       I <- diag(1, n)
       #print(W)
-      x_sub <- (I - W %*% solve(t(W)%*%W) %*% t(W)) %*% x_sub
+      x_sub <- x_sub - W %*% solve(t(W)%*%W) %*% (t(W) %*% x_sub)
     }
     
     x[rowi] <- x_sub

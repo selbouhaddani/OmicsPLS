@@ -1,8 +1,8 @@
 Package: OmicsPLS
 Type: Package
 Title: Data Integration with Two-Way Orthogonal Partial Least Squares
-Version: 2.0.3
-Date: 2021-05-30
+Version: 2.0.4
+Date: 2022-05-31
 Author: Said el Bouhaddani, Zhujie Gu, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
     Hae-Won Uh
 Maintainer: Said el Bouhaddani <s.elbouhaddani@umcutrecht.nl>
@@ -29,5 +29,5 @@ Suggests:
     knitr,
     rmarkdown,
     gplots,
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr

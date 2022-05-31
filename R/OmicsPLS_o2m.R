@@ -1014,12 +1014,12 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
   B_T <- solve(t(Tt) %*% Tt) %*% t(Tt) %*% U
   
   # Residuals and R2's
-  E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
-  Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
+  #E <- X_true - Tt %*% t(W) - T_Yosc %*% t(P_Yosc)
+  #Ff <- Y_true - U %*% t(C) - U_Xosc %*% t(P_Xosc)
   H_TU <- Tt - U %*% B_U
   H_UT <- U - Tt %*% B_T
-  Y_hat <- Tt %*% B_T %*% t(C)
-  X_hat <- U %*% B_U %*% t(W)
+  #Y_hat <- Tt %*% B_T %*% t(C)
+  #X_hat <- U %*% B_U %*% t(W)
   
   R2Xcorr <- (ssq(Tt)/ssqX)
   R2Ycorr <- (ssq(U)/ssqY)
@@ -1030,14 +1030,14 @@ so2m_group <- function(X, Y, n, nx, ny, groupx=NULL, groupy=NULL, keepx=NULL, ke
   R2X <- R2Xcorr + R2X_YO
   R2Y <- R2Ycorr + R2Y_XO
   
-  rownames(Tt) <- rownames(T_Yosc) <- rownames(E) <- rownames(H_TU) <- Xnames[[1]]
-  rownames(U) <- rownames(U_Xosc) <- rownames(Ff) <- rownames(H_UT) <- Ynames[[1]]
-  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- colnames(E) <- Xnames[[2]]
-  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- colnames(Ff) <- Ynames[[2]]
+  rownames(Tt) <- rownames(T_Yosc) <- rownames(H_TU) <- Xnames[[1]]
+  rownames(U) <- rownames(U_Xosc) <- rownames(H_UT) <- Ynames[[1]]
+  rownames(W) <- rownames(P_Yosc) <- rownames(W_Yosc) <- Xnames[[2]]
+  rownames(C) <- rownames(P_Xosc) <- rownames(C_Xosc) <- Ynames[[2]]
   
-  model <- list(Tt = Tt, W. = W, U = U, C. = C, E = E, Ff = Ff, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
+  model <- list(Tt = Tt, W. = W, U = U, C. = C, T_Yosc = T_Yosc, P_Yosc. = P_Yosc, W_Yosc = W_Yosc, 
                 U_Xosc = U_Xosc, P_Xosc. = P_Xosc, C_Xosc = C_Xosc, B_U = B_U, B_T. = B_T, H_TU = H_TU, H_UT = H_UT, 
-                X_hat = X_hat, Y_hat = Y_hat, R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
+                R2X = R2X, R2Y = R2Y, R2Xcorr = R2Xcorr, R2Ycorr = R2Ycorr, R2X_YO = R2X_YO, 
                 R2Y_XO = R2Y_XO, R2Xhat = R2Xhat, R2Yhat = R2Yhat, 
                 W_gr = select_grx, C_gr = select_gry)
   class(model) <- "o2m"
