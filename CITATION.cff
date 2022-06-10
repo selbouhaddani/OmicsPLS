@@ -27,3 +27,35 @@ version: 2.0.5
 doi: 10.1186/s12859-018-2371-3
 date-released: 2018-10-11
 url: "https://github.com/selbouhaddani/OmicsPLS"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "el Bouhaddani"
+    given-names: "Said"
+    orcid: "https://orcid.org/0000-0002-2279-4337"
+  - family-names: "Uh"
+    given-names: "Hae-Won"
+    orcid: "https://orcid.org/0000-0003-4195-7872"
+  - family-names: "Jongbloed"
+    given-names: "Geurt"
+    orcid: "https://orcid.org/0000-0003-4708-5868"
+  - family-names: "Hayward"
+    given-names: "Caroline"
+    orcid: "https://orcid.org/0000-0002-9405-9550"
+  - family-names: "Klarić"
+    given-names: "Lucija"
+    orcid: "https://orcid.org/0000-0003-3105-8929"
+  - family-names: "Kiełbasa"
+    given-names: "Szymon"
+    orcid: "https://orcid.org/0000-0003-2805-6535"
+  - family-names: "Houwing-Duistermaat"
+    given-names: "Jeanine"
+    orcid: "https://orcid.org/0000-0002-4505-7137"
+  doi: "10.1186/s12859-018-2371-3"
+  journal: "BMC Bioinformatics"
+  publisher: "BMC Bioinformatics"
+  month: 10
+  pages: 371
+  title: "Integrating omics datasets with the OmicsPLS package"
+  volume: 19
+  year: 2018
