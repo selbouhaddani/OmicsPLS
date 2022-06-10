@@ -17,7 +17,7 @@ crossval_o2m(
   q_thresh = p_thresh,
   tol = 1e-10,
   max_iterations = 100,
-  seed = 1234
+  seed = "off"
 )
 }
 \arguments{

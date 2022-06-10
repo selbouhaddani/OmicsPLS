@@ -26,7 +26,7 @@
 #' @export
 crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                          stripped = TRUE, p_thresh = 3000,
-                         q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234) {
+                         q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = "off") {
   tic = proc.time()
   X <- as.matrix(X)
   Y <- as.matrix(Y)
@@ -105,7 +105,7 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' })
 #' @export
 crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
-                               stripped = TRUE, p_thresh = 3000, seed = 1234, 
+                               stripped = TRUE, p_thresh = 3000, seed = "off", 
                                q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   tic = proc.time()

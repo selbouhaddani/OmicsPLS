@@ -107,6 +107,7 @@
 #' @importFrom graphics abline
 #' @importFrom stats cov sd predict 
 #' @importFrom dplyr mutate
+#' @importFrom withr with_seed
 NULL
 
 #' Check if matrices satisfy input conditions
@@ -291,7 +292,7 @@ rmsep <- function(Xtst, Ytst, fit, combi = FALSE) {
 #' @export
 loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
                   stripped = TRUE, p_thresh = 3000, 
-                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234)
+                  q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = "off")
 {
   app_err = F
   fitted_model = NULL
@@ -299,6 +300,8 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
   X = as.matrix(X)
   Y = as.matrix(Y)
   input_checker(X, Y)
+  if(!is.numeric(seed) & (seed != "off")) stop("seed has to be set to 'off' or an integer")
+  if(!is.numeric(seed)) with_seed <- function(ii, code) code
   # if (!is.null(fitted_model)) {
   #   app_err <- F
   #   message("apparent error calculated with provided fit","\n")
@@ -488,12 +491,11 @@ rmsep_combi <- function(Xtst, Ytst, fit)
 #' @return List with two numeric vectors:
 #' \item{CVerr}{Contains the k-fold CV estimated RMSEP}
 #' \item{Fiterr}{Contains the apparent error}
-#' @importFrom withr with_seed
 #'
 #' @export
 loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m, app_err = F, kcv,
                         stripped = TRUE, p_thresh = 3000, 
-                        q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234)
+                        q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = "off")
 {
   app_err = F
   fitted_model = NULL
@@ -502,6 +504,8 @@ loocv_combi <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func
   X = as.matrix(X)
   Y = as.matrix(Y)
   input_checker(X, Y)
+  if(!is.numeric(seed) & (seed != "off")) stop("seed has to be set to 'off' or an integer")
+  if(!is.numeric(seed)) with_seed <- function(ii, code) code
   # if (!is.null(fitted_model)) {
   #   if(inherits(fitted_model,c("o2m","pre.o2m"))){stop("fitted_model should be of class 'o2m' or NULL","\n")}
   #   app_err <- F

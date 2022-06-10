@@ -14,7 +14,7 @@ crossval_o2m_adjR2(
   nr_cores = 1,
   stripped = TRUE,
   p_thresh = 3000,
-  seed = 1234,
+  seed = "off",
   q_thresh = p_thresh,
   tol = 1e-10,
   max_iterations = 100
