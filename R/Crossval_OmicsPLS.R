@@ -6,6 +6,7 @@
 #' @param ay Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.
 #' @param nr_folds Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.
 #' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.
+#' @param seed Integer. A random seed to make the analysis reproducible.
 #'
 #' @details This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
 #' Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
@@ -25,7 +26,7 @@
 #' @export
 crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                          stripped = TRUE, p_thresh = 3000,
-                         q_thresh = p_thresh, tol = 1e-10, max_iterations = 100) {
+                         q_thresh = p_thresh, tol = 1e-10, max_iterations = 100, seed = 1234) {
   tic = proc.time()
   X <- as.matrix(X)
   Y <- as.matrix(Y)
@@ -54,13 +55,13 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
     clusterExport(cl_crossval_o2m, varlist = ls(), envir = environment())
     outp=parLapply(cl_crossval_o2m,parms,function(e){
       suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
-                                   stripped = stripped, p_thresh = p_thresh,
+                                   stripped = stripped, p_thresh = p_thresh, seed = seed, 
                                    q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   } else {
     outp=mclapply(mc.cores=nr_cores,parms,function(e){
       suppressMessages(loocv_combi(X,Y,e$a,e$nx,e$ny,app_err=F,func=o2m,kcv=kcv,
-                                   stripped = stripped, p_thresh = p_thresh,
+                                   stripped = stripped, p_thresh = p_thresh, seed = seed,
                                    q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
     })
   }
@@ -104,7 +105,7 @@ crossval_o2m <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
 #' })
 #' @export
 crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
-                               stripped = TRUE, p_thresh = 3000,
+                               stripped = TRUE, p_thresh = 3000, seed = 1234, 
                                q_thresh = p_thresh, tol = 1e-10, max_iterations = 100)
 {
   tic = proc.time()
@@ -141,7 +142,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
                       nrow = length(ay), byrow=TRUE)
       nxny = which(R2grid == max(R2grid), arr.ind = TRUE)[1,]
       a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                                           stripped = stripped, p_thresh = p_thresh,
+                                           stripped = stripped, p_thresh = p_thresh, seed = seed, 
                                            q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })
@@ -157,7 +158,7 @@ crossval_o2m_adjR2 <- function(X, Y, a, ax, ay, nr_folds, nr_cores = 1,
       #R2grid[which(is.na(R2grid))] = -999
       nxny = which(R2grid == max(R2grid,na.rm = TRUE), arr.ind = TRUE)[1,]
       a_mse = suppressMessages(loocv_combi(X,Y,e$a,ax[nxny[2]],ay[nxny[1]],app_err=F,func=o2m,kcv=kcv,
-                                           stripped = stripped, p_thresh = p_thresh,
+                                           stripped = stripped, p_thresh = p_thresh, seed = seed, 
                                            q_thresh = q_thresh, tol = tol, max_iterations = max_iterations)[[1]])
       c(a_mse, e$a, ax[nxny[2]],ay[nxny[1]])
     })

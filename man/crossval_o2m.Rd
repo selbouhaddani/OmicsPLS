@@ -16,7 +16,8 @@ crossval_o2m(
   p_thresh = 3000,
   q_thresh = p_thresh,
   tol = 1e-10,
-  max_iterations = 100
+  max_iterations = 100,
+  seed = 1234
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ crossval_o2m(
 \item{tol}{Double. Threshold for which the NIPALS method is deemed converged. Must be positive.}
 
 \item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
+
+\item{seed}{Integer. A random seed to make the analysis reproducible.}
 }
 \value{
 List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.

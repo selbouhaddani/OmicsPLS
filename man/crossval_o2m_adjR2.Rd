@@ -14,6 +14,7 @@ crossval_o2m_adjR2(
   nr_cores = 1,
   stripped = TRUE,
   p_thresh = 3000,
+  seed = 1234,
   q_thresh = p_thresh,
   tol = 1e-10,
   max_iterations = 100
@@ -37,6 +38,8 @@ crossval_o2m_adjR2(
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
 
 \item{p_thresh}{Integer. If \code{X} has more than \code{p_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
+
+\item{seed}{Integer. A random seed to make the analysis reproducible.}
 
 \item{q_thresh}{Integer. If \code{Y} has more than \code{q_thresh} columns, a power method optimization is used, see \code{\link{o2m2}}}
 

@@ -23,7 +23,8 @@ Imports:
     parallel,
     magrittr,
     tibble,
-    softImpute
+    softImpute,
+    withr
 Suggests:
     testthat,
     knitr,
