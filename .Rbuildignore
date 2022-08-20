@@ -6,3 +6,5 @@
 ^\.github$
 ^.*\.comment$
 ^revdep$
+^doc$
+^Meta$
