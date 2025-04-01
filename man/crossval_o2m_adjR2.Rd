@@ -33,7 +33,7 @@ crossval_o2m_adjR2(
 
 \item{nr_folds}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.}
 
-\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.}
+\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link[parallel:detectCores]{detectCores}()}. Defaults to 1.}
 
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
 

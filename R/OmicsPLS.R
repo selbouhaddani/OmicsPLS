@@ -5,7 +5,7 @@
 #' OmicsPLS includes the O2PLS fit, the GO2PLS fit, cross-validation tools and some misc functions.
 #' 
 #' @author
-#' Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}, Twitter: @@selbouhaddani),
+#' Said el Bouhaddani (\email{s.elbouhaddani@@umcutrecht.nl}, LinkedIn: @@in/selbouhaddani),
 #' Zhujie Gu, 
 #' Szymon Kielbasa,
 #' Geurt Jongbloed,
@@ -44,8 +44,8 @@
 #' 
 #' @section Obtaining results:
 #' After fitting an O2PLS model, by running e.g. \code{fit = o2m(X,Y,n,nx,ny)}, the results can be visualised.
-#' Use \code{\link{plot}(fit,...)} to plot the desired loadings with/without ggplot2.
-#' Use \code{\link{summary}(fit,...)} to see the relative explained variances in the joint/orthogonal parts.
+#' Use \code{\link[OmicsPLS:plot.o2m]{plot}(fit,...)} to plot the desired loadings with/without ggplot2.
+#' Use \code{\link[OmicsPLS:summary.o2m]{summary}(fit,...)} to see the relative explained variances in the joint/orthogonal parts.
 #' Also plotting the joint scores \code{fit$Tt, fit$U} and orthogonal scores \code{fit$T_Yosc, fit$U_Xosc} are of help.
 #' 
 #' @section Cross-validating: 
@@ -63,10 +63,10 @@
 #' @section S3 methods:
 #' There are S3 methods implemented for a fit obtained with \code{o2m}, i.e. \code{fit <- o2m(X,Y,n,nx,ny)}
 #' \itemize{
-#'   \item{} Use plot(fit) to plot the loadings, see above.
-#'   \item{} Use \code{\link{loadings}(fit)} to extract a matrix with loading values
-#'   \item{} Use \code{\link{scores}(fit)} to extract the scores
-#'   \item{} Use \code{\link{print}} and \code{\link{summary}} to print and summarize the fit object
+#'   \item{} Use \code{\link[OmicsPLS:plot.o2m]{plot}(fit)} to plot the loadings, see above.
+#'   \item{} Use \code{\link[OmicsPLS:loadings]{loadings}(fit)} to extract a matrix with loading values
+#'   \item{} Use \code{\link[OmicsPLS:scores]{scores}(fit)} to extract the scores
+#'   \item{} Use \code{\link[OmicsPLS:print.o2m]{print}} and \code{\link[OmicsPLS:summary.o2m]{summary}} to print and summarize the fit object
 #' }
 #' 
 #' @section Imputation:
@@ -74,7 +74,7 @@
 #' There are many sophisticated approaches available, such as MICE and MissForest, and no one approach is the best for all situations.
 #' To still allow users to quickly impute missing values in their data matrix, 
 #' the \code{\link{impute_matrix}} function is implemented. 
-#' It relies on the \code{\link{softImpute}} function+package and imputes based on the singular value decomposition.
+#' It relies on the \code{\link[softImpute:softImpute]{softImpute}} function+package and imputes based on the singular value decomposition.
 #' 
 #' @section Misc:
 #' Also some handy tools are available
@@ -100,15 +100,15 @@
 #' \emph{O2-PLS, a two-block (X-Y) latent variable regression (LVR) method with an integral OSC filter.} 
 #' Journal of Chemometrics, 17(1), 53-64. \doi{10.1002/cem.775}
 #' 
-#' @docType package
-#' @name OmicsPLS
+#' 
+#' @aliases OmicsPLS-package
 #' @keywords OmicsPLS
 #' @import parallel ggplot2 tibble magrittr softImpute
 #' @importFrom graphics abline
 #' @importFrom stats cov sd predict 
 #' @importFrom dplyr mutate
 #' @importFrom withr with_seed
-NULL
+"_PACKAGE"
 
 #' Check if matrices satisfy input conditions
 #'
@@ -141,7 +141,7 @@ input_checker <- function(X, Y = NULL) {
 #' @param X A matrix with missing values in some entries.
 #' @param ... Further arguments for \code{softimpute}.
 #' @return An imputed version of matrix \eqn{X}
-#' @details This function is based on the \code{\link{softImpute}} function in its eponymous package.
+#' @details This function is based on the \code{\link[softImpute:softImpute]{softImpute}} function in its eponymous package.
 #' @examples
 #' X <- matrix(rnorm(20*100),20)
 #' Xmis <- X
@@ -371,7 +371,7 @@ loocv <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, fitted_model = NULL, func = o2m
 #' @param a2 Vector of integers. Contains the numbers of orthogonal components in \eqn{X}.
 #' @param b2 Vector of integers. Contains the numbers of orthogonal components in \eqn{Y}.
 #' @param func Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.
-#' @param parall Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.
+#' @param parall Integer. Should a parallel cluster be set up using package \code{\link[parallel:parallel]{parallel}} (Windows)? Best is to leave it to \code{FALSE}.
 #' @param cl Object of class '\code{cluster}'. If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.
 #' @details The use of this function is to calculate the R2 of the joint part, while varying the number of orthogonal components. Adding more joint components will increase the R2!
 #'
@@ -401,6 +401,7 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NU
     S_apply <- parSapply
     cl <- makeCluster(rep("localhost", detectCores()), type = "SOCK")
     clusterExport(cl = cl, varlist = c("ssq", "o2m_stripped", "adjR2"))
+    on.exit(stopCluster(cl))
   }
   if (parall & !is.null(cl)) {
     stopifnot(inherits(cl,'cluster'))
@@ -430,9 +431,7 @@ adjR2 <- function(X, Y, a = 1:2, a2 = 1, b2 = 1, func = o2m, parall = F, cl = NU
       return(c(adjR2X = NA, adjR2Y = NA))
     }
   })
-  if (parall & cl_was_null == TRUE) {
-    stopCluster(cl)
-  }
+  
   return(outp)
 }
 
@@ -641,7 +640,7 @@ print.pre.o2m <- function (x, ...) {
 #' 
 #' @return If \code{use_ggplot2} is \code{TRUE} a ggplot2 object. Else NULL.
 #' 
-#' @seealso \code{\link{summary.o2m}}
+#' @seealso \code{\link[OmicsPLS:summary.o2m]{summary}}
 #' 
 #' @export
 plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Yjoint", "Xorth", "Yorth"), i = 1, j = NULL, use_ggplot2=TRUE, label = c("number", "colnames"), ...)
@@ -705,7 +704,7 @@ plot.o2m <- function (x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "gr_Y
 #' @examples
 #' summary(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' 
-#' @seealso \code{\link{plot.o2m}}
+#' @seealso \code{\link[OmicsPLS:plot.o2m]{plot}}
 #' 
 #' @export
 summary.o2m <- function(object, digits = 3, ...) {
@@ -814,7 +813,7 @@ print.summary.o2m <- function(x, ...){
 #' @examples
 #' loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' 
-#' @seealso \code{\link{scores.o2m}}
+#' @seealso \code{\link[OmicsPLS:scores.o2m]{scores}}
 #' 
 #' @rdname loadings
 #' @export
@@ -863,7 +862,7 @@ loadings.o2m <- function(x, loading_name = c("Xjoint", "Yjoint", "gr_Xjoint", "g
 #' @examples
 #' scores(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 #' 
-#' @seealso \code{\link{loadings.o2m}}
+#' @seealso \code{\link[OmicsPLS:loadings.o2m]{loadings}}
 #' 
 #' @rdname scores
 #' @export

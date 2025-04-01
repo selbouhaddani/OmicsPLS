@@ -33,7 +33,7 @@ crossval_o2m(
 
 \item{nr_folds}{Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.}
 
-\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.}
+\item{nr_cores}{Positive integer. Number of cores to use for CV. You might want to use \code{\link[parallel:detectCores]{detectCores}()}. Defaults to 1.}
 
 \item{stripped}{Logical. Use the stripped version of o2m (usually when cross-validating)?}
 
@@ -55,8 +55,8 @@ Cross-validate procedure for O2PLS
 }
 \details{
 This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
-Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
- and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
+Parallelization is possible on all platforms. On Windows it uses \code{\link[parallel:makePSOCKcluster]{makePSOCKcluster}}, then exports all necessary objects to the workers,
+ and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link[parallel:mclapply]{mclapply}} is used, which uses forking (but copies your global workspace).
  A print method is defined, printing the minimizers and minimum in a readable way. Also the elapsed time is tracked and reported.
 }
 \examples{

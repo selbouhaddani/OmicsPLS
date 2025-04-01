@@ -18,7 +18,7 @@ An imputed version of matrix \eqn{X}
 Impute missing values in a matrix
 }
 \details{
-This function is based on the \code{\link{softImpute}} function in its eponymous package.
+This function is based on the \code{\link[softImpute:softImpute]{softImpute}} function in its eponymous package.
 }
 \examples{
 X <- matrix(rnorm(20*100),20)

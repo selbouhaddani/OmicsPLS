@@ -5,12 +5,12 @@
 #' @param ax Vector of non-negative integers. Denotes the numbers of X-specific components to consider.
 #' @param ay Vector of non-negative integers. Denotes the numbers of Y-specific components to consider.
 #' @param nr_folds Positive integer. Number of folds to consider. Note: \code{kcv=N} gives leave-one-out CV. Note that CV with less than two folds does not make sense.
-#' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link{detectCores}()}. Defaults to 1.
+#' @param nr_cores Positive integer. Number of cores to use for CV. You might want to use \code{\link[parallel:detectCores]{detectCores}()}. Defaults to 1.
 #' @param seed Integer. A random seed to make the analysis reproducible.
 #'
 #' @details This is the standard CV approach. It minimizes the sum of the prediction errors of X and Y over a three-dimensional grid of integers.
-#' Parallelization is possible on all platforms. On Windows it uses \code{\link{makePSOCKcluster}}, then exports all necessary objects to the workers,
-#'  and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link{mclapply}} is used, which uses forking.
+#' Parallelization is possible on all platforms. On Windows it uses \code{\link[parallel:makePSOCKcluster]{makePSOCKcluster}}, then exports all necessary objects to the workers,
+#'  and then calls \code{\link{parLapply}}. On OSX and Linux the more friendly \code{\link[parallel:mclapply]{mclapply}} is used, which uses forking (but copies your global workspace).
 #'  A print method is defined, printing the minimizers and minimum in a readable way. Also the elapsed time is tracked and reported.
 #'
 #' @return List of class \code{"cvo2m"} with the original and sorted Prediction errors and the number of folds used.

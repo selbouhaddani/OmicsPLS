@@ -38,5 +38,5 @@ loadings(o2m(scale(-2:2),scale(-2:2*4),1,0,0))
 
 }
 \seealso{
-\code{\link{scores.o2m}}
+\code{\link[OmicsPLS:scores.o2m]{scores}}
 }

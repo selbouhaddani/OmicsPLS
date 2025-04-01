@@ -33,7 +33,7 @@ adjR2(
 
 \item{func}{Function to fit the O2PLS model with. Only \code{\link{o2m}} and \code{\link{o2m_stripped}} are supported.}
 
-\item{parall}{Integer. Should a parallel cluster be set up using package \code{parallel} (Windows)? Best is to leave it to \code{FALSE}.}
+\item{parall}{Integer. Should a parallel cluster be set up using package \code{\link[parallel:parallel]{parallel}} (Windows)? Best is to leave it to \code{FALSE}.}
 
 \item{cl}{Object of class '\code{cluster}'. If parall is \code{TRUE} and \code{cl} is not \code{NULL}, calculations are parallelized over workers in cl.}
 
