@@ -2,9 +2,27 @@ Package: OmicsPLS
 Type: Package
 Title: Data Integration with Two-Way Orthogonal Partial Least Squares
 Version: 2.1.0
-Date: 2022-06-10
-Author: Said el Bouhaddani, Zhujie Gu, Jeanine Houwing-Duistermaat, Geurt Jongbloed, Szymon Kielbasa and
-    Hae-Won Uh
+Date: 2025-04-01
+Authors@R: 
+  c(person(given = "Said",
+           family = "el Bouhaddani",
+           role = c("aut", "cre"),
+           email = "s.elbouhaddani@umcutrecht.nl"),
+    person(given = "Zander",
+           family = "Gu",
+           role = "aut"),
+    person(given = "Jeanine",
+           family = "Houwing-Duistermaat",
+           role = "aut"),
+    person(given = "Geurt",
+           family = "Jongbloed",
+           role = "aut"),
+    person(given = "Szymon",
+           family = "Kielbasa",
+           role = "aut"),
+    person(given = "Hae-Won",
+           family = "Uh",
+           role = "aut"))
 Maintainer: Said el Bouhaddani <s.elbouhaddani@umcutrecht.nl>
 Description: Performs the O2PLS data integration method for two datasets, yielding joint and data-specific parts for each dataset.
     The algorithm automatically switches to a memory-efficient approach to fit O2PLS to high dimensional data.

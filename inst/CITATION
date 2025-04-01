@@ -1,15 +1,11 @@
-citHeader("To cite OmicsPLS in publications, please use:")
-
-citEntry(entry = "article",
-  author="el Bouhaddani, Said and Uh, Hae Won and Jongbloed, Geurt and Hayward, Caroline and Klari{\'{c}}, Lucija and Kielbasa, Szymon M. and Houwing-Duistermaat, Jeanine",
-title="Integrating omics datasets with the OmicsPLS package",
-journal="BMC Bioinformatics",
-year="2018",
-volume="19",
-number="1",
-abstract="With the exponential growth in available biomedical data, there is a need for data integration methods that can extract information about relationships between the data sets. However, these data sets might have very different characteristics. For interpretable results, data-specific variation needs to be quantified. For this task, Two-way Orthogonal Partial Least Squares (O2PLS) has been proposed. To facilitate application and development of the methodology, free and open-source software is required. However, this is not the case with O2PLS. We introduce OmicsPLS, an open-source implementation of the O2PLS method in R. It can handle both low- and high-dimensional datasets efficiently. Generic methods for inspecting and visualizing results are implemented. Both a standard and faster alternative cross-validation methods are available to determine the number of components. A simulation study shows good performance of OmicsPLS compared to alternatives, in terms of accuracy and CPU runtime. We demonstrate OmicsPLS by integrating genetic and glycomic data. We propose the OmicsPLS R package: a free and open-source implementation of O2PLS for statistical data integration. OmicsPLS is available at https://cran.r-project.org/package=OmicsPLS and can be installed in R via install.packages(“OmicsPLS”).",
-issn="1471-2105",
-doi="10.1186/s12859-018-2371-3",
-url="https://doi.org/10.1186/s12859-018-2371-3",
-  textVersion = "el Bouhaddani, S., Uh, H. W., Jongbloed, G., Hayward, C., Klarić, L., Kiełbasa, S. M., & Houwing-Duistermaat, J. (2018). Integrating omics datasets with the OmicsPLS package. BMC Bioinformatics, 19(1). https://doi.org/10.1186/s12859-018-2371-3"
+bibentry(bibtype = "article",
+  author="el Bouhaddani, Said and Uh, Hae Won and Jongbloed, Geurt and Hayward, Caroline and Klarić, Lucija and Kiełbasa, Szymon M. and Houwing-Duistermaat, Jeanine",
+  title="Integrating omics datasets with the OmicsPLS package",
+  journal="BMC Bioinformatics",
+  year="2018",
+  volume="19",
+  number="1",
+  abstract="With the exponential growth in available biomedical data, there is a need for data integration methods that can extract information about relationships between the data sets. However, these data sets might have very different characteristics. For interpretable results, data-specific variation needs to be quantified. For this task, Two-way Orthogonal Partial Least Squares (O2PLS) has been proposed. To facilitate application and development of the methodology, free and open-source software is required. However, this is not the case with O2PLS. We introduce OmicsPLS, an open-source implementation of the O2PLS method in R. It can handle both low- and high-dimensional datasets efficiently. Generic methods for inspecting and visualizing results are implemented. Both a standard and faster alternative cross-validation methods are available to determine the number of components. A simulation study shows good performance of OmicsPLS compared to alternatives, in terms of accuracy and CPU runtime. We demonstrate OmicsPLS by integrating genetic and glycomic data. We propose the OmicsPLS R package: a free and open-source implementation of O2PLS for statistical data integration. OmicsPLS is available at https://cran.r-project.org/package=OmicsPLS and can be installed in R via install.packages(“OmicsPLS”).",
+  issn="1471-2105",
+  doi="10.1186/s12859-018-2371-3",
 )
