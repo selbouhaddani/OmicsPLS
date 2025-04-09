@@ -208,11 +208,21 @@ print.cvo2m <- function(x,include_matrix=FALSE,...) {
 #' @param nr_folds Integer. Number of folds of CV
 #' @param keepx_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X. Sparsity of each joint component will be selected sequentially.
 #' @param keepy_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y. Sparsity of each joint component will be selected sequentially.
-#' @return A list containing
-#'    \item{x_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent. One standard error rule is applied}
-#'    \item{y_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent. One standard error rule is applied}
-#'    \item{x}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent, without applying the one standard error rule}
-#'    \item{y}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent, without applying the one standard error rule}
+#' @return A list with the following elements:
+#'    \item{Best}{a vector giving for each join component the number of features
+#'   to keep from `X` and `Y` that yield the highest covariance between the
+#'   joint components of `X` and `Y` (elements `x1`, `y1`, `x2`, `y2`, etc),
+#'   and the number of features to keep from `X` and `Y` yielding the highest
+#'   covariance under the 1 standard error rule (elements `x_1sd1`, `y_1sd1`,
+#'   `x_1sd2`, `y_1sd2`, etc).}
+#'    \item{Covs}{a list, with as many elements as number of joint components (`n`).
+#'   Each element is a matrix giving the average covariance between the joint
+#'   components of `X` and `Y` obtained across the folds, for each tested values
+#'   of `keepx` (columns) and of `keepy` (rows).}
+#'    \item{SEcov}{a list, with as many elements as number of joint components (`n`).
+#'   Each element is a matrix giving the standard error of the covariance
+#'   between the joint components of `X` and `Y` obtained across the folds, for
+#'   each tested values of `keepx` (columns) and of `keepy` (rows).}
 #' @export
 crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_seq=NULL, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
   
@@ -297,6 +307,9 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
   covTU <- NA * 1:nr_folds
   keepxy_x <- keepxy_y <- x_max <- y_max <- vector()
   
+  mean_covTU_list <- list()
+  srr_covTU_list <- list()
+  
   if(method == "SO2PLS"){
     for (comp in 1:n) {
       kx <- 0
@@ -345,6 +358,9 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
           srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
+      mean_covTU_list[[comp]] <- mean_covTU
+      srr_covTU_list[[comp]] <- srr_covTU
+      
       # 1 stardard err rule
       cov_max <- max(mean_covTU)
       cov_1srr <- cov_max - srr_covTU[which.max(mean_covTU)]
@@ -444,6 +460,10 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
           srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
+      
+      mean_covTU_list[[comp]] <- mean_covTU
+      srr_covTU_list[[comp]] <- srr_covTU
+      
       # 1 stardard err rule
       cov_max <- max(mean_covTU)
       cov_1srr <- cov_max - srr_covTU[which.max(mean_covTU)]
@@ -488,7 +508,143 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
   #bestsp$srr <- srr_covTU
   bestsp$x <- x_max
   bestsp$y <- y_max
-  return(list(Best = unlist(bestsp), Covs = mean_covTU, SEcov = srr_covTU))
+  return(list(Best = unlist(bestsp), Covs = mean_covTU_list, SEcov = srr_covTU_list))
+}
+
+#' Plot sparsity cross-validation results
+#'
+#' The produced plot has one facet for each joint component. The x-axis
+#' corresponds to the number of features retained from the X dataset to
+#' construct the joint component, and the y-axis to the number of features
+#' retained from the Y dataset to construct the joint component. The colour
+#' of each point in the ith facet represents the average covariance obtained
+#' between the joint ith components of the two datasets over the cross-validation
+#' folds. The size of the points' shadow correspond to the covariance standard
+#' error across the cross-validation folds. For each joint component, the
+#' setting yielding the maximum average covariance is highlighted in orange,
+#' and the one yielding the highest average covariance under the 1-SD rule in
+#' red.
+#'
+#' @param cv_res List, result from \code{\link{crossval_sparsity}}.
+#' @return A ggplot.
+#' @export
+plot_crossval_sparsity <- function(cv_res) {
+  ncomps <- length(cv_res$Covs)
+  
+  ## For devtools::check()
+  value <- name <- dataset <- type <- Comp <- NULL
+  keepX <- keepY <- Covariance <- SE <- NULL
+  
+  choice_keep <- tibble::tibble(
+    value = cv_res$Best,
+    name = names(cv_res$Best)
+  ) %>%
+    dplyr::mutate(
+      dataset = dplyr::case_when(
+        grepl("^x", name) ~ "keepX",
+        grepl("^y", name) ~ "keepY"
+      ),
+      type = dplyr::case_when(
+        grepl("_1sd", name) ~ "1SD",
+        TRUE ~ "NoSD"
+      ),
+      Comp = as.numeric(regmatches(name, m = gregexpr(pattern = "\\d+$", text = name)))
+    ) %>%
+    dplyr::select(-name) %>%
+    tidyr::pivot_wider(
+      names_from = dataset,
+      values_from = value
+    ) %>%
+    ## If a pair (keepX, keepY) is kept both with the 1SD rule and the noSD rule, only
+    ## use the colour of the 1SD rule
+    dplyr::group_by(Comp, keepX, keepY) %>%
+    dplyr::summarise(
+      col = dplyr::case_when(
+        "1SD" %in% type ~ "1SD",
+        "NoSD" %in% type ~ "NoSD"
+      ),
+      .groups = "drop"
+    )
+  
+  ## Different formatting of the names in cv_res$Best when only 1 common component
+  if (ncomps == 1 & all(is.na(choice_keep$Comp))) {
+    choice_keep <- choice_keep %>%
+      dplyr::mutate(Comp = 1)
+  }
+  
+  df_list <- lapply(1:ncomps, function(comp) {
+    dplyr::full_join(
+      cv_res$Covs[[comp]] %>%
+        tibble::as_tibble(rownames = "keepY") %>%
+        tidyr::pivot_longer(
+          cols = -keepY,
+          names_to = "keepX",
+          values_to = "Covariance"
+        ),
+      cv_res$SEcov[[comp]] %>%
+        tibble::as_tibble(rownames = "keepY") %>%
+        tidyr::pivot_longer(
+          cols = -keepY,
+          names_to = "keepX",
+          values_to = "SE"
+        ),
+      by = c("keepX", "keepY")
+    ) %>%
+      dplyr::mutate(Comp = comp)
+  })
+  
+  Reduce(rbind, df_list) %>%
+    dplyr::mutate(
+      keepX = as.numeric(keepX),
+      keepY = as.numeric(keepY)
+    ) %>%
+    dplyr::left_join(choice_keep, by = c("Comp", "keepX", "keepY")) %>%
+    dplyr::mutate(Comp = paste0("Joint comp. ", Comp)) %>%
+    ggplot2::ggplot(
+      ggplot2::aes(x = keepX, y = keepY)
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(size = SE, colour = col), 
+      shape = 21, 
+      fill = "gray70", 
+      colour = "gray60"
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(fill = Covariance, colour = col), 
+      size = 3, 
+      shape = 21
+    ) +
+    ggplot2::scale_colour_manual(
+      values = c("1SD" = "red", "NoSD" = "orange"),
+      labels = c("1SD" = "1SD rule", "NoSD" = "Max"),
+      breaks = c("1SD", "NoSD"),
+      na.value = "black",
+      guide = ggplot2::guide_legend(title.position = "top", order = 2)
+    ) +
+    ggplot2::scale_fill_viridis_c(
+      option = "viridis", 
+      direction = 1, 
+      guide = ggplot2::guide_colourbar(title.position = "top", order = 1)
+    ) +
+    ggplot2::scale_size(
+      range = c(3, 6), 
+      guide = ggplot2::guide_legend(title.position = "top", order = 3)
+    ) +
+    ggplot2::facet_wrap(~Comp) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_text(hjust = 0.5),
+      legend.position = "bottom"
+    ) +
+    ggplot2::labs(
+      title = paste0("Mean covariance between joint scores"),
+      x = paste0("Nb of features retained in X dataset"),
+      y = paste0("Nb of features retained in\nY dataset"),
+      fill = "Covariance",
+      colour = "Optimal combination",
+      size = "SE"
+    )
 }
 
 
