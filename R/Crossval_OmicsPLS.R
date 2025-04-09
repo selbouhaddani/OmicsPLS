@@ -208,11 +208,21 @@ print.cvo2m <- function(x,include_matrix=FALSE,...) {
 #' @param nr_folds Integer. Number of folds of CV
 #' @param keepx_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of X. Sparsity of each joint component will be selected sequentially.
 #' @param keepy_seq Numeric vector. A vector indicating how many variables/groups to keep for CV in each of the joint component of Y. Sparsity of each joint component will be selected sequentially.
-#' @return A list containing
-#'    \item{x_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent. One standard error rule is applied}
-#'    \item{y_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent. One standard error rule is applied}
-#'    \item{x}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent, without applying the one standard error rule}
-#'    \item{y}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent, without applying the one standard error rule}
+#' @return A list with the following elements:
+#'    \item{Best}{a vector giving for each join component the number of features
+#'   to keep from `X` and `Y` that yield the highest covariance between the
+#'   joint components of `X` and `Y` (elements `x1`, `y1`, `x2`, `y2`, etc),
+#'   and the number of features to keep from `X` and `Y` yielding the highest
+#'   covariance under the 1 standard error rule (elements `x_1sd1`, `y_1sd1`,
+#'   `x_1sd2`, `y_1sd2`, etc).}
+#'    \item{Covs}{a list, with as many elements as number of joint components (`n`).
+#'   Each element is a matrix giving the average covariance between the joint
+#'   components of `X` and `Y` obtained across the folds, for each tested values
+#'   of `keepx` (columns) and of `keepy` (rows).}
+#'    \item{SEcov}{a list, with as many elements as number of joint components (`n`).
+#'   Each element is a matrix giving the standard error of the covariance
+#'   between the joint components of `X` and `Y` obtained across the folds, for
+#'   each tested values of `keepx` (columns) and of `keepy` (rows).}
 #' @export
 crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_seq=NULL, groupx=NULL, groupy=NULL, tol = 1e-10, max_iterations = 100){
   
@@ -297,6 +307,9 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
   covTU <- NA * 1:nr_folds
   keepxy_x <- keepxy_y <- x_max <- y_max <- vector()
   
+  mean_covTU_list <- list()
+  srr_covTU_list <- list()
+  
   if(method == "SO2PLS"){
     for (comp in 1:n) {
       kx <- 0
@@ -345,6 +358,9 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
           srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
+      mean_covTU_list[[comp]] <- mean_covTU
+      srr_covTU_list[[comp]] <- srr_covTU
+      
       # 1 stardard err rule
       cov_max <- max(mean_covTU)
       cov_1srr <- cov_max - srr_covTU[which.max(mean_covTU)]
@@ -444,6 +460,10 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
           srr_covTU[ky,kx] <- sd(covTU)/sqrt(nr_folds)
         }
       }
+      
+      mean_covTU_list[[comp]] <- mean_covTU
+      srr_covTU_list[[comp]] <- srr_covTU
+      
       # 1 stardard err rule
       cov_max <- max(mean_covTU)
       cov_1srr <- cov_max - srr_covTU[which.max(mean_covTU)]
@@ -488,7 +508,7 @@ crossval_sparsity <- function(X, Y, n, nx, ny, nr_folds, keepx_seq=NULL, keepy_s
   #bestsp$srr <- srr_covTU
   bestsp$x <- x_max
   bestsp$y <- y_max
-  return(list(Best = unlist(bestsp), Covs = mean_covTU, SEcov = srr_covTU))
+  return(list(Best = unlist(bestsp), Covs = mean_covTU_list, SEcov = srr_covTU_list))
 }
 
 
