@@ -59,7 +59,7 @@ See \code{citation("OmicsPLS")} for our proposed approach for determining the nu
  \code{nr_folds} is the number of folds, with \code{nr_folds = nrow(X)} for Leave-One-Out CV.
  \item{} For \code{crossval_o2m_adjR2} the same parameters are to be specified. This way of cross-validating is (potentially much)
  faster than the standard approach. It is also recommended over the standard CV.
- \item{} To cross-validate the number of variables to keep, use \code{\link{crossval_sparsity}}. 
+ \item{} To cross-validate the number of variables to keep, use \code{\link{crossval_sparsity}}; you can plot the cross-validation results with \code{\link{plot_crossval_sparsity}}. 
 }
 }
 

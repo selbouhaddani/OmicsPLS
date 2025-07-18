@@ -35,14 +35,15 @@ License: GPL-3
 Encoding: UTF-8
 Imports:
     graphics,
-    stats, 
+    stats,
     dplyr,
     ggplot2,
     parallel,
     magrittr,
     tibble,
     softImpute,
-    withr
+    withr,
+    tidyr
 Suggests:
     testthat,
     knitr,

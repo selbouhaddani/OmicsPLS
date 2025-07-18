@@ -45,11 +45,21 @@ crossval_sparsity(
 \item{max_iterations}{Integer. Maximum number of iterations for the NIPALS method.}
 }
 \value{
-A list containing
-   \item{x_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent. One standard error rule is applied}
-   \item{y_1sd}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent. One standard error rule is applied}
-   \item{x}{A vector with length n, giving the optimal number of variables/groups to keep for each X-joint compoent, without applying the one standard error rule}
-   \item{y}{A vector with length n, giving the optimal number of variables/groups to keep for each Y-joint compoent, without applying the one standard error rule}
+A list with the following elements:
+   \item{Best}{a vector giving for each join component the number of features
+  to keep from `X` and `Y` that yield the highest covariance between the
+  joint components of `X` and `Y` (elements `x1`, `y1`, `x2`, `y2`, etc),
+  and the number of features to keep from `X` and `Y` yielding the highest
+  covariance under the 1 standard error rule (elements `x_1sd1`, `y_1sd1`,
+  `x_1sd2`, `y_1sd2`, etc).}
+   \item{Covs}{a list, with as many elements as number of joint components (`n`).
+  Each element is a matrix giving the average covariance between the joint
+  components of `X` and `Y` obtained across the folds, for each tested values
+  of `keepx` (columns) and of `keepy` (rows).}
+   \item{SEcov}{a list, with as many elements as number of joint components (`n`).
+  Each element is a matrix giving the standard error of the covariance
+  between the joint components of `X` and `Y` obtained across the folds, for
+  each tested values of `keepx` (columns) and of `keepy` (rows).}
 }
 \description{
 Perform cross-validation to find the optimal number of variables/groups to keep for each joint component
